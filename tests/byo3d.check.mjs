@@ -92,6 +92,15 @@ await page.waitForFunction(() => Byo3D.on, null, { timeout: 30000 });
 await page.keyboard.press("Escape");
 await page.waitForFunction(() => !Byo3D.on, null, { timeout: 5000 });
 
+// If 3D breaks mid-frame, it must fall back to the normal page (no overlay left, nothing locked)
+await page.click("#sk-3d");
+await page.waitForFunction(() => Byo3D.on, null, { timeout: 30000 });
+await page.evaluate(() => { Byo3D.debug().pos.distanceTo = null; });
+await page.waitForFunction(() => !Byo3D.on, null, { timeout: 10000 });
+assert.equal(await page.locator("#byo3d").count(), 0, "overlay removed after a 3D failure");
+assert.equal(await page.evaluate(() => [...document.body.children].some(e => e.inert)), false, "page unlocked after a 3D failure");
+errors.splice(0, errors.length, ...errors.filter(e => !/distanceTo is not a function/.test(e)));
+
 assert.deepEqual(errors, [], "no page errors");
 console.log("PASS byo3d", at);
 await browser.close(); server.close();
