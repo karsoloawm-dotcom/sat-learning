@@ -37,10 +37,24 @@ The 5 Centimeters per Second (Byousoku 5 Centimeter) scene in Katawaredoki Vocab
 
 (Quote 4: owner's text said "being move"; fixed to "being moved" — builder's call, flag to owner.)
 
+### Language
+- **English and Tiếng Việt:** the English quotes above.
+- **日本語:** the Japanese versions below. Quote 9 is the film's well-known line. The others are **rough translations by Claude**, because a web search did not find the original Japanese lines; the owner can swap in originals later.
+
+1. 「遠野くんはいつも、わたしのずっと向こう、もっと遠くの何かを見ている。わたしを見てくれることは、きっとない。」— 澄田花苗
+2. 「本当にやりたいことがある人たちが、ただうらやましくなったんだ。」— 水野理紗
+3. 「わたしに隠してきた気持ちも、見せたくなかったことも……ぜんぶ見せて。」— 澄田花苗
+4. 「心が……なんて言えばいいのか、弾力を失ってしまったみたいだ。満たされる感覚も、きれいなものを見て心が動くことも、熱意も、少しずつ削られていった。」— 遠野貴樹
+5. 「遠く離れても、その気持ちを持ち続けること。それが僕の人生の羅針盤になった。」— 遠野貴樹
+6. 「過去にとらわれてきたことが、今のあなたをつくったんだよ。」— 水野理紗
+7. 「今のわたしには、あなたの幸せを願うことはできても、叶えてあげることはできない。」— 水野理紗
+8. 「でも、いつかまた、新しいかたちで、新しい自分たちとして出会えたら。そして、何か新しいことが始まりますように。」— 水野理紗
+9. 「ねえ、秒速5センチなんだって。桜の花の落ちるスピード。秒速5センチメートル。」— 篠原明里
+
 ## Constraints
 - The site is one file, `index.html`, inside `Katawaredoki Vocab.zip` (with two SoundFont files). The change edits that `index.html` and re-zips.
 - It already loads Google Fonts from the network, so loading Three.js from a CDN at runtime is acceptable. If the load fails, show a toast and stay in 2D.
-- The UI is in English, Tiếng Việt and 日本語 through `T()`. New UI strings (button label, hints) go into all three. The quotes stay in English, as supplied.
+- The UI is in English, Tiếng Việt and 日本語 through `T()`. New UI strings (button label, hints) go into all three. The quotes follow the Language section above.
 - Sounds are synthesized with WebAudio (`train()`, the crossing bells). The music is a separate audio file. Both keep running.
 - Sky view (`html.skyview`, `#sk-view`, controls in `#skyctl`) already hides the UI; the 3D button lives in that control group.
 
