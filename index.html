@@ -1470,7 +1470,7 @@ const Search=(()=>{
     byousoku5centimeter:"5centimeterspersecond",byosoku5senchimetoru:"5centimeterspersecond",byousoku5senchimeetoru:"5centimeterspersecond","5cmpersecond":"5centimeterspersecond","5centimetrespersecond":"5centimeterspersecond","秒速5センチメートル":"5centimeterspersecond","秒速５センチメートル":"5centimeterspersecond",
     silentvoice:"asilentvoice",koenokatachi:"asilentvoice","聲の形":"asilentvoice","声の形":"asilentvoice",
     totoro:"myneighbortotoro",tonarinototoro:"myneighbortotoro",myneighbourtotoro:"myneighbortotoro","となりのトトロ":"myneighbortotoro",
-    "howl'smovingcastle":"howlsmovingcastle","howl’smovingcastle":"howlsmovingcastle",haurunougokushiro:"howlsmovingcastle","ハウルの動く城":"howlsmovingcastle","girls'lasttour":"girlslasttour","girls’lasttour":"girlslasttour",girlslasttour:"girlslasttour",typewriters:"typewriter",leiden:"typewriter",automemorydoll:"typewriter",automemorydolls:"typewriter","タイプライター":"typewriter","自動手記人形":"typewriter","ライデン":"typewriter",shoujoshuumatsuryokou:"girlslasttour",shojoshumatsuryoko:"girlslasttour",shoujoshumatsuryokou:"girlslasttour","少女終末旅行":"girlslasttour",kettenkrad:"girlslasttour",awhiskeraway:"awhiskeraway",whiskeraway:"awhiskeraway",nakitaiwatashiwanekowokaburu:"awhiskeraway",nakitaiwatashiwanekookaburu:"awhiskeraway",nakineko:"awhiskeraway","泣きたい私は猫をかぶる":"awhiskeraway","あの花":"anohana","あの日見た花の名前を僕達はまだ知らない":"anohana","あの日見た花の名前を僕達はまだ知らない。":"anohana",anohimitahananonamaewobokutachiwamadashiranai:"anohana",anohimitahananonamaeobokutachiwamadashiranai:"anohana","めんま":"menma","秘密基地":"secretbase",himitsukichi:"secretbase","超平和バスターズ":"superpeacebusters",chouheiwabusters:"superpeacebusters",choheiwabusters:"superpeacebusters"};
+    "howl'smovingcastle":"howlsmovingcastle","howl’smovingcastle":"howlsmovingcastle",haurunougokushiro:"howlsmovingcastle","ハウルの動く城":"howlsmovingcastle","girls'lasttour":"girlslasttour","girls’lasttour":"girlslasttour",girlslasttour:"girlslasttour","rin'stablet":"rinos","rin’stablet":"rinos",rinstablet:"rinos","2539":"rinos",day2539:"rinos",nonewmessages:"rinos",typewriters:"typewriter",leiden:"typewriter",automemorydoll:"typewriter",automemorydolls:"typewriter","タイプライター":"typewriter","自動手記人形":"typewriter","ライデン":"typewriter",shoujoshuumatsuryokou:"girlslasttour",shojoshumatsuryoko:"girlslasttour",shoujoshumatsuryokou:"girlslasttour","少女終末旅行":"girlslasttour",kettenkrad:"girlslasttour",awhiskeraway:"awhiskeraway",whiskeraway:"awhiskeraway",nakitaiwatashiwanekowokaburu:"awhiskeraway",nakitaiwatashiwanekookaburu:"awhiskeraway",nakineko:"awhiskeraway","泣きたい私は猫をかぶる":"awhiskeraway","あの花":"anohana","あの日見た花の名前を僕達はまだ知らない":"anohana","あの日見た花の名前を僕達はまだ知らない。":"anohana",anohimitahananonamaewobokutachiwamadashiranai:"anohana",anohimitahananonamaeobokutachiwamadashiranai:"anohana","めんま":"menma","秘密基地":"secretbase",himitsukichi:"secretbase","超平和バスターズ":"superpeacebusters",chouheiwabusters:"superpeacebusters",choheiwabusters:"superpeacebusters"};
   const ANIME={
     frieren:{brand:"Sousou no Frieren",brow:"葬送のフリーレン · Beyond Journey’s End",w:"Frieren",jp:"葬送のフリーレン",pr:"/sō·sō no fu·rī·ren/",meta:"anime series · 2023– · Madhouse",
       d:"An elf mage outlives the hero's party she traveled with for a mere ten years, then sets out on a new journey to understand the people she only realized, too late, that she loved. A quiet story about time, memory, and regret, with surprisingly good fights.",
@@ -1679,7 +1679,7 @@ const Search=(()=>{
   if(nb)nb.onclick=e=>{e.stopPropagation();normal()};
   setInterval(normUi,1000); /* shortcut: polls the three states once a second instead of hooking every place they change */ /* reduced motion: no animation, revert when the card closes */
   function stopAll(){undClose();jjkStop();timers.forEach(clearTimeout);timers=[];Sky.cancel();document.querySelectorAll(".egg").forEach(e=>e.remove());const s=$("#gsearch");s.style.animation="";$(".wrap").style.animation=""}
-  function play(hit){if(!["easy","hard","clear","pixelated","typewriter"].includes(hit)&&window.SpecialDay&&SpecialDay.block())return;if(window.Ano&&Ano.on()&&ANIME_OF[hit]!=="anohana")Ano.exit();try{window.UIX&&UIX.egg(hit)}catch(e){}stopAll();if(window.GltTravel)GltTravel.stop();EGGS[hit]();setHeader(ANIME_OF[hit]||null);EggSound.egg(ANIME_OF[hit]||null)}
+  function play(hit){if(!["easy","hard","clear","pixelated","typewriter","rinos"].includes(hit)&&window.SpecialDay&&SpecialDay.block())return;if(window.Ano&&Ano.on()&&ANIME_OF[hit]!=="anohana")Ano.exit();try{window.UIX&&UIX.egg(hit)}catch(e){}stopAll();if(window.GltTravel)GltTravel.stop();EGGS[hit]();setHeader(ANIME_OF[hit]||null);EggSound.egg(ANIME_OF[hit]||null)}
   const EGGS={
     quomodo(){ say("🎆 Quomodocunquizing: making money by any means possible. Dignified? No. Fireworks? Yes."); rain(oddWords(),{n:26}); Sky.comet(true); },
     petrichor(){ say("🌧 Petrichor: the smell of rain on dry earth."); rain(["・","｡","·","∙","💧","✦"],{n:30,color:"#8fd3ff",up:false}); },
@@ -1711,6 +1711,7 @@ const Search=(()=>{
     spiritedaway(){ card("spirited"); fx(Sky.spirited()); },
     violetevergarden(){ card("violet"); fx(Sky.violet()); },
     typewriter(){ window.Leiden&&Leiden.open(); },
+    rinos(){ window.Gadgets&&Gadgets.home(); },
     "5centimeterspersecond"(){ card("byosoku"); fx(Sky.xs("byosoku")); },
     asilentvoice(){ card("koe"); fx(Sky.xs("koe")); },
     myneighbortotoro(){ card("totoro"); fx(Sky.xs("totoro")); },
@@ -1746,8 +1747,8 @@ const Search=(()=>{
     clearTimeout(pend);
     /* "spirit" is the start of "spirited away": wait a moment in case the user is still typing a longer egg */
     const longer=hit&&hit!=="quomodo"&&Object.keys(EGGS).concat(Object.keys(ALIAS)).some(x=>x!==k&&x.startsWith(k));
-    if(hit&&hit!==lastEgg&&longer){ pend=setTimeout(()=>{if(norm(inp.value)===k&&hit!==lastEgg){lastEgg=hit;play(hit);ctl(hit!=="typewriter")}},700); return }
-    if(hit&&hit!==lastEgg){ lastEgg=hit; play(hit);ctl(hit!=="typewriter"); }
+    if(hit&&hit!==lastEgg&&longer){ pend=setTimeout(()=>{if(norm(inp.value)===k&&hit!==lastEgg){lastEgg=hit;play(hit);ctl(!["typewriter","rinos"].includes(hit))}},700); return }
+    if(hit&&hit!==lastEgg){ lastEgg=hit; play(hit);ctl(!["typewriter","rinos"].includes(hit)); }
     if(!hit&&lastEgg){ lastEgg=""; setHeader(window.Ano&&Ano.on()?"anohana":null); ctl(false); undClose(); }
   }
   inp.addEventListener("input",()=>{
@@ -2046,7 +2047,7 @@ const Icons=(()=>{const M={"🎬": "film", "🎲": "dice", "🔊": "furin", "�
   scan(document.body);return {scan}})();
 window.UIX=(()=>{
   const LS={get:(k,d)=>{try{const v=localStorage.getItem("kwd:"+k);return v?JSON.parse(v):d}catch(e){return d}},set:(k,v)=>{try{localStorage.setItem("kwd:"+k,JSON.stringify(v))}catch(e){}}};
-  const EGG=[["frieren","❄️","Sousou no Frieren","An elf mage's long journey"],["yourname","☄️","Kimi No Na Wa","A comet splits in two"],["weatheringwithyou","☀️","Tenki No Ko","A girl who brings the sun"],["suzume","🚪","Suzume No Tojimari","Doors that must be locked"],["spiritedaway","🛁","Sen To Chihiro No Kamikakushi","A bathhouse for spirits"],["violetevergarden","✉️","Violet Evergarden","She writes other people's letters"],["typewriter","⌨","Leiden typewriter","An Auto Memory Doll's machine"],
+  const EGG=[["frieren","❄️","Sousou no Frieren","An elf mage's long journey"],["yourname","☄️","Kimi No Na Wa","A comet splits in two"],["weatheringwithyou","☀️","Tenki No Ko","A girl who brings the sun"],["suzume","🚪","Suzume No Tojimari","Doors that must be locked"],["spiritedaway","🛁","Sen To Chihiro No Kamikakushi","A bathhouse for spirits"],["violetevergarden","✉️","Violet Evergarden","She writes other people's letters"],["typewriter","⌨","Leiden typewriter","An Auto Memory Doll's machine"],["rinos","▣","Day 2539","Rin's tablet, still waiting for a message"],
     ["5centimeterspersecond","🌸","Byousoku 5 Centimeter","How fast petals fall"],["asilentvoice","🤟","Koe no Katachi","A voice with no sound"],["myneighbortotoro","🌱","Tonari no Totoro","A neighbour at the bus stop"],["howlsmovingcastle","🏰","Hauru no Ugoku Shiro","A castle that walks"],["katawaredoki","🌆","Katawaredoki","The hour between day and night"],["anohana","🌼","Ano Hana","The summer we never forgot"],["girlslasttour","⚙","Shoujo Shuumatsu Ryokou","Two girls on a half-track"],["awhiskeraway","🎭","Nakitai Watashi wa Neko o Kaburu","A mask that makes you a cat"],
     ["gojo","∞","Unlimited Void","The strongest's domain"],["sukuna","⛩","Malevolent Shrine","Everything in range gets cut"],["sans","💀","sans","A skeleton who loves puns"],["pixelated","👾","Pixelated","Go back to 8 bits"],["easy","🍼","Easy mode","Make it easier. Much easier."],
     ["spirit","🏮","Spirit","A second meaning, with lanterns"],["epistolary","📜","Epistolary","A word about letters"],["petrichor","🌧","Petrichor","The smell after rain"],["defenestration","🪟","Defenestration","Out of the window"],["lethologica","🫥","Lethologica","When the word won't come"],["floccinaucinihilipilification","📏","The long one","A very long word for 'worthless'"],["quomodo","🃏","Quomodo…","A word that starts with quomodo"]];
@@ -13547,9 +13548,9 @@ const ICO_MU=`<svg viewBox="0 0 40 40" width="40" height="40" fill="#fff" aria-h
    Sketch, Music and Photos (Sketch's gallery) are the big apps and take over the screen; the rest open in a window
    that grows out of its icon. Settings live in this browser (store "rinos"). ---------- */
 const RINOS=(()=>{
-  const DEF={wall:"dusk",acc:"#7fe0ff",bright:1,fs:1,h24:true,snd:true,lock:true,dnd:false,name:"Rin's tablet"};
+  const DEF={msg:0,dream:false,wall:"dusk",acc:"#7fe0ff",bright:1,fs:1,h24:true,snd:true,lock:true,dnd:false,name:"Rin's tablet"};
   let C=Object.assign({},DEF,store.get("rinos",{}));const save=()=>store.set("rinos",C);
-  const WALLS={dusk:["Dusk","linear-gradient(180deg,#0b1d3a 0%,#2a3f6e 55%,#d78aa0 100%)"],shelter:["Shelter","linear-gradient(160deg,#ff9ae0 0%,#9a8cff 48%,#7fe0ff 100%)"],
+  const WALLS={dream:["Dream","linear-gradient(120deg,#ffd6f0,#c8b6ff,#a8f0ff,#d6ffe8,#ffd6f0)"],dusk:["Dusk","linear-gradient(180deg,#0b1d3a 0%,#2a3f6e 55%,#d78aa0 100%)"],shelter:["Shelter","linear-gradient(160deg,#ff9ae0 0%,#9a8cff 48%,#7fe0ff 100%)"],
     night:["Night city","linear-gradient(180deg,#03050c 0%,#14203d 62%,#3a2a5a 100%)"],meadow:["Meadow","linear-gradient(180deg,#2a5a9a 0%,#8fd0f0 52%,#9fd88a 53%,#3f7f45 100%)"],
     sunset:["Sunset","linear-gradient(180deg,#2c1a4a 0%,#c45a6a 55%,#ffb36a 100%)"],sea:["Deep sea","linear-gradient(180deg,#0a3a5a 0%,#062038 60%,#020a14 100%)"]};
   const ACC=["#7fe0ff","#ff9ae0","#fff2a0","#9fffb0","#ffb36a","#b6a8ff"];
@@ -13563,7 +13564,7 @@ const RINOS=(()=>{
   const APPS=[{id:"sketch",n:"Sketch",bg:"linear-gradient(135deg,#7fe0ff,#3a6ad0)",i:ICO_SK},{id:"music",n:"Music",bg:"linear-gradient(135deg,#ff9ae0,#8a5cff)",i:ICO_MU},
     {id:"photos",n:"Photos",bg:"linear-gradient(135deg,#fff2a0,#ff9ab8)",i:ICO.photos},{id:"weather",n:"Weather",bg:"linear-gradient(160deg,#4aa8ff,#1d4f9a)",i:ICO.weather},
     {id:"clock",n:"Clock",bg:"linear-gradient(135deg,#2c4a7c,#081424)",i:ICO.clock},{id:"calc",n:"Calculator",bg:"linear-gradient(135deg,#ffb36a,#e8443a)",i:ICO.calc},
-    {id:"cal",n:"Calendar",bg:"#fff",i:""},{id:"notes",n:"Notes",bg:"linear-gradient(135deg,#ffe48a,#e8b030)",i:ICO.notes},{id:"settings",n:"Settings",bg:"linear-gradient(135deg,#9fb0c8,#4a5a78)",i:ICO.settings}];
+    {id:"cal",n:"Calendar",bg:"#fff",i:""},{id:"notes",n:"Notes",bg:"linear-gradient(135deg,#ffe48a,#e8b030)",i:ICO.notes},{id:"msgs",n:"Messages",bg:"linear-gradient(135deg,#9fffb0,#2fa060)",i:sv('<path d="M7 9h26v17H18l-7 6v-6H7z"/>')},{id:"settings",n:"Settings",bg:"linear-gradient(135deg,#9fb0c8,#4a5a78)",i:ICO.settings}];
   const DOCK=["sketch","music","notes","settings"],BIG=["sketch","music","photos"];
   const MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],DAY=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
   const $=s=>home&&home.querySelector(s),pad=n=>String(n).padStart(2,"0");
@@ -13577,7 +13578,9 @@ const RINOS=(()=>{
 
   /* ---- applying settings ---- */
   function apply(){if(!scr)return;scr.style.setProperty("--wall",(WALLS[C.wall]||WALLS.dusk)[1]);scr.style.setProperty("--acc",C.acc);scr.style.setProperty("--dim",String(((1-C.bright)*.8).toFixed(2)));scr.style.setProperty("--fs",String(C.fs));
-    const n=$(".os-name");if(n)n.textContent=C.name||DEF.name;clock()}
+    const n=$(".os-name");if(n)n.textContent=C.name||DEF.name;scr.classList.toggle("dreamy",C.wall==="dream");
+    const mi=$('.os-app[data-app="msgs"] .os-ico');if(mi){let bd=mi.querySelector(".os-badge");if(C.msg===1&&!bd){bd=document.createElement("b");bd.className="os-badge";bd.textContent="1";mi.appendChild(bd)}else if(C.msg!==1&&bd)bd.remove()}
+    const ln=$(".os-lnote");if(ln)ln.innerHTML=C.msg===1?"<small>Messages · day 2539</small>1 new message from Dad.":"<small>Messages · day 2539</small>No new messages.";clock()}
   function set(k,v){C[k]=v;save();apply()}
 
   /* ---- clocks and battery ---- */
@@ -13628,7 +13631,7 @@ const RINOS=(()=>{
   function enter(){const h=$(".os-home");h.classList.remove("os-in");void h.offsetWidth;h.classList.add("os-in")}
   function unlock(){if(!locked)return;locked=false;$(".os-lock").classList.add("gone");scr.classList.remove("locked");beep(880,.08,.05);setTimeout(()=>beep(1320,.12,.05),70);enter();
     setTimeout(()=>{const f=$(".os-app");if(f)f.focus({preventScroll:true})},120);
-    setTimeout(()=>banner("Messages · day 2539","No new messages. The sky is still drawing itself."),900)}
+    setTimeout(()=>{if(C.msg===1)banner("Messages · Dad","1 new message.",["Read",()=>{const a=$('.os-app[data-app="msgs"]');if(a)launch("msgs",a)}]);else banner("Messages · day 2539","No new messages. The sky is still drawing itself.")},900)}
   function lock(){if(cur)closeWin(true);cc(false);locked=true;const l=$(".os-lock");l.classList.remove("gone");setTimeout(()=>{if(locked&&scr)scr.classList.add("locked")},reduced?0:450);beep(520,.1,.06);setTimeout(()=>{const f=$(".os-unl");if(f)f.focus({preventScroll:true})},50)}
   function close(){if(!home)return;stopAll();removeEventListener("keydown",guard,true);timers.forEach(clearInterval);timers=[];const h=home;home=null;scr=null;cur=null;win=null;
     h.classList.remove("rt-on");setTimeout(()=>h.remove(),300);const b=document.getElementById("sc-gad");if(b)b.focus({preventScroll:true})}
@@ -13659,24 +13662,24 @@ const RINOS=(()=>{
     c.innerHTML=`<button type="button" class="os-b" data-c="snd" aria-pressed="${C.snd}">${C.snd?"🔊":"🔈"} Sounds<small>${C.snd?"On":"Off"}</small></button><button type="button" class="os-b" data-c="dnd" aria-pressed="${C.dnd}">☾ Focus<small>${C.dnd?"Do not disturb":"Off"}</small></button>
       <button type="button" class="os-b" data-c="wall">◐ Wallpaper<small>${(WALLS[C.wall]||WALLS.dusk)[0]}</small></button><button type="button" class="os-b" data-c="lock">🔒 Lock<small>now</small></button>
       <label>☀<input type="range" min="0.35" max="1" step="0.01" value="${C.bright}" aria-label="Brightness"></label>`;
-    c.querySelectorAll("[data-c]").forEach(x=>x.onclick=()=>{const k=x.dataset.c;if(k==="snd")set("snd",!C.snd);else if(k==="dnd")set("dnd",!C.dnd);else if(k==="wall"){const ks=Object.keys(WALLS);set("wall",ks[(ks.indexOf(C.wall)+1)%ks.length])}else{lock();return}cc(true);c.querySelector(`[data-c="${k}"]`).focus()});
+    c.querySelectorAll("[data-c]").forEach(x=>x.onclick=()=>{const k=x.dataset.c;if(k==="snd")set("snd",!C.snd);else if(k==="dnd")set("dnd",!C.dnd);else if(k==="wall"){const ks=Object.keys(WALLS).filter(k=>k!=="dream"||C.dream);set("wall",ks[(ks.indexOf(C.wall)+1)%ks.length])}else{lock();return}cc(true);c.querySelector(`[data-c="${k}"]`).focus()});
     c.querySelector("input").oninput=e=>set("bright",+e.target.value);c.classList.remove("gone");b.setAttribute("aria-expanded","true")}
 
   /* ---- Weather: simulated for the film towns (the tablet has no signal), live from Open-Meteo where the page is allowed to fetch ---- */
   const CITIES=[["Tokyo",35.69,139.69,[6,7,10,15,19,22,26,27,24,18,13,8],"Asia/Tokyo"],["Hida · Itomori",36.24,137.19,[-1,0,4,10,15,19,23,24,20,13,7,2],"Asia/Tokyo"],["Tanegashima",30.6,130.98,[12,13,15,18,21,24,28,28,26,22,18,14],"Asia/Tokyo"],
-    ["Hanoi",21.03,105.85,[17,18,21,24,28,30,30,29,28,26,22,19],"Asia/Ho_Chi_Minh"],["Leiden",52.16,4.49,[4,4,7,10,13,16,18,18,15,11,7,5],"Europe/Amsterdam"]];
+    ["Hanoi",21.03,105.85,[17,18,21,24,28,30,30,29,28,26,22,19],"Asia/Ho_Chi_Minh"],["Orbit · Rin's pod",null,null,null,null],["Leiden",52.16,4.49,[4,4,7,10,13,16,18,18,15,11,7,5],"Europe/Amsterdam"]];
   const cityHour=ci=>{try{return +new Intl.DateTimeFormat("en-GB",{hour:"numeric",hourCycle:"h23",timeZone:CITIES[ci][4]}).format(new Date())}catch(e){return new Date().getHours()}};
-  const COND={clear:"Clear",cloud:"Cloudy",rain:"Rain",snow:"Snow",storm:"Thunderstorm"};
+  const COND={space:"Pod interior · no weather in space",clear:"Clear",cloud:"Cloudy",rain:"Rain",snow:"Snow",storm:"Thunderstorm"};
   const rng=s=>()=>((s=(s*1664525+1013904223)>>>0)/4294967296);
-  function wicon(c,night){const p=c==="clear"?(night?'<i class="moon"></i>':'<i class="ray"></i><i class="sun"></i>'):(c==="cloud"?'<i class="cl"></i>':(night?"":'<i class="sun" style="inset:4% 30% 40% 4%"></i>')+`<i class="cl${c==="storm"?" dk":""}"></i>`);
+  function wicon(c,night){if(c==="space")return '<i class="moon"></i>';const p=c==="clear"?(night?'<i class="moon"></i>':'<i class="ray"></i><i class="sun"></i>'):(c==="cloud"?'<i class="cl"></i>':(night?"":'<i class="sun" style="inset:4% 30% 40% 4%"></i>')+`<i class="cl${c==="storm"?" dk":""}"></i>`);
     const fx=c==="rain"?[18,38,58,78].map((l,i)=>`<i class="dr" style="left:${l}%;animation-delay:${i*.2}s"></i>`).join(""):c==="snow"?[22,48,74].map((l,i)=>`<i class="fl" style="left:${l}%;animation-delay:${i*.5}s"></i>`).join(""):c==="storm"?'<i class="bolt"></i>':"";return p+fx}
-  function sim(ci,d0){const [n,,,M]=CITIES[ci],day=Math.floor(d0/864e5),out={src:"Simulated · no signal in this world",days:[],hours:[]};
+  function sim(ci,d0){if(CITIES[ci][1]==null){const D=[...Array(7)].map((_,k)=>({d:new Date(d0+k*864e5),c:"space",hi:21,lo:21})),h0=new Date(d0).getHours();return {src:"Life support OK · there is no weather in space",now:{t:21,c:"space",hum:40,wind:0},days:D,hours:[...Array(12)].map((_,k)=>({h:(h0+k)%24,t:21,c:"space"}))}}const [n,,,M]=CITIES[ci],day=Math.floor(d0/864e5),out={src:"Simulated · no signal in this world",days:[],hours:[]};
     for(let k=0;k<7;k++){const r=rng((day+k)*977+ci*131),m=new Date(d0+k*864e5).getMonth(),base=M[m]+(r()*6-3),hi=Math.round(base+3+r()*3),lo=Math.round(base-4-r()*3),q=r();
       const c=q<.4?"clear":q<.68?"cloud":q<.92?(lo<1?"snow":"rain"):"storm";out.days.push({d:new Date(d0+k*864e5),c,hi,lo})}
     const t=out.days[0],h0=cityHour(ci);for(let k=0;k<12;k++){const h=(h0+k)%24,f=Math.cos((h-15)/24*2*Math.PI);out.hours.push({h,t:Math.round((t.hi+t.lo)/2+f*(t.hi-t.lo)/2),c:t.c})}
     const nf=Math.cos((h0-15)/24*2*Math.PI);out.now={t:Math.round((t.hi+t.lo)/2+nf*(t.hi-t.lo)/2),c:t.c,hum:Math.round(50+rng(day+ci)()*40),wind:Math.round(4+rng(day*3+ci)()*20)};return out}
   const wmo=c=>c<=1?"clear":c<=48?"cloud":c<=67||(c>=80&&c<=82)?"rain":c<=77||c===85||c===86?"snow":"storm";
-  async function live(ci){const [,la,lo]=CITIES[ci],ctl=new AbortController(),to=setTimeout(()=>ctl.abort(),4000);
+  async function live(ci){if(CITIES[ci][1]==null)return null;const [,la,lo]=CITIES[ci],ctl=new AbortController(),to=setTimeout(()=>ctl.abort(),4000);
     try{const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${la}&longitude=${lo}&current=temperature_2m,weather_code,relative_humidity_2m,wind_speed_10m&hourly=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=7`,{signal:ctl.signal});
       if(!r.ok)return null;const j=await r.json(),H=j.hourly,i0=Math.max(0,H.time.findIndex(s=>s>=j.current.time.slice(0,13)));
       return {src:"Live · Open-Meteo",now:{t:Math.round(j.current.temperature_2m),c:wmo(j.current.weather_code),hum:Math.round(j.current.relative_humidity_2m),wind:Math.round(j.current.wind_speed_10m)},
@@ -13688,7 +13691,7 @@ const RINOS=(()=>{
   const WX={ci:0,open(b){this.b=b;this.draw(sim(this.ci,Date.now()));this.fetch()},
     async fetch(){const ci=this.ci;await getLive(ci);if(ci===0&&home)widget();if(liveCache[ci]&&this.b&&this.b.isConnected&&this.ci===ci)this.draw(liveCache[ci])},
     draw(w){const b=this.b,n=w.hours[0].h,night=n<6||n>=19,c=w.now.c,lo=Math.min(...w.days.map(d=>d.lo)),hi=Math.max(...w.days.map(d=>d.hi)),sp=Math.max(1,hi-lo);
-      const bg=night?"linear-gradient(180deg,#0b1430,#1c2c4c)":c==="clear"?"linear-gradient(180deg,#3a8ae0,#7fc8ff)":c==="cloud"?"linear-gradient(180deg,#5a7090,#9fb0c8)":c==="snow"?"linear-gradient(180deg,#8aa0c0,#dfe9f5)":"linear-gradient(180deg,#2a3a55,#56708f)";
+      const bg=c==="space"?"radial-gradient(circle at 75% 20%,#3a2a6a,#0a0f24 55%,#02030a)":night?"linear-gradient(180deg,#0b1430,#1c2c4c)":c==="clear"?"linear-gradient(180deg,#3a8ae0,#7fc8ff)":c==="cloud"?"linear-gradient(180deg,#5a7090,#9fb0c8)":c==="snow"?"linear-gradient(180deg,#8aa0c0,#dfe9f5)":"linear-gradient(180deg,#2a3a55,#56708f)";
       b.innerHTML=`<div class="os-row os-seg">${CITIES.map((x,i)=>`<button type="button" class="os-b" data-ci="${i}" aria-pressed="${i===this.ci}">${esc(x[0])}</button>`).join("")}</div>
         <div class="wx" style="--wxbg:${bg}"><div class="wx-fx ${c==="rain"||c==="storm"?"rain":c==="snow"?"snow":""}">${c==="rain"||c==="storm"||c==="snow"?Array.from({length:26},(_,i)=>`<i style="left:${(i*37)%100}%;animation-delay:${(i*.13)%2}s"></i>`).join(""):""}</div>
           <div class="wx-top"><span class="wx-big wi">${wicon(c,night)}</span><div><div class="wx-t">${w.now.t}°</div><div class="wx-c">${COND[c]} · ${esc(CITIES[this.ci][0])}</div><div class="wx-m">H ${w.days[0].hi}° · L ${w.days[0].lo}° · humidity ${w.now.hum}% · wind ${w.now.wind} km/h</div></div></div>
@@ -13697,7 +13700,7 @@ const RINOS=(()=>{
       b.querySelectorAll("[data-ci]").forEach(x=>x.onclick=()=>{this.ci=+x.dataset.ci;this.draw(sim(this.ci,Date.now()));this.fetch();const f=this.b.querySelector(`[data-ci="${this.ci}"]`);if(f)f.focus()})}};
 
   /* ---- Clock: world clock, stopwatch, timer ---- */
-  const ZONES=[["Here",null],["Tokyo","Asia/Tokyo"],["Hanoi","Asia/Ho_Chi_Minh"],["Leiden","Europe/Amsterdam"],["New York","America/New_York"]];
+  const ZONES=[["Here",null],["Rin's pod · orbit","pod"],["Tokyo","Asia/Tokyo"],["Hanoi","Asia/Ho_Chi_Minh"],["Leiden","Europe/Amsterdam"],["New York","America/New_York"]];
   const CK={tab:"world",sw:{on:false,t0:0,acc:0,laps:[]},tm:{on:false,end:0,left:300000,total:300000},raf:0,iv:0,
     open(b){this.b=b;this.draw()},close(){cancelAnimationFrame(this.raf);clearInterval(this.iv);this.b=null},
     stopAll(){this.sw.on=false;this.tm.on=false;cancelAnimationFrame(this.raf);clearInterval(this.iv);clearInterval(this.tiv)},
@@ -13707,7 +13710,7 @@ const RINOS=(()=>{
       b.querySelectorAll("[data-t]").forEach(x=>x.onclick=()=>{this.tab=x.dataset.t;this.draw();this.b.querySelector(`[data-t="${this.tab}"]`).focus()});const v=b.querySelector(".ck-v");
       if(this.tab==="world"){v.innerHTML=`<div class="ck-face">${[12,3,6,9].map((n,i)=>`<em style="left:${50+40*Math.sin(i*Math.PI/2)}%;top:${50-40*Math.cos(i*Math.PI/2)}%">${n}</em>`).join("")}<i class="h"></i><i class="m"></i><i class="s"></i><b></b></div><div class="ck-list"></div>`;
         const up=()=>{const d=new Date(),f=v.querySelector(".ck-face");if(!f)return;f.querySelector(".h").style.transform=`rotate(${(d.getHours()%12+d.getMinutes()/60)*30}deg)`;f.querySelector(".m").style.transform=`rotate(${d.getMinutes()*6+d.getSeconds()/10}deg)`;f.querySelector(".s").style.transform=`rotate(${d.getSeconds()*6}deg)`;
-          v.querySelector(".ck-list").innerHTML=ZONES.map(([n,z])=>{let s;try{s=z?d.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit",hour12:!C.h24,timeZone:z}):tm(d)}catch(e){s="—"}return `<div><span>${esc(n)}</span><b>${esc(s)}</b></div>`}).join("")};up();this.iv=setInterval(up,1000)}
+          v.querySelector(".ck-list").innerHTML=ZONES.map(([n,z])=>{let s;if(z==="pod")return `<div><span>${esc(n)}</span><b>Day 2539 · ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}</b></div>`;try{s=z?d.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit",hour12:!C.h24,timeZone:z}):tm(d)}catch(e){s="—"}return `<div><span>${esc(n)}</span><b>${esc(s)}</b></div>`}).join("")};up();this.iv=setInterval(up,1000)}
       else if(this.tab==="sw"){const S=this.sw;v.innerHTML=`<div class="ck-big" aria-live="off">00:00.00</div><div class="os-row" style="justify-content:center"><button type="button" class="os-b" data-a="go"></button><button type="button" class="os-b" data-a="lap"></button></div><div class="ck-laps"></div>`;
         const big=v.querySelector(".ck-big"),go=v.querySelector('[data-a="go"]'),lap=v.querySelector('[data-a="lap"]'),now=()=>S.acc+(S.on?performance.now()-S.t0:0);
         const ui=()=>{go.textContent=S.on?"Stop":"Start";lap.textContent=S.on?"Lap":"Reset";lap.disabled=!S.on&&!S.acc;v.querySelector(".ck-laps").innerHTML=S.laps.map((l,i)=>`<div><span>Lap ${S.laps.length-i}</span><span>${this.fmt(l,1)}</span></div>`).join("")};
@@ -13728,13 +13731,13 @@ const RINOS=(()=>{
       b.querySelectorAll("[data-k]").forEach(x=>x.onclick=()=>this.press(x.dataset.k));this.show()},
     num:s=>parseFloat(s),fmt(n){if(!isFinite(n))return "Error";const r=parseFloat(n.toPrecision(12));const s=String(r);return s.length>14?r.toExponential(6):s},
     calc(a,op,b){return op==="+"?a+b:op==="−"?a-b:op==="×"?a*b:b===0?NaN:a/b},
-    press(k){if(this.cur==="Error"&&k!=="AC"){this.clear()}
+    press(k){if((this.cur==="Error"||this.cur==="nice try")&&k!=="AC"){this.clear()}
       if(/^[0-9]$/.test(k)){if(this.fresh){this.cur=k;this.fresh=false}else if(this.cur.replace(/[-.]/g,"").length<12)this.cur=this.cur==="0"?k:this.cur+k}
       else if(k==="."){if(this.fresh){this.cur="0.";this.fresh=false}else if(!this.cur.includes("."))this.cur+="."}
       else if(k==="AC")this.clear();else if(k==="±"){if(this.cur!=="0")this.cur=this.cur[0]==="-"?this.cur.slice(1):"-"+this.cur}
       else if(k==="%")this.cur=this.fmt(this.num(this.cur)/100);
-      else if("+−×÷".includes(k)){if(this.op&&!this.fresh){this.a=this.calc(this.a,this.op,this.num(this.cur));this.cur=this.fmt(this.a)}else if(this.a==null||!this.op)this.a=this.num(this.cur);this.op=k;this.fresh=true;this.hist=this.fmt(this.a)+" "+k;if(this.cur==="Error")this.clear()}
-      else if(k==="="){if(this.op){const b=this.num(this.cur),r=this.calc(this.a,this.op,b);this.hist=this.fmt(this.a)+" "+this.op+" "+this.fmt(b)+" =";this.cur=this.fmt(r);this.a=null;this.op=null;this.fresh=true}}
+      else if("+−×÷".includes(k)){if(this.op&&!this.fresh){const dz=this.op==="÷"&&this.num(this.cur)===0;this.a=this.calc(this.a,this.op,this.num(this.cur));this.cur=dz?"nice try":this.fmt(this.a)}else if(this.a==null||!this.op)this.a=this.num(this.cur);this.op=k;this.fresh=true;this.hist=this.fmt(this.a)+" "+k;if(this.cur==="Error")this.clear();else if(this.cur==="nice try"){this.a=null;this.op=null;this.hist=""}}
+      else if(k==="="){if(this.op){const b=this.num(this.cur),r=this.calc(this.a,this.op,b);this.hist=this.fmt(this.a)+" "+this.op+" "+this.fmt(b)+" =";this.cur=this.op==="÷"&&b===0?"nice try":this.fmt(r);if(this.cur==="2539")banner("Day 2539","Two thousand, five hundred and thirty-nine days. Somebody kept count.");this.a=null;this.op=null;this.fresh=true}}
       else if(k==="⌫"){if(!this.fresh)this.cur=this.cur.length>1&&this.cur!=="-0"?this.cur.slice(0,-1):"0"}
       this.show()},
     clear(){this.a=null;this.op=null;this.cur="0";this.fresh=true;this.hist=""},
@@ -13743,7 +13746,7 @@ const RINOS=(()=>{
       this.press(k);const btn=this.b&&this.b.querySelector(`[data-k="${k}"]`);if(btn){btn.classList.add("os-press");setTimeout(()=>btn.classList.remove("os-press"),110)}return true}};
 
   /* ---- Notes ---- */
-  const NT={sel:null,open(b){this.b=b;const L=store.get("rinNotes",[]);if(!L.length){L.push({id:Date.now().toString(36),t:Date.now(),x:"Welcome to Notes.\nEverything here stays in this browser."});store.set("rinNotes",L)}this.sel=this.sel&&L.some(n=>n.id===this.sel)?this.sel:L[0].id;this.draw()},
+  const NT={sel:null,open(b){this.b=b;const L=store.get("rinNotes",[]);if(!L.length){L.push({id:Date.now().toString(36),t:Date.now(),x:"Welcome to Notes.\nEverything here stays in this browser."},{id:"rin2539",t:Date.now()-6e4,x:"Things to draw\n- something green\n- a swing under a big tree\n- rain, but warm\n- a sky with two moons\n- Dad, if I can remember his face"});store.set("rinNotes",L)}this.sel=this.sel&&L.some(n=>n.id===this.sel)?this.sel:L[0].id;this.draw()},
     list:()=>store.get("rinNotes",[]),
     draw(){const L=this.list(),n=L.find(x=>x.id===this.sel)||L[0],b=this.b;if(!n){this.new();return}this.sel=n.id;
       b.innerHTML=`<div class="nt"><div class="nt-l"><button type="button" class="os-b" data-a="new">＋ New note</button>${L.map(x=>`<button type="button" class="os-b nt-i" data-id="${x.id}" aria-pressed="${x.id===n.id}"><b>${esc(x.x.split("\n")[0]||"New note")}</b><small>${new Date(x.t).toLocaleDateString(undefined,{month:"short",day:"numeric"})} · ${new Date(x.t).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})}</small></button>`).join("")}</div>
@@ -13769,15 +13772,16 @@ const RINOS=(()=>{
   /* ---- Settings ---- */
   const ST={pg:"display",open(b){this.b=b;this.draw()},
     draw(){const b=this.b,tg=(k,n,s)=>`<div class="st-tg"><span>${n}<br><small class="os-note">${s}</small></span><button type="button" class="sw" role="switch" data-tg="${k}" aria-checked="${!!C[k]}" aria-label="${n}"></button></div>`;
-      const P={display:`<h3 class="os-h">Wallpaper</h3><div class="st-walls">${Object.entries(WALLS).map(([k,[n,g]])=>`<button type="button" class="os-b" data-w="${k}" aria-pressed="${C.wall===k}" style="background:${g}">${n}</button>`).join("")}</div>
+      const P={display:`<h3 class="os-h">Wallpaper</h3><div class="st-walls">${Object.entries(WALLS).filter(([k])=>k!=="dream"||C.dream).map(([k,[n,g]])=>`<button type="button" class="os-b" data-w="${k}" aria-pressed="${C.wall===k}" style="background:${g}">${n}</button>`).join("")}</div>
           <h3 class="os-h">Accent colour</h3><div class="st-acc">${ACC.map(c=>`<button type="button" class="os-b" data-ac="${c}" aria-pressed="${C.acc===c}" style="background:${c}" aria-label="Accent ${c}"></button>`).join("")}</div>
           <h3 class="os-h">Brightness</h3><div class="os-row"><span>☀</span><input type="range" min="0.35" max="1" step="0.01" value="${C.bright}" data-r="bright" aria-label="Brightness"><span>☼</span></div>
           <h3 class="os-h">Text size</h3><div class="os-seg">${[[.88,"Small"],[1,"Default"],[1.14,"Large"]].map(([v,n])=>`<button type="button" class="os-b" data-fs="${v}" aria-pressed="${C.fs===v}">${n}</button>`).join("")}</div>`,
         general:`<h3 class="os-h">General</h3>${tg("h24","24-hour time","Clock, lock screen and status bar")}${tg("snd","Sounds","A soft tick on every tap")}${tg("lock","Lock screen","Show it when the tablet is picked up")}${tg("dnd","Do not disturb","Hold back banners")}
           <h3 class="os-h">Name</h3><div class="os-row"><input class="os-in1" maxlength="24" value="${esc(C.name)}" aria-label="Tablet name" data-nm><span class="os-note">Shown in the status bar</span></div>
           <div class="os-row" style="margin-top:1.4em"><button type="button" class="os-b" data-a="reset">Reset all settings</button></div>`,
-        about:`<h3 class="os-h">About this tablet</h3><dl class="st-ab"><dt>Name</dt><dd>${esc(C.name)}</dd><dt>System</dt><dd>RIN·OS 2539.1</dd><dt>Model</dt><dd>RT-01 · drawing tablet</dd><dt>Apps</dt><dd>${APPS.length}</dd><dt>Notes</dt><dd>${store.get("rinNotes",[]).length}</dd><dt>Storage</dt><dd class="st-sto">checking…</dd><dt>Screen</dt><dd>${Math.round(scr.clientWidth)} × ${Math.round(scr.clientHeight)}</dd></dl><p class="os-note">Settings, notes and drawings are kept in this browser only.</p>`};
+        about:`<h3 class="os-h">About this tablet</h3><dl class="st-ab"><dt>Name</dt><dd>${esc(C.name)}</dd><dt>System</dt><dd><button type="button" class="os-b" data-sys style="min-height:0;padding:.1em .6em">RIN·OS 2539.1</button></dd><dt>In orbit</dt><dd>day 2539</dd><dt>Model</dt><dd>RT-01 · drawing tablet</dd><dt>Apps</dt><dd>${APPS.length}</dd><dt>Notes</dt><dd>${store.get("rinNotes",[]).length}</dd><dt>Storage</dt><dd class="st-sto">checking…</dd><dt>Screen</dt><dd>${Math.round(scr.clientWidth)} × ${Math.round(scr.clientHeight)}</dd></dl><p class="os-note">Settings, notes and drawings are kept in this browser only.</p>`};
       b.innerHTML=`<div class="st"><div class="st-nav">${[["display","Display"],["general","General"],["about","About"]].map(([k,n])=>`<button type="button" class="os-b" data-pg="${k}" aria-pressed="${this.pg===k}">${n}</button>`).join("")}</div><div>${P[this.pg]}</div></div>`;
+      const sy=b.querySelector("[data-sys]");if(sy)sy.onclick=()=>{if(C.dream){banner("RIN·OS","The dream wallpaper is already yours.");return}this.taps=(this.taps||0)+1;const left=7-this.taps;if(left>0){if(this.taps>=3)banner("RIN·OS",`${left} more tap${left>1?"s":""} until you dream.`)}else{C.dream=true;set("wall","dream");banner("RIN·OS","You found the dream wallpaper. It was always yours.")}};
       b.querySelectorAll("[data-pg]").forEach(x=>x.onclick=()=>{this.pg=x.dataset.pg;this.draw();this.b.querySelector(`[data-pg="${this.pg}"]`).focus()});
       const re=(sel)=>{this.draw();const f=this.b.querySelector(sel);if(f)f.focus()};
       b.querySelectorAll("[data-w]").forEach(x=>x.onclick=()=>{set("wall",x.dataset.w);re(`[data-w="${x.dataset.w}"]`)});
@@ -13785,10 +13789,23 @@ const RINOS=(()=>{
       b.querySelectorAll("[data-fs]").forEach(x=>x.onclick=()=>{set("fs",+x.dataset.fs);re(`[data-fs="${x.dataset.fs}"]`)});
       b.querySelectorAll("[data-tg]").forEach(x=>x.onclick=()=>{set(x.dataset.tg,!C[x.dataset.tg]);x.setAttribute("aria-checked",String(!!C[x.dataset.tg]))});
       const r=b.querySelector("[data-r]");if(r)r.oninput=()=>set("bright",+r.value);const nm=b.querySelector("[data-nm]");if(nm)nm.oninput=()=>set("name",nm.value.trim()||DEF.name);
-      const rs=b.querySelector('[data-a="reset"]');if(rs)rs.onclick=()=>{const old=Object.assign({},C);C=Object.assign({},DEF);save();apply();re('[data-a="reset"]');banner("Settings","Settings reset.",["Undo",()=>{C=old;save();apply();if(this.b&&this.b.isConnected)this.draw()}])};
+      const rs=b.querySelector('[data-a="reset"]');if(rs)rs.onclick=()=>{const old=Object.assign({},C);C=Object.assign({},DEF,{msg:C.msg,dream:C.dream});save();apply();re('[data-a="reset"]');banner("Settings","Settings reset.",["Undo",()=>{C=old;save();apply();if(this.b&&this.b.isConnected)this.draw()}])};
       const so=b.querySelector(".st-sto");if(so)try{navigator.storage.estimate().then(e=>{so.textContent=(e.usage/1048576).toFixed(1)+" MB used"}).catch(()=>{so.textContent="unknown"})}catch(e){so.textContent="unknown"}}};
 
-  const W={weather:WX,clock:CK,calc:CA,notes:NT,cal:CL,settings:ST};
+  /* ---- Messages: there are never any new messages. Unless you keep checking. ---- */
+  const MS={tries:0,open(b){this.b=b;this.draw()},close(){clearInterval(this.iv)},
+    draw(){const b=this.b;clearInterval(this.iv);
+      if(C.msg){const fresh=C.msg===1;if(fresh){C.msg=2;save();apply()}
+        b.innerHTML=`<div class="ms"><div class="ms-h"><span class="ms-av" aria-hidden="true">D</span><div><b>Dad</b><small>1 message · received day 2539</small></div></div><div class="ms-bub" aria-live="polite"></div><p class="os-note ms-ft">There is no reply button. It never needed one.</p></div>`;
+        const bub=b.querySelector(".ms-bub"),full="Rin,\nIf this reached you, the tablet finally found a signal, or you found one for it. I couldn't come with you, so I built you somewhere that couldn't end, and gave you the pen.\nEvery world you draw, I get to see one more day. Draw something green for me.\nYou were never alone in there.\n— Dad",ch=[...full];if(!fresh||reduced){bub.textContent=full;return}let i=0;this.iv=setInterval(()=>{i=Math.min(ch.length,i+2);bub.textContent=ch.slice(0,i).join("");if(i%8===0)tick();if(i>=ch.length)clearInterval(this.iv)},40);return}
+      const L=["No new messages.","Still nothing.","No signal. The stars don't answer.","…wait. Something is coming through."];
+      b.innerHTML=`<div class="ms ms-0"><div class="ms-none">NO NEW MESSAGES</div><p class="os-note">Last checked: day 2539</p><button type="button" class="os-b" data-a="chk">↻ Check again</button><p class="ms-st" aria-live="polite">${this.tries?esc(L[Math.min(this.tries,L.length)-1]):""}</p></div>`;
+      const k=b.querySelector('[data-a="chk"]'),st=b.querySelector(".ms-st");
+      k.onclick=()=>{k.disabled=true;st.textContent="Searching for signal…";b.querySelector(".ms-none").classList.add("ms-scan");
+        setTimeout(()=>{if(!this.b||!this.b.isConnected)return;this.tries++;if(this.tries>=5){C.msg=1;save();apply();[0,140,280].forEach((d,j)=>setTimeout(()=>beep(880+j*220,.16,.07),d));this.draw();return}
+          b.querySelector(".ms-none").classList.remove("ms-scan");st.textContent=L[this.tries-1];k.disabled=false;k.focus()},reduced?200:1100)}}};
+
+  const W={weather:WX,clock:CK,calc:CA,notes:NT,cal:CL,settings:ST,msgs:MS};
   return {open,close,back,get el(){return home},_C:()=>C,_calc:CA}})();
 function openHome(){RINOS.open()}
 function closeHome(){RINOS.close()}
@@ -13984,6 +14001,21 @@ window.Gadgets={open:openShelf,home:openHome,tablet:openApp,music:openMusic,get 
 </script>
 <style>
 /* ===== RIN·OS: the tablet's lock screen, home screen, control center and apps (styles load with the page; the DOM is built on open) ===== */
+#rinhome .os-badge{position:absolute;top:-.35em;right:-.35em;min-width:1.4em;height:1.4em;border-radius:99px;background:#e8443a;color:#fff;font:inherit;font-size:.8em;display:grid;place-items:center;box-shadow:0 0 0 2px #0a1220;animation:osPop .4s cubic-bezier(.3,1.6,.5,1)}
+#rinhome .ms{max-width:34em;margin:0 auto}
+#rinhome .ms-0{text-align:center;padding-top:3em}
+#rinhome .ms-none{font-size:2em;letter-spacing:4px;color:#7fe0ff;margin-bottom:.4em}
+#rinhome .ms-none.ms-scan{animation:msScan .5s steps(2) infinite}@keyframes msScan{50%{opacity:.25}}
+#rinhome .ms-st{min-height:1.5em;color:#fff2a0}
+#rinhome .ms-h{display:flex;gap:.8em;align-items:center;margin-bottom:1em}#rinhome .ms-h b{display:block;font-weight:normal;color:#fff;font-size:1.2em}#rinhome .ms-h small{color:#7fa8c4}
+#rinhome .ms-av{width:2.6em;height:2.6em;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,#9fffb0,#2fa060);color:#081424;font-size:1.2em}
+#rinhome .ms-bub{white-space:pre-line;background:#13402f;border:2px solid #4ad0a0;border-radius:4px 16px 16px 16px;padding:.9em 1.1em;color:#eafff0;line-height:1.55;min-height:6em}
+#rinhome .ms-ft{margin-top:1em}
+#rinhome .os.dreamy .os-wall{background-size:300% 300%;animation:osDream 18s ease-in-out infinite alternate}
+#rinhome .os.dreamy .os-wall:after{content:"";position:absolute;inset:0;background:radial-gradient(circle,rgba(255,255,255,.85) 0 2px,transparent 3px) 0 0/70px 70px,linear-gradient(rgba(255,255,255,.35),rgba(255,255,255,.35)) 20px 30px/9px 9px,radial-gradient(circle,rgba(255,240,250,.6) 0 1px,transparent 2px) 35px 35px/45px 45px;animation:osFloat 40s linear infinite}
+#rinhome .os.dreamy .os-app span.os-l{text-shadow:0 1px 3px rgba(40,20,80,.95),0 0 8px rgba(40,20,80,.6)}
+@keyframes osDream{to{background-position:100% 100%}}@keyframes osFloat{to{background-position:0 -700px,20px -670px,35px -415px}}
+@media (prefers-reduced-motion:reduce){#rinhome .os.dreamy .os-wall,#rinhome .os.dreamy .os-wall:after,#rinhome .ms-none.ms-scan{animation:none}}
 #rinhome .os:focus{outline:none}#rinhome .os{--acc:#7fe0ff;--dim:0;--fs:1;font-size:calc(14px * var(--fs));background:#0a1220}
 #rinhome .os-wall{position:absolute;inset:0;background:var(--wall,linear-gradient(180deg,#0b1d3a 0%,#2a3f6e 55%,#d78aa0 100%));transition:background .6s}
 #rinhome .os .rt-stars{z-index:0}
