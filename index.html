@@ -13605,7 +13605,7 @@ const RINOS=(()=>{
       <div class="os-lock gone"><span class="os-lk">${esc("🔒 RIN·OS")}</span><b></b><span class="os-ld"></span><div class="os-lnote"><small>Messages · day 2539</small>No new messages.</div><button type="button" class="os-unl">⌃ swipe up to unlock</button></div>
       <div class="os-cc gone" role="dialog" aria-label="Control center"></div><div class="os-ban" role="status" aria-live="polite" hidden></div><div class="os-dimL"></div>
       <button type="button" class="os-hb" aria-label="Put the tablet down"><i></i></button></div></div>`;
-    scr=home.querySelector(".rt-scr");apply();
+    scr=home.querySelector(".rt-scr");scr.tabIndex=-1;apply();
     /* presses: a tick and a ripple from the finger */
     home.addEventListener("pointerdown",e=>{const b=e.target.closest(".os-b,.os-app,.os-ccb");if(!b)return;tick();if(reduced||!b.classList.contains("os-b"))return;
       const r=b.getBoundingClientRect(),s=Math.max(r.width,r.height)*2.2,rp=document.createElement("span");rp.className="os-rip";rp.style.cssText=`width:${s}px;height:${s}px;left:${e.clientX-r.left-s/2}px;top:${e.clientY-r.top-s/2}px`;b.appendChild(rp);setTimeout(()=>rp.remove(),520)});
@@ -13684,7 +13684,7 @@ const RINOS=(()=>{
         days:j.daily.time.map((s,k)=>({d:new Date(s+"T12:00"),c:wmo(j.daily.weather_code[k]),hi:Math.round(j.daily.temperature_2m_max[k]),lo:Math.round(j.daily.temperature_2m_min[k])}))}}
     catch(e){return null}finally{clearTimeout(to)}}
   const liveCache={},liveP={};const getLive=ci=>liveP[ci]||(liveP[ci]=live(ci).then(w=>{liveCache[ci]=w;return w}));
-  function widget(){const w=liveCache[0]||sim(0,Date.now()),n=w.hours[0].h,night=n<6||n>=19;const i=$(".os-wi"),tp=$(".os-wtp"),cn=$(".os-wcn");if(!i)return;i.innerHTML=wicon(w.now.c,night);tp.textContent=w.now.t+"°";cn.textContent="Tokyo · "+COND[w.now.c]}
+  function widget(){const w=liveCache[0]||sim(0,Date.now()),n=w.hours[0].h,night=n<6||n>=19;const i=$(".os-wi"),tp=$(".os-wtp"),cn=$(".os-wcn");if(!i)return;i.innerHTML=wicon(w.now.c,night);tp.textContent=w.now.t+"°";cn.textContent="Tokyo · "+COND[w.now.c]+(liveCache[0]?"":" · simulated")}
   const WX={ci:0,open(b){this.b=b;this.draw(sim(this.ci,Date.now()));this.fetch()},
     async fetch(){const ci=this.ci;await getLive(ci);if(ci===0&&home)widget();if(liveCache[ci]&&this.b&&this.b.isConnected&&this.ci===ci)this.draw(liveCache[ci])},
     draw(w){const b=this.b,n=w.hours[0].h,night=n<6||n>=19,c=w.now.c,lo=Math.min(...w.days.map(d=>d.lo)),hi=Math.max(...w.days.map(d=>d.hi)),sp=Math.max(1,hi-lo);
@@ -13984,7 +13984,7 @@ window.Gadgets={open:openShelf,home:openHome,tablet:openApp,music:openMusic,get 
 </script>
 <style>
 /* ===== RIN·OS: the tablet's lock screen, home screen, control center and apps (styles load with the page; the DOM is built on open) ===== */
-#rinhome .os{--acc:#7fe0ff;--dim:0;--fs:1;font-size:calc(14px * var(--fs));background:#0a1220}
+#rinhome .os:focus{outline:none}#rinhome .os{--acc:#7fe0ff;--dim:0;--fs:1;font-size:calc(14px * var(--fs));background:#0a1220}
 #rinhome .os-wall{position:absolute;inset:0;background:var(--wall,linear-gradient(180deg,#0b1d3a 0%,#2a3f6e 55%,#d78aa0 100%));transition:background .6s}
 #rinhome .os .rt-stars{z-index:0}
 #rinhome .os-dimL{position:absolute;inset:0;background:#000;opacity:var(--dim);pointer-events:none;z-index:90;transition:opacity .2s}
@@ -14186,7 +14186,8 @@ window.Gadgets={open:openShelf,home:openHome,tablet:openApp,music:openMusic,get 
 @keyframes gadshake{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
 #leiden .shake{animation:gadshake .35s}
 /* Violet Evergarden: the Leiden typewriter */
-.tw{display:flex;flex-direction:column;align-items:center}
+.tw{display:flex;flex-direction:column;align-items:center;overflow-x:clip}
+#leiden .tw-ta:focus-visible{outline:none}#leiden .tw-paper:focus-within{box-shadow:0 -4px 14px rgba(0,0,0,.25),0 0 0 2px var(--comet)}
 .tw-word{margin:0 0 10px;font-size:13px;color:var(--muted);text-align:center}
 .tw-word button{font:inherit;color:var(--ember);background:none;border:0;border-bottom:1px dashed currentColor;padding:0;cursor:pointer}
 .tw-def{display:block;margin-top:4px;color:var(--text)}
