@@ -854,7 +854,7 @@ html .mcard>h3>i{color:var(--blush);background:rgba(255,255,255,.1)}html .mcard>
   <div class="toast" id="toast" hidden></div>
   <div class="skyctl" id="skyctl" hidden><button class="ghost" id="sk-center" type="button" hidden></button><button class="ghost" id="sk-keep" type="button" hidden></button><button class="ghost" id="sk-replay" type="button" hidden></button><button class="primary" id="sk-view" type="button"></button></div>
 
-  <div class="skyclock" id="skyclock"><div class="ghost volbox" id="volbox"><button type="button" id="vol-mute" aria-pressed="false" aria-label="Mute">🔊</button><input type="range" id="vol-master" min="0" max="1" step="0.01" aria-label="Volume"></div><button class="ghost sc-time" id="sc-txt" type="button" aria-haspopup="dialog"></button><button class="ghost" id="sc-tl" type="button"></button><button class="ghost" id="sc-perf" type="button"></button><button class="ghost" id="sc-keep" type="button" hidden></button><button class="ghost mbtn" id="m-btn" type="button" aria-controls="music" aria-expanded="false"></button><button class="ghost scview" id="sc-view" type="button"></button><button class="ghost" id="sc-snd" type="button" aria-haspopup="dialog" aria-expanded="false" hidden></button><button class="ghost" id="sc-fb" type="button" aria-haspopup="dialog" aria-expanded="false"></button><button class="ghost" id="sc-more" type="button" aria-haspopup="true" aria-expanded="false">More</button></div>
+  <div class="skyclock" id="skyclock"><div class="ghost volbox" id="volbox"><button type="button" id="vol-mute" aria-pressed="false" aria-label="Mute">🔊</button><input type="range" id="vol-master" min="0" max="1" step="0.01" aria-label="Volume"></div><button class="ghost sc-time" id="sc-txt" type="button" aria-haspopup="dialog"></button><button class="ghost" id="sc-tl" type="button"></button><button class="ghost" id="sc-perf" type="button"></button><button class="ghost" id="sc-keep" type="button" hidden></button><button class="ghost mbtn" id="m-btn" type="button" aria-controls="music" aria-expanded="false"></button><button class="ghost scview" id="sc-view" type="button"></button><button class="ghost" id="sc-snd" type="button" aria-haspopup="dialog" aria-expanded="false" hidden></button><button class="ghost" id="sc-fb" type="button" aria-haspopup="dialog" aria-expanded="false"></button><button class="ghost" id="sc-gad" type="button" aria-haspopup="dialog"></button><button class="ghost" id="sc-more" type="button" aria-haspopup="true" aria-expanded="false">More</button></div>
   <div class="clockmenu moremenu" id="moremenu" role="menu" hidden></div>
   <div class="panel music" id="music" hidden>
     <div class="mrow mhead"><b id="m-title"></b><span id="m-time"></span></div>
@@ -1382,7 +1382,7 @@ const Quiz = (()=>{
     if(score>=8) Sky.comet(true);
   }
   document.addEventListener("keydown",e=>{
-    if(currentTab!=="quiz"||/INPUT/.test(document.activeElement.tagName)) return;
+    if(currentTab!=="quiz"||/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)) return;
     const m={"1":0,"2":1,"3":2,"4":3,a:0,b:1,c:2,d:3}[e.key.toLowerCase()];
     if(m!==undefined&&!answered&&qs[qi]&&m<qs[qi].opts.length) answer(m);
     else if(e.key==="Enter"&&answered){const n=$("#qnext");if(n&&!n.hidden){e.preventDefault();n.click()}}
@@ -1436,7 +1436,7 @@ const Search=(()=>{
     byousoku5centimeter:"5centimeterspersecond",byosoku5senchimetoru:"5centimeterspersecond",byousoku5senchimeetoru:"5centimeterspersecond","5cmpersecond":"5centimeterspersecond","5centimetrespersecond":"5centimeterspersecond","秒速5センチメートル":"5centimeterspersecond","秒速５センチメートル":"5centimeterspersecond",
     silentvoice:"asilentvoice",koenokatachi:"asilentvoice","聲の形":"asilentvoice","声の形":"asilentvoice",
     totoro:"myneighbortotoro",tonarinototoro:"myneighbortotoro",myneighbourtotoro:"myneighbortotoro","となりのトトロ":"myneighbortotoro",
-    "howl'smovingcastle":"howlsmovingcastle","howl’smovingcastle":"howlsmovingcastle",haurunougokushiro:"howlsmovingcastle","ハウルの動く城":"howlsmovingcastle","girls'lasttour":"girlslasttour","girls’lasttour":"girlslasttour",girlslasttour:"girlslasttour",shoujoshuumatsuryokou:"girlslasttour",shojoshumatsuryoko:"girlslasttour",shoujoshumatsuryokou:"girlslasttour","少女終末旅行":"girlslasttour",kettenkrad:"girlslasttour",awhiskeraway:"awhiskeraway",whiskeraway:"awhiskeraway",nakitaiwatashiwanekowokaburu:"awhiskeraway",nakitaiwatashiwanekookaburu:"awhiskeraway",nakineko:"awhiskeraway","泣きたい私は猫をかぶる":"awhiskeraway"};
+    "howl'smovingcastle":"howlsmovingcastle","howl’smovingcastle":"howlsmovingcastle",haurunougokushiro:"howlsmovingcastle","ハウルの動く城":"howlsmovingcastle","girls'lasttour":"girlslasttour","girls’lasttour":"girlslasttour",girlslasttour:"girlslasttour",typewriter:"typewriter",typewriters:"typewriter",leiden:"typewriter",automemorydoll:"typewriter",automemorydolls:"typewriter","タイプライター":"typewriter","自動手記人形":"typewriter","ライデン":"typewriter","湯婆婆":"yubaba","契約書":"yubaba","closer'skey":"closer","closer’skey":"closer",closerskey:"closer","閉じ師":"closer","お返し申す":"closer","おかえしもうす":"closer",acorns:"acorn","どんぐり":"acorn",shoujoshuumatsuryokou:"girlslasttour",shojoshumatsuryoko:"girlslasttour",shoujoshumatsuryokou:"girlslasttour","少女終末旅行":"girlslasttour",kettenkrad:"girlslasttour",awhiskeraway:"awhiskeraway",whiskeraway:"awhiskeraway",nakitaiwatashiwanekowokaburu:"awhiskeraway",nakitaiwatashiwanekookaburu:"awhiskeraway",nakineko:"awhiskeraway","泣きたい私は猫をかぶる":"awhiskeraway"};
   const ANIME={
     frieren:{brand:"Sousou no Frieren",brow:"葬送のフリーレン · Beyond Journey’s End",w:"Frieren",jp:"葬送のフリーレン",pr:"/sō·sō no fu·rī·ren/",meta:"anime series · 2023– · Madhouse",
       d:"An elf mage outlives the hero's party she traveled with for a mere ten years, then sets out on a new journey to understand the people she only realized, too late, that she loved. A quiet story about time, memory, and regret, with surprisingly good fights.",
@@ -1635,7 +1635,7 @@ const Search=(()=>{
   function done(){setHeader(null);EggSound.egg(null);if(window.SFX)SFX.stop()}
   function fx(started){if(started)Sky.onEnd(done);else later(done,16000)} /* reduced motion: no animation, revert when the card closes */
   function stopAll(){undClose();jjkStop();timers.forEach(clearTimeout);timers=[];Sky.cancel();document.querySelectorAll(".egg").forEach(e=>e.remove());const s=$("#gsearch");s.style.animation="";$(".wrap").style.animation=""}
-  function play(hit){if(!["easy","hard","clear","pixelated"].includes(hit)&&window.SpecialDay&&SpecialDay.block())return;try{window.UIX&&UIX.egg(hit)}catch(e){}stopAll();EGGS[hit]();setHeader(ANIME_OF[hit]||null);EggSound.egg(ANIME_OF[hit]||null)}
+  function play(hit){if(!["easy","hard","clear","pixelated","typewriter","yubaba","closer","acorn"].includes(hit)&&window.SpecialDay&&SpecialDay.block())return;try{window.UIX&&UIX.egg(hit)}catch(e){}stopAll();EGGS[hit]();setHeader(ANIME_OF[hit]||null);EggSound.egg(ANIME_OF[hit]||null)}
   const EGGS={
     quomodo(){ say("🎆 Quomodocunquizing: making money by any means possible. Dignified? No. Fireworks? Yes."); rain(oddWords(),{n:26}); Sky.comet(true); },
     petrichor(){ say("🌧 Petrichor: the smell of rain on dry earth."); rain(["・","｡","·","∙","💧","✦"],{n:30,color:"#8fd3ff",up:false}); },
@@ -1661,6 +1661,7 @@ const Search=(()=>{
     sans(){ undSay([T('snd_1'),T('snd_2'),T('snd_3')]); },
     spiritedaway(){ card("spirited"); fx(Sky.spirited()); },
     violetevergarden(){ card("violet"); fx(Sky.violet()); },
+    typewriter(){ window.Gadgets&&Gadgets.open("tw"); }, yubaba(){ window.Gadgets&&Gadgets.open("yb"); }, closer(){ window.Gadgets&&Gadgets.open("sz"); }, acorn(){ window.Gadgets&&Gadgets.open("tt"); },
     "5centimeterspersecond"(){ card("byosoku"); fx(Sky.xs("byosoku")); },
     asilentvoice(){ card("koe"); fx(Sky.xs("koe")); },
     myneighbortotoro(){ card("totoro"); fx(Sky.xs("totoro")); },
@@ -1978,7 +1979,7 @@ const Icons=(()=>{const M={"🎬": "film", "🎲": "dice", "🔊": "furin", "�
   scan(document.body);return {scan}})();
 window.UIX=(()=>{
   const LS={get:(k,d)=>{try{const v=localStorage.getItem("kwd:"+k);return v?JSON.parse(v):d}catch(e){return d}},set:(k,v)=>{try{localStorage.setItem("kwd:"+k,JSON.stringify(v))}catch(e){}}};
-  const EGG=[["frieren","❄️","Sousou no Frieren","An elf mage's long journey"],["yourname","☄️","Kimi No Na Wa","A comet splits in two"],["weatheringwithyou","☀️","Tenki No Ko","A girl who brings the sun"],["suzume","🚪","Suzume No Tojimari","Doors that must be locked"],["spiritedaway","🛁","Sen To Chihiro No Kamikakushi","A bathhouse for spirits"],["violetevergarden","✉️","Violet Evergarden","She writes other people's letters"],
+  const EGG=[["frieren","❄️","Sousou no Frieren","An elf mage's long journey"],["yourname","☄️","Kimi No Na Wa","A comet splits in two"],["weatheringwithyou","☀️","Tenki No Ko","A girl who brings the sun"],["suzume","🚪","Suzume No Tojimari","Doors that must be locked"],["spiritedaway","🛁","Sen To Chihiro No Kamikakushi","A bathhouse for spirits"],["violetevergarden","✉️","Violet Evergarden","She writes other people's letters"],["typewriter","⌨","Leiden typewriter","An Auto Memory Doll's machine"],["yubaba","📜","Yubaba","She keeps a piece of your name"],["closer","🗝","Closer's key","Lock the door, return it"],["acorn","🌰","Acorns","A tree that grows overnight"],
     ["5centimeterspersecond","🌸","Byousoku 5 Centimeter","How fast petals fall"],["asilentvoice","🤟","Koe no Katachi","A voice with no sound"],["myneighbortotoro","🌱","Tonari no Totoro","A neighbour at the bus stop"],["howlsmovingcastle","🏰","Hauru no Ugoku Shiro","A castle that walks"],["katawaredoki","🌆","Katawaredoki","The hour between day and night"],["girlslasttour","⚙","Shoujo Shuumatsu Ryokou","Two girls on a half-track"],["awhiskeraway","🎭","Nakitai Watashi wa Neko o Kaburu","A mask that makes you a cat"],
     ["gojo","∞","Unlimited Void","The strongest's domain"],["sukuna","⛩","Malevolent Shrine","Everything in range gets cut"],["sans","💀","sans","A skeleton who loves puns"],["pixelated","👾","Pixelated","Go back to 8 bits"],["easy","🍼","Easy mode","Make it easier. Much easier."],
     ["spirit","🏮","Spirit","A second meaning, with lanterns"],["epistolary","📜","Epistolary","A word about letters"],["petrichor","🌧","Petrichor","The smell after rain"],["defenestration","🪟","Defenestration","Out of the window"],["lethologica","🫥","Lethologica","When the word won't come"],["floccinaucinihilipilification","📏","The long one","A very long word for 'worthless'"],["quomodo","🃏","Quomodo…","A word that starts with quomodo"]];
@@ -6773,12 +6774,334 @@ MusicTab.build(); applyLang(); Music.init(); musicReady=true; updateCord(); rout
 </script>
 
 
+<style>
+/* ---------- Gadgets: small toys from the films in the sky (opened from More → Gadgets, or by search eggs) ---------- */
+.gad{position:fixed;inset:0;z-index:80;display:flex;align-items:center;justify-content:center;padding:max(10px,env(safe-area-inset-top,0px)) max(10px,env(safe-area-inset-right,0px)) max(10px,env(safe-area-inset-bottom,0px)) max(10px,env(safe-area-inset-left,0px));background:rgba(5,7,22,.6);-webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px)}
+.gad[hidden]{display:none}
+.gad-box{width:min(720px,100%);max-height:100%;overflow:auto;overscroll-behavior:contain;background:rgba(14,17,46,.96);border:1px solid var(--line);border-radius:20px;padding:16px clamp(12px,3vw,22px) 20px;color:var(--text);box-shadow:0 30px 80px -20px rgba(0,0,0,.7)}
+.gad.in .gad-box{animation:gadin .32s cubic-bezier(.2,.9,.3,1.15)}@keyframes gadin{from{transform:translateY(24px) scale(.97);opacity:0}}
+.gad-top{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.gad-top h2{flex:1;margin:0;font:600 clamp(19px,4.6vw,24px)/1.2 var(--display);text-wrap:balance}
+.gad-top small{display:block;font:12px/1.3 var(--body);color:var(--muted);letter-spacing:.04em}
+.gad-x{width:36px;height:36px;padding:0;display:grid;place-items:center;font-size:18px;flex:none}
+.gad-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.gad-tile{display:grid;grid-template-columns:52px 1fr;gap:4px 12px;align-items:center;text-align:left;padding:12px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--text);cursor:pointer;font:inherit;transition:transform .15s,background .15s}
+.gad-tile:hover,.gad-tile:focus-visible{background:rgba(255,255,255,.09);transform:translateY(-2px)}
+.gad-tile i{grid-row:span 2;font:600 30px/1 var(--display);font-style:normal;display:grid;place-items:center;width:52px;height:52px;border-radius:12px;background:rgba(255,255,255,.06);color:var(--blush)}
+.gad-tile b{font:600 15px/1.25 var(--display)}
+.gad-tile span{font-size:12.5px;line-height:1.35;color:var(--muted)}
+.gad-note{color:var(--muted);font-size:13px;margin:0 0 12px}
+.gad-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.gad-st{min-height:1.5em;margin:10px 0 0;font-size:13.5px;color:var(--blush)}
+.gad input[type=text],.gad input[type=number]{font:16px var(--body);padding:9px 12px;border-radius:10px;border:1px solid var(--line);background:rgba(0,0,0,.25);color:var(--text);min-width:0}
+.gad :focus-visible{outline:2px solid var(--comet);outline-offset:2px}
+@keyframes gadshake{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+.shake{animation:gadshake .35s}
+
+/* Violet Evergarden: the Leiden typewriter */
+.tw{display:flex;flex-direction:column;align-items:center}
+.tw-word{margin:0 0 10px;font-size:13px;color:var(--muted);text-align:center}
+.tw-word button{font:inherit;color:var(--ember);background:none;border:0;border-bottom:1px dashed currentColor;padding:0;cursor:pointer}
+.tw-def{display:block;margin-top:4px;color:var(--text)}
+.tw-car{width:calc(100% - 44px);max-width:560px;transition:transform .09s ease-out;will-change:transform}
+.tw-car.ret{transition:transform .38s cubic-bezier(.3,1.45,.5,1)}
+.tw-paper{position:relative;margin:0 30px;padding:16px 18px 6px;background:linear-gradient(#fdf8ec,#f2e8d0);border-radius:3px 3px 0 0;box-shadow:0 -4px 14px rgba(0,0,0,.25)}
+.tw-paper::before{content:"C.H. POSTAL COMPANY";position:absolute;top:6px;right:12px;font:9px/1 var(--type);letter-spacing:.2em;color:rgba(110,80,40,.5)}
+.tw-ta{display:block;width:100%;height:10.4em;resize:none;border:0;outline:0;background:repeating-linear-gradient(transparent 0 1.55em,rgba(120,90,50,.13) 1.55em calc(1.55em + 1px));color:#2c2440;caret-color:#c9434e;font:15px/1.6 var(--type);padding:0;white-space:pre-wrap;word-break:break-all;overflow-y:auto}
+.tw-ta:focus-visible{outline:none}
+.tw-ta::placeholder{color:rgba(44,36,64,.38)}
+.tw-paper.fold{animation:twfold .75s ease-in forwards;transform-origin:50% 0}
+@keyframes twfold{40%{transform:scaleY(.34)}70%{transform:scaleY(.34) translateY(-30px) rotate(-4deg);opacity:1}100%{transform:scaleY(.2) translateY(-420px) rotate(-14deg);opacity:0}}
+.tw-roll{position:relative;height:24px;margin:0 10px;border-radius:12px;background:linear-gradient(#45454b,#111114 40%,#2b2b31 75%,#0b0b0d);box-shadow:inset 0 2px 0 rgba(255,255,255,.14),0 4px 8px rgba(0,0,0,.5)}
+.tw-roll::before,.tw-roll::after{content:"";position:absolute;top:-7px;width:26px;height:38px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#6a6a72,#111 68%);border:2px solid #9a9aa3}
+.tw-roll::before{left:-16px}.tw-roll::after{right:-16px}
+.tw-body{position:relative;width:100%;max-width:600px;margin-top:-2px;padding:12px 10px 16px;border-radius:14px 14px 30px 30px;background:linear-gradient(#26262b,#0c0c0f 70%);box-shadow:0 22px 40px -14px rgba(0,0,0,.75),inset 0 1px 0 rgba(255,255,255,.09)}
+.tw-body::before{content:"";position:absolute;left:50%;top:-1px;width:64px;height:16px;transform:translateX(-50%);border-radius:0 0 30px 30px;background:linear-gradient(#5b5b62,#1a1a1e)}
+.tw-brand{margin:8px 0 10px;text-align:center;font:600 13px/1 var(--display);letter-spacing:.55em;color:#cdb67d;text-shadow:0 1px 0 #000}
+.tw-keys{display:flex;flex-direction:column;align-items:center;gap:6px}
+.tw-r{display:flex;gap:5px}.tw-r:nth-child(2){margin-left:16px}.tw-r:nth-child(3){margin-left:34px}
+.tw-k{width:clamp(22px,6.6vw,38px);height:clamp(22px,6.6vw,38px);padding:0;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 46% 40%,#303036,#050506 72%);border:2px solid #c3c3cb;box-shadow:0 3px 0 #000,inset 0 0 0 2px #3a3a42;color:#f3ecd9;font:700 clamp(10px,2.6vw,13px)/1 var(--type);cursor:pointer;transition:transform .05s,box-shadow .05s}
+.tw-k.dn,.tw-k:active{transform:translateY(3px);box-shadow:0 0 0 #000,inset 0 0 0 2px #3a3a42}
+.tw-sp{width:min(58vw,300px);border-radius:10px}
+.tw-wide{width:auto;padding:0 10px;border-radius:12px}
+.tw-act{margin-top:14px;justify-content:center}
+.tw-reply{width:100%;max-width:520px;margin:14px auto 0;padding:16px 20px;background:linear-gradient(#fdf8ec,#f2e8d0);color:#2c2440;border-radius:4px;font:14.5px/1.6 var(--type);white-space:pre-line;box-shadow:0 10px 30px -10px rgba(0,0,0,.6)}
+.tw-reply[hidden]{display:none}
+.tw-out{width:100%;max-width:560px;margin:14px auto 0;font-size:13.5px}
+.tw-out summary{cursor:pointer;color:var(--muted)}
+.tw-out ol{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:8px}
+.tw-out li{display:grid;grid-template-columns:1fr auto;gap:4px 10px;padding:10px 12px;border-radius:10px;background:rgba(255,255,255,.05);border:1px solid var(--line)}
+.tw-out li p{grid-column:1/-1;margin:0;white-space:pre-line;font:13px/1.5 var(--type);color:var(--text);overflow-wrap:anywhere}
+.tw-out time{font-size:12px;color:var(--muted)}
+.tw-env{position:fixed;z-index:81;width:120px;height:76px;pointer-events:none;border-radius:4px;background:linear-gradient(160deg,#fbf3df,#e8d9b5);box-shadow:0 10px 30px rgba(0,0,0,.5);animation:twfly 1.5s cubic-bezier(.4,.1,.6,1) forwards}
+.tw-env::before{content:"";position:absolute;inset:0;background:linear-gradient(to bottom right,transparent 49%,rgba(120,90,50,.35) 50%,transparent 51%),linear-gradient(to bottom left,transparent 49%,rgba(120,90,50,.35) 50%,transparent 51%);background-size:50% 60%;background-repeat:no-repeat;background-position:left top,right top}
+.tw-env::after{content:"";position:absolute;left:50%;top:38%;width:22px;height:22px;margin-left:-11px;border-radius:50%;background:radial-gradient(circle at 40% 35%,var(--wax1,#c9434e),var(--wax2,#8a1f2c))}
+@keyframes twfly{0%{transform:translate(-50%,-50%) scale(.6) rotate(0)}30%{transform:translate(-50%,-60%) scale(1) rotate(-6deg)}100%{transform:translate(40vw,-70vh) scale(.4) rotate(24deg);opacity:0}}
+
+/* Suzume: the Closer's key */
+.sz-doors{display:flex;gap:8px;justify-content:center;margin:4px 0 14px}
+.sz-d{position:relative;width:38px;height:56px;border-radius:19px 19px 3px 3px;border:3px solid #b98a5a;background:#2a2050;transition:background .4s}
+.sz-d.on{background:radial-gradient(circle at 50% 35%,#ffe8b0,#ff9a6a 30%,#5a3b9a 70%);box-shadow:0 0 18px rgba(255,170,110,.6)}
+.sz-d.ok{background:#3b2a1d;border-color:#7a5a3a}.sz-d.ok::after{content:"";position:absolute;left:50%;top:52%;width:8px;height:8px;margin:-4px;border-radius:50%;background:#e3c27a;box-shadow:0 0 6px #e3c27a}
+.sz-d.bad{background:#3d1520;border-color:#d0606a}
+.sz-q{text-align:center;margin:0 0 6px;font:500 clamp(16px,4.2vw,19px)/1.45 var(--display)}
+.sz-gl{display:block;font:13px var(--body);color:var(--muted);margin-top:2px}
+.sz-hint{text-align:center;font:15px var(--type);letter-spacing:.3em;color:var(--ember);margin:4px 0 12px}
+.sz-f{justify-content:center}
+.sz-key{display:inline-block;transition:transform .45s cubic-bezier(.3,1.5,.5,1)}.sz-key.turn{transform:rotate(90deg)}
+.sz-worm{height:8px;border-radius:4px;background:rgba(255,255,255,.08);overflow:hidden;margin-top:14px}
+.sz-worm i{display:block;height:100%;width:0;border-radius:4px;background:linear-gradient(90deg,#8a2030,#ff6d5e,#ffb36a);transition:width .6s}
+.sz-wl{font-size:12px;color:var(--muted);margin-top:4px}
+
+/* Spirited Away: Yubaba's contract */
+.yb-paper{max-width:460px;margin:0 auto;padding:20px 22px 18px;background:linear-gradient(#f7eed6,#eadbb5);color:#3a2418;border-radius:4px;box-shadow:0 14px 40px -12px rgba(0,0,0,.7);position:relative;font:14px/1.6 var(--body)}
+.yb-paper h3{margin:0 0 2px;text-align:center;font:700 22px/1.2 var(--display);letter-spacing:.3em}
+.yb-paper .yb-en{text-align:center;font-size:11px;letter-spacing:.25em;color:#7a5a40;margin:0 0 12px}
+.yb-paper ol{margin:0 0 14px;padding-left:20px;font-size:13px}
+.yb-paper input{width:100%;background:transparent!important;border:0!important;border-bottom:1px solid #7a5a40!important;border-radius:0!important;color:#3a2418!important;font:20px var(--display)!important;padding:4px 2px!important}
+.yb-sig{min-height:44px;font:600 30px/1.4 var(--display);text-align:center;color:#2a1a10;letter-spacing:.06em}
+.yb-sig span{display:inline-block;transition:transform 1s cubic-bezier(.5,0,.7,.4),opacity 1s}
+.yb-sig span.gone{transform:translate(var(--dx),-140px) rotate(var(--r)) scale(.6);opacity:0}
+.yb-sig span.kept{color:#b3262e;transform:scale(1.35);transition:transform .6s cubic-bezier(.3,1.6,.5,1),color .4s}
+.yb-stamp{position:absolute;right:18px;bottom:16px;width:56px;height:56px;border:3px solid #b3262e;border-radius:6px;color:#b3262e;font:700 22px/50px var(--display);text-align:center;transform:rotate(-12deg) scale(1.6);opacity:0;transition:transform .25s cubic-bezier(.3,1.8,.5,1),opacity .2s}
+.yb-stamp.on{transform:rotate(-12deg) scale(1);opacity:.85}
+.yb-say{max-width:460px;margin:14px auto 0;font:15px/1.55 var(--display);text-align:center}
+
+/* 5 Centimeters per Second */
+.cm{display:grid;grid-template-columns:90px 1fr;gap:16px;align-items:start}
+.cm-strip{position:relative;height:260px;border-radius:12px;overflow:hidden;background:linear-gradient(#1c2350,#3a2f6a 60%,#6b4a7a)}
+.cm-pet{position:absolute;left:50%;top:-14px;width:12px;height:9px;margin-left:-6px;border-radius:70% 0 70% 0;background:#ffc2d1;box-shadow:0 0 6px rgba(255,190,210,.6);animation:cmfall linear infinite,cmsway 1.1s ease-in-out infinite alternate}
+@keyframes cmfall{to{top:calc(100% + 14px)}}@keyframes cmsway{from{margin-left:-14px;rotate:-25deg}to{margin-left:4px;rotate:30deg}}
+.cm-cap{font-size:11.5px;color:var(--muted);margin-top:6px;text-align:center}
+.cm-pre{margin-bottom:10px}
+.cm-pre button[aria-pressed=true]{color:var(--text);border-color:var(--blush)}
+.cm-res{font:600 clamp(22px,6vw,32px)/1.25 var(--display);margin:14px 0 4px;color:var(--blush);text-wrap:balance}
+.cm-sub{font-size:13px;color:var(--muted);margin:0}
+@media (max-width:460px){.cm{grid-template-columns:64px 1fr;gap:12px}}
+
+/* My Neighbor Totoro: acorns and the growing dance */
+.tt-stage{position:relative;height:250px;border-radius:14px;overflow:hidden;background:linear-gradient(#1b2a52,#2d4a6a 55%,#41664f 56%,#2e4a37)}
+.tt-stage::after{content:"";position:absolute;left:50%;bottom:26%;width:14px;height:18px;margin-left:-7px;border-radius:45% 45% 50% 50%/40% 40% 60% 60%;background:linear-gradient(#5a3418 0 34%,#b07a3c 35%)}
+.tt-tree{position:absolute;z-index:1;left:50%;bottom:28%;width:220px;height:230px;margin-left:-110px;transform-origin:50% 100%;transform:scale(var(--s,0));transition:transform .5s cubic-bezier(.3,1.5,.5,1)}
+.tt-tree svg{width:100%;height:100%;overflow:visible}
+.tt-ac{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin:12px 0 6px;min-height:22px}
+.tt-ac i{width:12px;height:15px;border-radius:45% 45% 50% 50%/40% 40% 60% 60%;background:linear-gradient(#5a3418 0 34%,#b07a3c 35%);display:inline-block}
+.tt-ac.dance i{animation:ttbob .5s ease-in-out infinite alternate}.tt-ac.dance i:nth-child(2n){animation-delay:.25s}
+@keyframes ttbob{to{transform:translateY(-6px) rotate(10deg)}}
+.tt-ac b{font:600 14px var(--type);color:var(--ember);align-self:center;margin-left:4px}
+.tt-msg{text-align:center;margin:6px 0 10px;font-size:13.5px;color:var(--muted)}
+@media (prefers-reduced-motion:reduce){.gad.in .gad-box,.tw-paper.fold,.tw-env,.cm-pet,.tt-ac.dance i{animation:none}.tw-car,.tt-tree,.yb-sig span{transition:none}}
+</style>
+<script>
+/* ---------- Gadgets ---------- */
+window.Gadgets=(()=>{
+  const L={
+   en:{btn:"🧰 Gadgets",title:"Gadgets",sub:"Small things the films left behind",close:"Close",back:"Back to gadgets",
+     tw_n:"Leiden typewriter",tw_a:"Violet Evergarden",tw_d:"Type a real letter, hear every key, and send it off with a wax seal.",
+     tw_ph:"Dear …",tw_word:"Today's word for your letter:",tw_send:"Seal and send",tw_sent:"Your letter is on its way. A copy is in your outbox.",tw_empty:"The page is still blank.",tw_used:"You used “{w}” in your letter. Nicely done.",tw_out:"Letters sent ({n})",tw_del:"Delete",tw_none:"No letters sent yet.",
+     tw_love:"Dear writer,\nI read your letter three times before I folded it. Those three words were hard for me to understand once. I think I understand them a little more now, because you wrote them down.\nI will deliver it carefully.\n— V.",
+     sz_n:"Closer's key",sz_a:"Suzume",sz_d:"Five doors are open. Name the word behind each one to lock it.",sz_q:"Door {i} of 5",sz_turn:"Turn the key",sz_ok:"お返し申す. Locked.",sz_no:"Not quite. The door rattles.",sz_miss:"The word was “{w}”. The door stays open.",sz_end:"{n} of 5 doors locked.",sz_again:"Close more doors",sz_worm:"The worm grows with every door left open.",sz_ph:"type the word",sz_empty:"Pick a deck with some words first.",
+     yb_n:"Yubaba's contract",yb_a:"Spirited Away",yb_d:"Sign the bathhouse contract. Yubaba takes your name and leaves you one piece.",yb_h:"Employment contract",yb_t1:"I will work at the bathhouse until the end of my contract.",yb_t2:"I will scrub the big tub without complaint.",yb_t3:"I give my name to the owner, who may keep whatever she likes of it.",yb_ph:"Write your name",yb_sign:"Sign",yb_say:"“What a fussy name. I'll keep this bit. From now on, you are {k}.”",yb_back:"Remember your real name",yb_ret:"You remembered: {n}. Hold on to it, or you can never go home.",yb_need:"Write a name on the line first.",
+     cm_n:"5 cm per second",cm_a:"Byousoku 5 Centimeter",cm_d:"How long a falling cherry petal would take to cross a distance.",cm_cap:"falling at about 5 cm/s on your screen",cm_p1:"A train platform (10 m)",cm_p2:"Tokyo → Iwafune (≈100 km)",cm_p3:"Tokyo → Tanegashima (≈1,000 km)",cm_p4:"Earth → Moon",cm_own:"Your own distance in km",cm_res:"{t}",cm_sub:"for one petal to fall {d}. The speed never changes. Only the distance does.",
+     tt_n:"Acorn growing dance",tt_a:"My Neighbor Totoro",tt_d:"Every mastered word is an acorn. Dance, and the tree grows.",tt_dance:"Do the growing dance",tt_zero:"No acorns yet. Mark a few flashcards “Got it” and come back.",tt_next:"{n} more acorns until the next growth spurt.",tt_max:"The tree has grown as tall as it can. Look at it!",tt_have:"{n} acorns planted",
+     u:{y:"years",d:"days",h:"hours",m:"minutes",s:"seconds"}},
+   vi:{btn:"🧰 Tiện ích",title:"Tiện ích",sub:"Những món đồ nhỏ các bộ phim để lại",close:"Đóng",back:"Về danh sách",
+     tw_n:"Máy đánh chữ Leiden",tw_a:"Violet Evergarden",tw_d:"Gõ một lá thư thật, nghe từng phím, rồi gửi đi với dấu niêm sáp.",
+     tw_ph:"Gửi …",tw_word:"Từ hôm nay cho lá thư:",tw_send:"Niêm phong và gửi",tw_sent:"Lá thư đã lên đường. Bản sao nằm trong hộp thư đi.",tw_empty:"Trang giấy vẫn còn trống.",tw_used:"Bạn đã dùng “{w}” trong thư. Giỏi lắm.",tw_out:"Thư đã gửi ({n})",tw_del:"Xóa",tw_none:"Chưa gửi lá thư nào.",
+     tw_love:"Gửi người viết,\nTôi đã đọc thư của bạn ba lần trước khi gấp lại. Đã có lúc tôi không hiểu nổi ba chữ ấy. Giờ tôi nghĩ mình hiểu thêm một chút, vì bạn đã viết chúng ra.\nTôi sẽ chuyển thư thật cẩn thận.\n— V.",
+     sz_n:"Chìa khóa người đóng cửa",sz_a:"Suzume",sz_d:"Năm cánh cửa đang mở. Gọi đúng từ sau mỗi cửa để khóa lại.",sz_q:"Cửa {i} / 5",sz_turn:"Xoay chìa",sz_ok:"お返し申す. Đã khóa.",sz_no:"Chưa đúng. Cánh cửa rung lên.",sz_miss:"Từ đúng là “{w}”. Cửa vẫn mở.",sz_end:"Đã khóa {n} / 5 cửa.",sz_again:"Đóng thêm cửa",sz_worm:"Con sâu lớn dần với mỗi cửa còn mở.",sz_ph:"gõ từ",sz_empty:"Hãy chọn một bộ thẻ có từ trước đã.",
+     yb_n:"Hợp đồng của Yubaba",yb_a:"Vùng đất linh hồn",yb_d:"Ký hợp đồng nhà tắm. Yubaba lấy tên bạn và chỉ để lại một mẩu.",yb_h:"Hợp đồng lao động",yb_t1:"Tôi sẽ làm việc ở nhà tắm cho tới hết hợp đồng.",yb_t2:"Tôi sẽ cọ bồn tắm lớn mà không than phiền.",yb_t3:"Tôi trao tên mình cho bà chủ, bà muốn giữ phần nào thì giữ.",yb_ph:"Viết tên bạn",yb_sign:"Ký",yb_say:"“Tên gì mà rườm rà. Ta giữ mẩu này. Từ giờ ngươi là {k}.”",yb_back:"Nhớ lại tên thật",yb_ret:"Bạn đã nhớ ra: {n}. Hãy giữ lấy nó, nếu không sẽ chẳng bao giờ về nhà được.",yb_need:"Hãy viết tên lên dòng kẻ trước.",
+     cm_n:"5 cm mỗi giây",cm_a:"5 cm/s",cm_d:"Một cánh hoa anh đào rơi sẽ mất bao lâu để đi hết một quãng đường.",cm_cap:"rơi khoảng 5 cm/giây trên màn hình",cm_p1:"Một sân ga (10 m)",cm_p2:"Tokyo → Iwafune (≈100 km)",cm_p3:"Tokyo → Tanegashima (≈1.000 km)",cm_p4:"Trái Đất → Mặt Trăng",cm_own:"Quãng đường của bạn (km)",cm_res:"{t}",cm_sub:"để một cánh hoa rơi hết {d}. Tốc độ không bao giờ đổi. Chỉ khoảng cách là đổi.",
+     tt_n:"Điệu nhảy hạt dẻ",tt_a:"Hàng xóm của tôi là Totoro",tt_d:"Mỗi từ đã thuộc là một hạt dẻ. Nhảy lên, và cây sẽ lớn.",tt_dance:"Nhảy điệu lớn lên",tt_zero:"Chưa có hạt dẻ nào. Hãy đánh dấu vài thẻ “Đã thuộc” rồi quay lại.",tt_next:"Còn {n} hạt dẻ nữa tới lần lớn vọt tiếp theo.",tt_max:"Cây đã cao hết cỡ rồi. Nhìn kìa!",tt_have:"Đã gieo {n} hạt dẻ",
+     u:{y:"năm",d:"ngày",h:"giờ",m:"phút",s:"giây"}},
+   ja:{btn:"🧰 ガジェット",title:"ガジェット",sub:"映画たちが置いていった小さな道具",close:"閉じる",back:"一覧に戻る",
+     tw_n:"ライデンのタイプライター",tw_a:"ヴァイオレット・エヴァーガーデン",tw_d:"本物の手紙を打って、キーの音を聞いて、封蝋をして送り出そう。",
+     tw_ph:"拝啓 …",tw_word:"今日の手紙に使う単語：",tw_send:"封をして送る",tw_sent:"手紙を送りました。控えは送信箱にあります。",tw_empty:"まだ白紙です。",tw_used:"手紙に「{w}」を使えました。お見事。",tw_out:"送った手紙（{n}）",tw_del:"削除",tw_none:"まだ手紙はありません。",
+     tw_love:"書き手のあなたへ\n畳む前に、あなたの手紙を三度読みました。その三つの言葉が、わたしには分からなかった頃があります。あなたが書いてくれたから、今は少しだけ分かる気がします。\n大切にお届けします。\n— V.",
+     sz_n:"閉じ師の鍵",sz_a:"すずめの戸締まり",sz_d:"扉が五つ開いている。扉の向こうの単語を言い当てて、鍵をかけよう。",sz_q:"扉 {i} / 5",sz_turn:"鍵を回す",sz_ok:"お返し申す。施錠。",sz_no:"違うみたい。扉が揺れている。",sz_miss:"正解は「{w}」。扉は開いたまま。",sz_end:"5つ中 {n} つの扉を閉じた。",sz_again:"もっと扉を閉じる",sz_worm:"開いたままの扉ごとに、ミミズが大きくなる。",sz_ph:"単語を入力",sz_empty:"先に単語のあるデッキを選んでね。",
+     yb_n:"湯婆婆の契約書",yb_a:"千と千尋の神隠し",yb_d:"湯屋の契約書にサインしよう。湯婆婆は名前を奪って、ひとかけらだけ残す。",yb_h:"雇用契約書",yb_t1:"契約が終わるまで湯屋で働きます。",yb_t2:"大湯を文句を言わずに磨きます。",yb_t3:"名前を経営者に差し出し、好きな部分を取られても構いません。",yb_ph:"名前を書いて",yb_sign:"署名",yb_say:"「贅沢な名前だねぇ。この字だけ残してやろう。今日からお前は {k} だ。」",yb_back:"本当の名前を思い出す",yb_ret:"思い出した：{n}。手放しちゃいけない、帰れなくなるから。",yb_need:"まず線の上に名前を書いて。",
+     cm_n:"秒速5センチメートル",cm_a:"秒速5センチメートル",cm_d:"桜の花びらがある距離を落ちきるのに、どれだけかかるか。",cm_cap:"画面の上でおよそ秒速5cmで落ちています",cm_p1:"駅のホーム（10 m）",cm_p2:"東京 → 岩舟（約100 km）",cm_p3:"東京 → 種子島（約1,000 km）",cm_p4:"地球 → 月",cm_own:"自分の距離（km）",cm_res:"{t}",cm_sub:"花びらが {d} を落ちきるまで。速さは変わらない。変わるのは距離だけ。",
+     tt_n:"どんぐりの成長の踊り",tt_a:"となりのトトロ",tt_d:"覚えた単語ひとつが、どんぐりひとつ。踊れば木が育つ。",tt_dance:"成長の踊りをする",tt_zero:"まだどんぐりがないよ。フラッシュカードで「覚えた」を押してから戻ってきて。",tt_next:"次の成長まで、あと {n} 個のどんぐり。",tt_max:"木はもういちばん高く育った。見て！",tt_have:"植えたどんぐり：{n} 個",
+     u:{y:"年",d:"日",h:"時間",m:"分",s:"秒"}}};
+  const t=(k,v)=>{let s=(L[LANG]||L.en)[k];if(s==null)s=L.en[k];return v?s.replace(/\{(\w+)\}/g,(_,x)=>v[x]):s};
+  const G=[["tw","手"],["sz","鍵"],["yb","契"],["cm","桜"],["tt","木"]];
+  const vol=()=>{try{return window.SFX&&SFX.vol?SFX.vol():1}catch(e){return 1}};
+  let ov=null,box=null,cur=null,opener=null;
+
+  /* sound: one small context, made on the click that opens the panel; the page's master volume already applies to it */
+  let ac=null,nb=null;
+  function A(){if(!ac){try{ac=new(window.AudioContext||window.webkitAudioContext)();const n=ac.sampleRate*.25|0;nb=ac.createBuffer(1,n,ac.sampleRate);const d=nb.getChannelData(0);for(let i=0;i<n;i++)d[i]=Math.random()*2-1}catch(e){ac=null}}
+    if(ac&&ac.state==="suspended")ac.resume();return ac}
+  function noise(x,t,f,q,g0,len){const s=x.createBufferSource(),bp=x.createBiquadFilter(),g=x.createGain();s.buffer=nb;bp.type="bandpass";bp.frequency.value=f;bp.Q.value=q;g.gain.setValueAtTime(g0*vol(),t);g.gain.exponentialRampToValueAtTime(.0001,t+len);s.connect(bp);bp.connect(g);g.connect(x.destination);s.start(t,Math.random()*.15);s.stop(t+len+.02)}
+  function tone(x,t,f,g0,len,type,f2){const o=x.createOscillator(),g=x.createGain();o.type=type||"sine";o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+len);g.gain.setValueAtTime(g0*vol(),t);g.gain.exponentialRampToValueAtTime(.0001,t+len);o.connect(g);g.connect(x.destination);o.start(t);o.stop(t+len+.02)}
+  const S={
+    clack(soft){const x=A();if(!x)return;const t=x.currentTime;noise(x,t,1700+Math.random()*1100,1.3,soft?.35:.7,.045);tone(x,t,150,soft?.15:.32,.05,"triangle",55)},
+    bell(){const x=A();if(!x)return;const t=x.currentTime;[[2093,.22],[3140,.1],[4186,.05]].forEach(([f,g])=>tone(x,t,f,g,1.5))},
+    ret(){const x=A();if(!x)return;const t=x.currentTime;for(let i=0;i<8;i++)noise(x,t+i*.032,3600,3,.25,.02);noise(x,t+.29,900,1,.6,.09);tone(x,t+.29,110,.3,.1,"triangle",50)},
+    lock(){const x=A();if(!x)return;const t=x.currentTime;noise(x,t,2400,4,.5,.05);noise(x,t+.12,1200,2,.7,.08);tone(x,t+.14,880,.12,.6);tone(x,t+.14,1320,.06,.5)},
+    thud(){const x=A();if(!x)return;tone(x,x.currentTime,90,.4,.25,"sine",45)},
+    stamp(){const x=A();if(!x)return;const t=x.currentTime;noise(x,t,500,.8,.9,.12);tone(x,t,70,.5,.18,"sine",40)},
+    pop(i){const x=A();if(!x)return;tone(x,x.currentTime,420+i*140,.18,.25,"sine",900+i*200)},
+    whoosh(){const x=A();if(!x)return;const t=x.currentTime,s=x.createBufferSource(),bp=x.createBiquadFilter(),g=x.createGain();s.buffer=nb;s.loop=true;bp.type="bandpass";bp.Q.value=1.5;bp.frequency.setValueAtTime(400,t);bp.frequency.exponentialRampToValueAtTime(3000,t+.6);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.35*vol(),t+.2);g.gain.exponentialRampToValueAtTime(.0001,t+.7);s.connect(bp);bp.connect(g);g.connect(x.destination);s.start(t);s.stop(t+.75)}};
+
+  /* ---------- shell ---------- */
+  function build(){ov=document.createElement("div");ov.className="gad";ov.hidden=true;ov.setAttribute("role","dialog");ov.setAttribute("aria-modal","true");ov.setAttribute("aria-labelledby","gad-h");
+    ov.innerHTML='<div class="gad-box"><div class="gad-top"><button class="ghost gad-x" type="button" id="gad-back" hidden>←</button><h2 id="gad-h"></h2><button class="ghost gad-x" type="button" id="gad-x">×</button></div><div id="gad-v"></div></div>';
+    document.body.appendChild(ov);box=ov.firstChild;
+    ov.addEventListener("click",e=>{if(e.target===ov)close()});
+    /* keys typed here must not reach the flashcards, quiz or sky behind the panel */
+    ov.addEventListener("keydown",e=>{if(e.key==="Escape"){e.preventDefault();close()}e.stopPropagation()});
+    ov.querySelector("#gad-x").onclick=close;ov.querySelector("#gad-back").onclick=()=>show(null)}
+  function open(id){if(!ov)build();A();if(!opener)opener=document.activeElement;ov.hidden=false;ov.classList.remove("in");void ov.offsetWidth;ov.classList.add("in");show(id||null)}
+  function close(){if(!ov||ov.hidden)return;if(cur&&V[cur].stop)V[cur].stop();ov.hidden=true;cur=null;const o=opener;opener=null;if(o&&o.isConnected&&o.offsetParent)o.focus({preventScroll:true})}
+  function show(id){if(cur&&V[cur].stop)V[cur].stop();cur=id;const v=box.querySelector("#gad-v"),h=box.querySelector("#gad-h"),b=box.querySelector("#gad-back");
+    box.querySelector("#gad-x").setAttribute("aria-label",t("close"));b.setAttribute("aria-label",t("back"));b.hidden=!id;
+    if(!id){h.innerHTML=`${esc(t("title"))}<small>${esc(t("sub"))}</small>`;
+      v.innerHTML=`<div class="gad-grid">${G.map(([g,k])=>`<button type="button" class="gad-tile" data-g="${g}"><i aria-hidden="true">${k}</i><b>${esc(t(g+"_n"))}</b><span>${esc(t(g+"_a"))} · ${esc(t(g+"_d"))}</span></button>`).join("")}</div>`;
+      v.querySelectorAll(".gad-tile").forEach(x=>x.onclick=()=>show(x.dataset.g));const f=v.querySelector(".gad-tile");if(f)f.focus({preventScroll:true});box.scrollTop=0;return}
+    h.innerHTML=`${esc(t(id+"_n"))}<small>${esc(t(id+"_a"))}</small>`;v.innerHTML="";box.scrollTop=0;V[id].render(v)}
+
+  /* words that work as a one-word answer */
+  const oneWords=()=>pool().filter(w=>/^[a-z][a-z-]{3,13}$/i.test(w.w));
+  const pickN=(a,n)=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a.slice(0,n)};
+
+  /* ---------- Violet Evergarden: the Leiden typewriter ---------- */
+  const TW=(()=>{let ta,car,pap,st,cols=40,rang=false,word=null,keys={};
+    const ROWS=["qwertyuiop","asdfghjkl","zxcvbnm,."];
+    const LOVE=/\bi\s+love\s+you\b|愛してる|あいしてる|愛しています|anh\s+yêu\s+em|em\s+yêu\s+anh|yêu\s+bạn/i;
+    function render(v){const ws=oneWords();if(!word||!ws.includes(word))word=ws.length?ws[Math.random()*ws.length|0]:null;
+      v.innerHTML=`<div class="tw">${word?`<p class="tw-word">${esc(t("tw_word"))} <button type="button" aria-expanded="false" id="tw-w">${esc(word.w)}</button><span class="tw-def" hidden id="tw-def">${esc(word.def)}</span></p>`:""}
+        <div class="tw-car" id="tw-car"><div class="tw-paper" id="tw-pap"><textarea class="tw-ta" id="tw-ta" spellcheck="false" autocomplete="off" autocapitalize="sentences" aria-label="${esc(t("tw_n"))}" placeholder="${esc(t("tw_ph"))}"></textarea></div><div class="tw-roll" aria-hidden="true"></div></div>
+        <div class="tw-body"><p class="tw-brand" aria-hidden="true">LEIDEN</p><div class="tw-keys" aria-hidden="true">${ROWS.map(r=>`<div class="tw-r">${[...r].map(c=>`<button type="button" tabindex="-1" class="tw-k" data-c="${c}">${c.toUpperCase()}</button>`).join("")}</div>`).join("")}
+          <div class="tw-r"><button type="button" tabindex="-1" class="tw-k tw-wide" data-c="bs">⌫</button><button type="button" tabindex="-1" class="tw-k tw-sp" data-c=" "></button><button type="button" tabindex="-1" class="tw-k tw-wide" data-c="\n">⏎</button></div></div></div>
+        <div class="gad-row tw-act"><button type="button" class="primary" id="tw-send">${esc(t("tw_send"))}</button></div>
+        <p class="gad-st" id="tw-st" aria-live="polite"></p><div class="tw-reply" id="tw-rep" hidden></div><details class="tw-out" id="tw-out"></details></div>`;
+      ta=v.querySelector("#tw-ta");car=v.querySelector("#tw-car");pap=v.querySelector("#tw-pap");st=v.querySelector("#tw-st");keys={};
+      v.querySelectorAll(".tw-k").forEach(k=>{keys[k.dataset.c]=k;k.addEventListener("pointerdown",e=>e.preventDefault());k.onclick=()=>press(k.dataset.c)});
+      const w=v.querySelector("#tw-w");if(w)w.onclick=()=>{const d=v.querySelector("#tw-def");d.hidden=!d.hidden;w.setAttribute("aria-expanded",String(!d.hidden))};
+      ta.value=store.get("twDraft","");ta.addEventListener("input",e=>{if(e.isComposing)return;typed(e.inputType,e.data)});
+      ta.addEventListener("compositionend",e=>typed("insertText",e.data));
+      ["click","keyup","select"].forEach(ev=>ta.addEventListener(ev,()=>carriage(false)));
+      v.querySelector("#tw-send").onclick=send;
+      requestAnimationFrame(()=>{measure();carriage(false)});outbox();
+      if(matchMedia("(pointer:fine)").matches)ta.focus({preventScroll:true})}
+    function measure(){const s=document.createElement("span");s.style.cssText="position:absolute;visibility:hidden;white-space:pre;font:15px/1.6 var(--type)";s.textContent="M".repeat(20);ta.parentNode.appendChild(s);const cw=s.getBoundingClientRect().width/20;s.remove();cols=Math.max(12,Math.floor(ta.clientWidth/(cw||9)))}
+    function col(){const b=ta.value.slice(0,ta.selectionStart),line=b.slice(b.lastIndexOf("\n")+1);return [...line].length%cols}
+    function carriage(ret){const c=col(),sh=Math.min(56,car.clientWidth*.1);car.classList.toggle("ret",!!ret);car.style.transform=`translateX(${((.5-c/cols)*sh).toFixed(1)}px)`;
+      if(c>=cols-7&&!rang){rang=true;S.bell()}else if(c<cols-7)rang=false}
+    function flash(ch){const k=keys[ch==null?"":String(ch).slice(-1).toLowerCase()];if(!k)return;k.classList.add("dn");setTimeout(()=>k.classList.remove("dn"),90)}
+    function typed(type,data){if(type==="insertLineBreak"||data==="\n"){S.ret();flash("\n");carriage(true)}
+      else{S.clack(type&&type.startsWith("delete"));if(type&&type.startsWith("delete"))flash("bs");else flash(data);carriage(false)}
+      store.set("twDraft",ta.value);if(st.textContent)st.textContent=""}
+    function press(c){const s=ta.selectionStart,e=ta.selectionEnd;
+      if(c==="bs"){if(s===e&&s>0)ta.setRangeText("",s-1,s,"end");else ta.setRangeText("",s,e,"end");typed("deleteContentBackward")}
+      else{ta.setRangeText(c,s,e,"end");typed(c==="\n"?"insertLineBreak":"insertText",c)}}
+    function send(){const x=ta.value.trim();if(!x){st.textContent=t("tw_empty");pap.classList.remove("shake");void pap.offsetWidth;pap.classList.add("shake");S.thud();return}
+      const used=word&&new RegExp("\\b"+word.w.slice(0,Math.max(4,word.w.length-2)).replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"i").test(x);
+      const L2=store.get("twLetters",[]);L2.unshift({t:Date.now(),x:x.slice(0,4000),w:used?word.w:null});store.set("twLetters",L2.slice(0,30));
+      const love=LOVE.test(x),rep=box.querySelector("#tw-rep");rep.hidden=true;
+      const done=()=>{pap.classList.remove("fold");ta.value="";store.set("twDraft","");carriage(true);
+        st.textContent=t("tw_sent")+(used?" "+t("tw_used",{w:word.w}):"");outbox();if(love)reply(rep)};
+      S.stamp();if(reduced){done();return}
+      const r=pap.getBoundingClientRect(),env=document.createElement("div");env.className="tw-env";env.style.left=(r.left+r.width/2)+"px";env.style.top=(r.top+r.height/2)+"px";
+      pap.classList.add("fold");setTimeout(()=>{document.body.appendChild(env);setTimeout(()=>env.remove(),1600)},520);setTimeout(done,760)}
+    function reply(rep){const body=t("tw_love"),ch=[...body];let i=0;rep.textContent="";rep.hidden=false;if(reduced){rep.textContent=body;return}
+      const iv=setInterval(()=>{if(rep.hidden||!rep.isConnected){clearInterval(iv);return}i=Math.min(ch.length,i+2);rep.textContent=ch.slice(0,i).join("");if(i%6===0)S.clack(true);if(i>=ch.length)clearInterval(iv)},45)}
+    function outbox(){const o=box.querySelector("#tw-out");if(!o)return;const L2=store.get("twLetters",[]),wasOpen=o.open;
+      const fmt=n=>{try{return new Date(n).toLocaleString(LANG==="vi"?"vi-VN":LANG==="ja"?"ja-JP":"en-GB",{dateStyle:"medium",timeStyle:"short"})}catch(e){return new Date(n).toLocaleString()}};
+      o.innerHTML=`<summary>${esc(t("tw_out",{n:L2.length}))}</summary>`+(L2.length?`<ol>${L2.map((l,i)=>`<li><time>${esc(fmt(l.t))}${l.w?" · ★ "+esc(l.w):""}</time><button type="button" class="ghost" data-i="${i}">${esc(t("tw_del"))}</button><p>${esc(l.x)}</p></li>`).join("")}</ol>`:`<p class="gad-note">${esc(t("tw_none"))}</p>`);
+      o.open=wasOpen;o.querySelectorAll("button[data-i]").forEach(b=>b.onclick=()=>{const a=store.get("twLetters",[]);a.splice(+b.dataset.i,1);store.set("twLetters",a);outbox()})}
+    return {render}})();
+
+  /* ---------- Suzume: the Closer's key ---------- */
+  const SZ=(()=>{let ws=[],i=0,tries=0,res=[],busy=false,tm=0;
+    function render(v){ws=pickN(oneWords(),5);i=0;tries=0;res=[];busy=false;
+      if(ws.length<5){v.innerHTML=`<p class="gad-note">${esc(t("sz_empty"))}</p>`;return}
+      v.innerHTML=`<p class="gad-note">${esc(t("sz_d"))}</p><div class="sz-doors" id="sz-doors" aria-hidden="true">${ws.map(()=>'<span class="sz-d"></span>').join("")}</div><div id="sz-q"></div><div class="sz-worm" aria-hidden="true"><i id="sz-worm"></i></div><p class="sz-wl">${esc(t("sz_worm"))}</p>`;q(v)}
+    function q(v){const D=v.querySelectorAll(".sz-d");D.forEach((d,j)=>{d.className="sz-d"+(res[j]===true?" ok":res[j]===false?" bad":j===i?" on":"")});
+      v.querySelector("#sz-worm").style.width=(res.filter(x=>x===false).length*20)+"%";const Q=v.querySelector("#sz-q");
+      if(i>=ws.length){const n=res.filter(Boolean).length;Q.innerHTML=`<p class="sz-q">${esc(t("sz_end",{n}))}</p><div class="gad-row sz-f"><button type="button" class="primary" id="sz-again">${esc(t("sz_again"))}</button></div>`;Q.querySelector("#sz-again").onclick=()=>render(v);Q.querySelector("#sz-again").focus();return}
+      const w=ws[i],gl=typeof gloss==="function"?gloss(w):"";
+      Q.innerHTML=`<p class="gad-note" style="text-align:center;margin:0">${esc(t("sz_q",{i:i+1}))}</p><p class="sz-q">${esc(w.def)}${gl?`<span class="sz-gl">${esc(gl)}</span>`:""}</p><p class="sz-hint" aria-label="${esc(w.w[0])}, ${w.w.length}">${esc(w.w[0])}${" _".repeat(w.w.length-1)}</p>
+        <form class="gad-row sz-f" id="sz-f"><input type="text" id="sz-in" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="${esc(t("sz_ph"))}" placeholder="${esc(t("sz_ph"))}"><button class="primary" type="submit"><span class="sz-key" aria-hidden="true">🗝</span> ${esc(t("sz_turn"))}</button></form><p class="gad-st" id="sz-st" aria-live="polite"></p>`;
+      const f=Q.querySelector("#sz-f"),inp=Q.querySelector("#sz-in"),stl=Q.querySelector("#sz-st");inp.focus({preventScroll:true});
+      f.onsubmit=e=>{e.preventDefault();if(busy)return;const a=inp.value.trim().toLowerCase();if(!a)return;
+        if(a===w.w.toLowerCase()){busy=true;res[i]=true;S.lock();stl.textContent=t("sz_ok");Q.querySelector(".sz-key").classList.add("turn");D[i].className="sz-d ok";tm=setTimeout(()=>{busy=false;i++;tries=0;q(v)},reduced?300:1000)}
+        else if(++tries<2){S.thud();stl.textContent=t("sz_no");inp.classList.remove("shake");void inp.offsetWidth;inp.classList.add("shake");inp.select()}
+        else{busy=true;res[i]=false;S.thud();stl.textContent=t("sz_miss",{w:w.w});D[i].className="sz-d bad";v.querySelector("#sz-worm").style.width=(res.filter(x=>x===false).length*20)+"%";tm=setTimeout(()=>{busy=false;i++;tries=0;q(v)},reduced?600:1800)}}}
+    return {render,stop:()=>clearTimeout(tm)}})();
+
+  /* ---------- Spirited Away: Yubaba's contract ---------- */
+  const YB=(()=>{let name="",keep=-1;
+    const seg=s=>{try{return [...new Intl.Segmenter(undefined,{granularity:"grapheme"}).segment(s)].map(x=>x.segment)}catch(e){return [...s]}};
+    const hash=s=>{let h=7;for(const c of s)h=(h*31+c.codePointAt(0))>>>0;return h};
+    function render(v){v.innerHTML=`<div class="yb-paper"><h3>契約書</h3><p class="yb-en">${esc(t("yb_h"))}</p><ol><li>${esc(t("yb_t1"))}</li><li>${esc(t("yb_t2"))}</li><li>${esc(t("yb_t3"))}</li></ol>
+        <form id="yb-f"><div class="yb-sig" id="yb-sig" hidden></div><input type="text" id="yb-in" maxlength="40" autocomplete="off" aria-label="${esc(t("yb_ph"))}" placeholder="${esc(t("yb_ph"))}"><div class="gad-row" style="justify-content:center;margin-top:12px"><button class="primary" type="submit" id="yb-go">${esc(t("yb_sign"))}</button></div></form><div class="yb-stamp" id="yb-stamp" aria-hidden="true">湯</div></div>
+        <p class="yb-say" id="yb-say" aria-live="polite"></p><div class="gad-row" style="justify-content:center;margin-top:10px"><button type="button" class="ghost" id="yb-back" hidden>${esc(t("yb_back"))}</button></div>`;
+      const f=v.querySelector("#yb-f"),inp=v.querySelector("#yb-in"),sig=v.querySelector("#yb-sig"),say=v.querySelector("#yb-say"),back=v.querySelector("#yb-back"),stp=v.querySelector("#yb-stamp");
+      f.onsubmit=e=>{e.preventDefault();name=inp.value.trim().replace(/\s+/g," ");if(!name){say.textContent=t("yb_need");inp.focus();return}
+        const g=seg(name),idx=g.map((c,j)=>/[\p{L}\p{N}]/u.test(c)?j:-1).filter(j=>j>=0);if(!idx.length){say.textContent=t("yb_need");return}
+        const low=name.toLowerCase().replace(/\s/g,"");
+        keep=/千尋$/.test(name)?g.lastIndexOf("千"):idx[hash(low)%idx.length];
+        sig.innerHTML=g.map((c,j)=>`<span style="--dx:${((Math.random()-.5)*160)|0}px;--r:${((Math.random()-.5)*90)|0}deg">${c===" "?"&nbsp;":esc(c)}</span>`).join("");sig.hidden=false;inp.hidden=true;v.querySelector("#yb-go").hidden=true;
+        say.textContent="";back.hidden=true;S.stamp();stp.classList.add("on");
+        const kept=/^chihiro$|^ogino ?chihiro$/i.test(name)?"Sen":g[keep].toUpperCase();
+        setTimeout(()=>{S.whoosh();sig.querySelectorAll("span").forEach((s,j)=>{if(j===keep)s.classList.add("kept");else setTimeout(()=>s.classList.add("gone"),j*70)});
+          setTimeout(()=>{say.textContent=t("yb_say",{k:kept});back.hidden=false;back.focus({preventScroll:true})},reduced?0:900)},reduced?0:650)};
+      back.onclick=()=>{sig.querySelectorAll("span").forEach((s,j)=>setTimeout(()=>s.classList.remove("gone","kept"),j*60));S.pop(2);say.textContent=t("yb_ret",{n:name});back.hidden=true;stp.classList.remove("on");
+        setTimeout(()=>{sig.hidden=true;inp.hidden=false;inp.value="";v.querySelector("#yb-go").hidden=false},reduced?0:2400)}}
+    return {render}})();
+
+  /* ---------- 5 Centimeters per Second ---------- */
+  const CM=(()=>{const P=[["cm_p1",.01],["cm_p2",100],["cm_p3",1000],["cm_p4",384400]];
+    function dur(sec){const U=t("u"),parts=[[31536000,"y"],[86400,"d"],[3600,"h"],[60,"m"],[1,"s"]],o=[];let s=Math.round(sec);
+      for(const [n,k] of parts){if(s>=n||(k==="s"&&!o.length)){const q=Math.floor(s/n);s-=q*n;o.push(q.toLocaleString(LANG==="vi"?"vi-VN":LANG==="ja"?"ja-JP":"en-US")+(LANG==="ja"?"":" ")+U[k])}if(o.length===2)break}
+      return o.join(LANG==="ja"?"":", ")}
+    function render(v){v.innerHTML=`<div class="cm"><div><div class="cm-strip" id="cm-s" aria-hidden="true"></div><p class="cm-cap">${esc(t("cm_cap"))}</p></div>
+      <div><p class="gad-note">${esc(t("cm_d"))}</p><div class="gad-row cm-pre">${P.map(([k],j)=>`<button type="button" class="ghost" data-j="${j}" aria-pressed="false">${esc(t(k))}</button>`).join("")}</div>
+        <label class="gad-row"><span class="gad-note" style="margin:0">${esc(t("cm_own"))}</span><input type="number" id="cm-km" min="0" step="any" inputmode="decimal" style="width:9em"></label>
+        <p class="cm-res" id="cm-res" aria-live="polite"></p><p class="cm-sub" id="cm-sub"></p></div></div>`;
+      /* 1 cm is 37.8 CSS px; real screens differ, so the petal is only approximately true to scale */
+      const strip=v.querySelector("#cm-s");requestAnimationFrame(()=>{const h=strip.clientHeight+28;for(let k=0;k<3;k++){const p=document.createElement("i");p.className="cm-pet";p.style.animationDuration=`${(h/(5*37.8)).toFixed(2)}s, ${(1+k*.17).toFixed(2)}s`;p.style.animationDelay=`${(-k*h/(5*37.8)/3).toFixed(2)}s, 0s`;p.style.left=(30+k*20)+"%";strip.appendChild(p)}});
+      const km=v.querySelector("#cm-km"),bs=v.querySelectorAll(".cm-pre button");
+      const go=(d,label)=>{bs.forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.j===label)));if(!(d>0)){v.querySelector("#cm-res").textContent="";v.querySelector("#cm-sub").textContent="";return}
+        v.querySelector("#cm-res").textContent=dur(d*1000/.05);
+        const dt=d<1?Math.round(d*1000)+" m":d.toLocaleString(LANG==="vi"?"vi-VN":LANG==="ja"?"ja-JP":"en-US",{maximumFractionDigits:2})+" km";v.querySelector("#cm-sub").textContent=t("cm_sub",{d:dt})};
+      bs.forEach(b=>b.onclick=()=>{const d=P[+b.dataset.j][1];km.value=d;go(d,b.dataset.j);S.pop(+b.dataset.j)});
+      km.oninput=()=>go(parseFloat(km.value),null);km.value=P[2][1];go(P[2][1],"2")}
+    return {render}})();
+
+  /* ---------- My Neighbor Totoro: acorns ---------- */
+  const TT=(()=>{const STEP=[1,10,40,120,300],SC=[0,.3,.48,.66,.84,1];let tm=[];
+    const stage=n=>STEP.filter(s=>n>=s).length;
+    const TREE=`<svg viewBox="0 0 220 230" aria-hidden="true"><path d="M100 230 C104 190 98 160 92 130 L106 128 C110 150 112 175 118 230Z M104 160 C90 150 78 146 62 142 L64 136 C80 140 94 144 106 150Z M110 150 C124 140 138 132 156 128 L158 134 C142 138 128 146 112 158Z" fill="#5a3a22"/>
+      <g fill="#2f6b3a"><circle cx="110" cy="80" r="62"/><circle cx="56" cy="118" r="42"/><circle cx="166" cy="114" r="44"/></g><g fill="#3f8a48"><circle cx="96" cy="66" r="44"/><circle cx="148" cy="92" r="34"/><circle cx="66" cy="104" r="30"/></g><g fill="#5aa85a" opacity=".7"><circle cx="86" cy="52" r="20"/><circle cx="140" cy="74" r="16"/><circle cx="58" cy="96" r="12"/></g></svg>`;
+    function render(v){const n=WORDS.filter(w=>st(w)===2).length,s=stage(n),nxt=STEP.find(x=>x>n);
+      v.innerHTML=`<p class="gad-note">${esc(t("tt_d"))}</p><div class="tt-stage"><div class="tt-tree" id="tt-tree">${TREE}</div></div>
+        <div class="tt-ac" id="tt-ac" role="img" aria-label="${esc(t("tt_have",{n}))}">${"<i></i>".repeat(Math.min(n,24))}${n>24?`<b>×${n}</b>`:""}</div>
+        <p class="tt-msg" id="tt-msg" aria-live="polite">${esc(n?t("tt_have",{n}):t("tt_zero"))}</p><div class="gad-row" style="justify-content:center"><button type="button" class="primary" id="tt-go"${n?"":" disabled"}>${esc(t("tt_dance"))}</button></div>`;
+      const tree=v.querySelector("#tt-tree"),ac=v.querySelector("#tt-ac"),msg=v.querySelector("#tt-msg");
+      v.querySelector("#tt-go").onclick=()=>{stop();tree.style.setProperty("--s",0);ac.classList.add("dance");
+        /* three growth spurts, like the night in the film */
+        [1,2,3].forEach(k=>tm.push(setTimeout(()=>{S.pop(k);S.whoosh();tree.style.setProperty("--s",(SC[s]*k/3).toFixed(3))},reduced?0:400+k*650)));
+        tm.push(setTimeout(()=>{ac.classList.remove("dance");msg.textContent=nxt?t("tt_next",{n:nxt-n}):t("tt_max")},reduced?0:2600))}}
+    function stop(){tm.forEach(clearTimeout);tm=[]}
+    return {render,stop}})();
+
+  const V={tw:TW,sz:SZ,yb:YB,cm:CM,tt:TT};
+  let shownLang=LANG;
+  function labels(){const b=document.getElementById("sc-gad");if(b)b.textContent=t("btn");if(LANG!==shownLang){shownLang=LANG;if(ov&&!ov.hidden)show(cur)}}
+  const b=document.getElementById("sc-gad");if(b)b.onclick=e=>{e.stopPropagation();opener=document.getElementById("sc-more")||b;open(null)};
+  labels();new MutationObserver(labels).observe(document.documentElement,{attributes:true,attributeFilter:["lang"]});
+  return {open,close,labels}})();
+</script>
+
 <script>
 /* volume control, and the More menu that holds the less-used buttons */
 (()=>{const r=document.getElementById("vol-master"),m=document.getElementById("vol-mute");
   const sync=()=>{r.value=MASTER.get();m.setAttribute("aria-pressed",String(MASTER.muted()));m.setAttribute("aria-label",MASTER.muted()?"Unmute":"Mute");r.setAttribute("aria-valuetext",MASTER.muted()?"Muted":Math.round(MASTER.get()*100)+"%")};
   r.addEventListener("input",()=>{MASTER.set(+r.value);sync()});m.addEventListener("click",e=>{e.stopPropagation();MASTER.toggle();sync()});sync();
-  const more=document.getElementById("sc-more"),menu=document.getElementById("moremenu"),IDS=["sc-tl","sc-perf","sc-snd","sc-fb","cmdk-b"];
+  const more=document.getElementById("sc-more"),menu=document.getElementById("moremenu"),IDS=["sc-gad","sc-tl","sc-perf","sc-snd","sc-fb","cmdk-b"];
   const move=()=>IDS.forEach(id=>{const e=document.getElementById(id);if(e&&e.parentElement!==menu){e.setAttribute("role","menuitem");menu.appendChild(e)}});
   move();setTimeout(move,0);setTimeout(move,1500);
   const close=()=>{menu.hidden=true;more.setAttribute("aria-expanded","false")};
