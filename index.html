@@ -1687,8 +1687,8 @@ const Search=(()=>{
     clearTimeout(pend);
     /* "spirit" is the start of "spirited away": wait a moment in case the user is still typing a longer egg */
     const longer=hit&&hit!=="quomodo"&&Object.keys(EGGS).concat(Object.keys(ALIAS)).some(x=>x!==k&&x.startsWith(k));
-    if(hit&&hit!==lastEgg&&longer){ pend=setTimeout(()=>{if(norm(inp.value)===k&&hit!==lastEgg){lastEgg=hit;play(hit);ctl(true)}},700); return }
-    if(hit&&hit!==lastEgg){ lastEgg=hit; play(hit); ctl(true); }
+    if(hit&&hit!==lastEgg&&longer){ pend=setTimeout(()=>{if(norm(inp.value)===k&&hit!==lastEgg){lastEgg=hit;play(hit);ctl(!["typewriter","yubaba","closer","acorn"].includes(hit))}},700); return }
+    if(hit&&hit!==lastEgg){ lastEgg=hit; play(hit);ctl(!["typewriter","yubaba","closer","acorn"].includes(hit)); }
     if(!hit&&lastEgg){ lastEgg=""; setHeader(null); ctl(false); undClose(); }
   }
   inp.addEventListener("input",()=>{
@@ -6778,6 +6778,7 @@ MusicTab.build(); applyLang(); Music.init(); musicReady=true; updateCord(); rout
 /* ---------- Gadgets: small toys from the films in the sky (opened from More → Gadgets, or by search eggs) ---------- */
 .gad{position:fixed;inset:0;z-index:80;display:flex;align-items:center;justify-content:center;padding:max(10px,env(safe-area-inset-top,0px)) max(10px,env(safe-area-inset-right,0px)) max(10px,env(safe-area-inset-bottom,0px)) max(10px,env(safe-area-inset-left,0px));background:rgba(5,7,22,.6);-webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px)}
 .gad[hidden]{display:none}
+.gad-box:focus{outline:none}
 .gad-box{width:min(720px,100%);max-height:100%;overflow:auto;overscroll-behavior:contain;background:rgba(14,17,46,.96);border:1px solid var(--line);border-radius:20px;padding:16px clamp(12px,3vw,22px) 20px;color:var(--text);box-shadow:0 30px 80px -20px rgba(0,0,0,.7)}
 .gad.in .gad-box{animation:gadin .32s cubic-bezier(.2,.9,.3,1.15)}@keyframes gadin{from{transform:translateY(24px) scale(.97);opacity:0}}
 .gad-top{display:flex;align-items:center;gap:10px;margin-bottom:12px}
@@ -6898,7 +6899,7 @@ window.Gadgets=(()=>{
   const L={
    en:{btn:"🧰 Gadgets",title:"Gadgets",sub:"Small things the films left behind",close:"Close",back:"Back to gadgets",
      tw_n:"Leiden typewriter",tw_a:"Violet Evergarden",tw_d:"Type a real letter, hear every key, and send it off with a wax seal.",
-     tw_ph:"Dear …",tw_word:"Today's word for your letter:",tw_send:"Seal and send",tw_sent:"Your letter is on its way. A copy is in your outbox.",tw_empty:"The page is still blank.",tw_used:"You used “{w}” in your letter. Nicely done.",tw_out:"Letters sent ({n})",tw_del:"Delete",tw_none:"No letters sent yet.",
+     tw_ph:"Dear …",tw_word:"A word to try in your letter:",tw_send:"Seal and send",tw_sent:"Your letter is on its way. A copy is in your outbox.",tw_empty:"The page is still blank.",tw_used:"You used “{w}” in your letter. Nicely done.",tw_out:"Letters sent ({n})",tw_del:"Delete",tw_none:"No letters sent yet.",
      tw_love:"Dear writer,\nI read your letter three times before I folded it. Those three words were hard for me to understand once. I think I understand them a little more now, because you wrote them down.\nI will deliver it carefully.\n— V.",
      sz_n:"Closer's key",sz_a:"Suzume",sz_d:"Five doors are open. Name the word behind each one to lock it.",sz_q:"Door {i} of 5",sz_turn:"Turn the key",sz_ok:"お返し申す. Locked.",sz_no:"Not quite. The door rattles.",sz_miss:"The word was “{w}”. The door stays open.",sz_end:"{n} of 5 doors locked.",sz_again:"Close more doors",sz_worm:"The worm grows with every door left open.",sz_ph:"type the word",sz_empty:"Pick a deck with some words first.",
      yb_n:"Yubaba's contract",yb_a:"Spirited Away",yb_d:"Sign the bathhouse contract. Yubaba takes your name and leaves you one piece.",yb_h:"Employment contract",yb_t1:"I will work at the bathhouse until the end of my contract.",yb_t2:"I will scrub the big tub without complaint.",yb_t3:"I give my name to the owner, who may keep whatever she likes of it.",yb_ph:"Write your name",yb_sign:"Sign",yb_say:"“What a fussy name. I'll keep this bit. From now on, you are {k}.”",yb_back:"Remember your real name",yb_ret:"You remembered: {n}. Hold on to it, or you can never go home.",yb_need:"Write a name on the line first.",
@@ -6907,7 +6908,7 @@ window.Gadgets=(()=>{
      u:{y:"years",d:"days",h:"hours",m:"minutes",s:"seconds"}},
    vi:{btn:"🧰 Tiện ích",title:"Tiện ích",sub:"Những món đồ nhỏ các bộ phim để lại",close:"Đóng",back:"Về danh sách",
      tw_n:"Máy đánh chữ Leiden",tw_a:"Violet Evergarden",tw_d:"Gõ một lá thư thật, nghe từng phím, rồi gửi đi với dấu niêm sáp.",
-     tw_ph:"Gửi …",tw_word:"Từ hôm nay cho lá thư:",tw_send:"Niêm phong và gửi",tw_sent:"Lá thư đã lên đường. Bản sao nằm trong hộp thư đi.",tw_empty:"Trang giấy vẫn còn trống.",tw_used:"Bạn đã dùng “{w}” trong thư. Giỏi lắm.",tw_out:"Thư đã gửi ({n})",tw_del:"Xóa",tw_none:"Chưa gửi lá thư nào.",
+     tw_ph:"Gửi …",tw_word:"Một từ để thử dùng trong thư:",tw_send:"Niêm phong và gửi",tw_sent:"Lá thư đã lên đường. Bản sao nằm trong hộp thư đi.",tw_empty:"Trang giấy vẫn còn trống.",tw_used:"Bạn đã dùng “{w}” trong thư. Giỏi lắm.",tw_out:"Thư đã gửi ({n})",tw_del:"Xóa",tw_none:"Chưa gửi lá thư nào.",
      tw_love:"Gửi người viết,\nTôi đã đọc thư của bạn ba lần trước khi gấp lại. Đã có lúc tôi không hiểu nổi ba chữ ấy. Giờ tôi nghĩ mình hiểu thêm một chút, vì bạn đã viết chúng ra.\nTôi sẽ chuyển thư thật cẩn thận.\n— V.",
      sz_n:"Chìa khóa người đóng cửa",sz_a:"Suzume",sz_d:"Năm cánh cửa đang mở. Gọi đúng từ sau mỗi cửa để khóa lại.",sz_q:"Cửa {i} / 5",sz_turn:"Xoay chìa",sz_ok:"お返し申す. Đã khóa.",sz_no:"Chưa đúng. Cánh cửa rung lên.",sz_miss:"Từ đúng là “{w}”. Cửa vẫn mở.",sz_end:"Đã khóa {n} / 5 cửa.",sz_again:"Đóng thêm cửa",sz_worm:"Con sâu lớn dần với mỗi cửa còn mở.",sz_ph:"gõ từ",sz_empty:"Hãy chọn một bộ thẻ có từ trước đã.",
      yb_n:"Hợp đồng của Yubaba",yb_a:"Vùng đất linh hồn",yb_d:"Ký hợp đồng nhà tắm. Yubaba lấy tên bạn và chỉ để lại một mẩu.",yb_h:"Hợp đồng lao động",yb_t1:"Tôi sẽ làm việc ở nhà tắm cho tới hết hợp đồng.",yb_t2:"Tôi sẽ cọ bồn tắm lớn mà không than phiền.",yb_t3:"Tôi trao tên mình cho bà chủ, bà muốn giữ phần nào thì giữ.",yb_ph:"Viết tên bạn",yb_sign:"Ký",yb_say:"“Tên gì mà rườm rà. Ta giữ mẩu này. Từ giờ ngươi là {k}.”",yb_back:"Nhớ lại tên thật",yb_ret:"Bạn đã nhớ ra: {n}. Hãy giữ lấy nó, nếu không sẽ chẳng bao giờ về nhà được.",yb_need:"Hãy viết tên lên dòng kẻ trước.",
@@ -6916,7 +6917,7 @@ window.Gadgets=(()=>{
      u:{y:"năm",d:"ngày",h:"giờ",m:"phút",s:"giây"}},
    ja:{btn:"🧰 ガジェット",title:"ガジェット",sub:"映画たちが置いていった小さな道具",close:"閉じる",back:"一覧に戻る",
      tw_n:"ライデンのタイプライター",tw_a:"ヴァイオレット・エヴァーガーデン",tw_d:"本物の手紙を打って、キーの音を聞いて、封蝋をして送り出そう。",
-     tw_ph:"拝啓 …",tw_word:"今日の手紙に使う単語：",tw_send:"封をして送る",tw_sent:"手紙を送りました。控えは送信箱にあります。",tw_empty:"まだ白紙です。",tw_used:"手紙に「{w}」を使えました。お見事。",tw_out:"送った手紙（{n}）",tw_del:"削除",tw_none:"まだ手紙はありません。",
+     tw_ph:"拝啓 …",tw_word:"手紙に使ってみたい単語：",tw_send:"封をして送る",tw_sent:"手紙を送りました。控えは送信箱にあります。",tw_empty:"まだ白紙です。",tw_used:"手紙に「{w}」を使えました。お見事。",tw_out:"送った手紙（{n}）",tw_del:"削除",tw_none:"まだ手紙はありません。",
      tw_love:"書き手のあなたへ\n畳む前に、あなたの手紙を三度読みました。その三つの言葉が、わたしには分からなかった頃があります。あなたが書いてくれたから、今は少しだけ分かる気がします。\n大切にお届けします。\n— V.",
      sz_n:"閉じ師の鍵",sz_a:"すずめの戸締まり",sz_d:"扉が五つ開いている。扉の向こうの単語を言い当てて、鍵をかけよう。",sz_q:"扉 {i} / 5",sz_turn:"鍵を回す",sz_ok:"お返し申す。施錠。",sz_no:"違うみたい。扉が揺れている。",sz_miss:"正解は「{w}」。扉は開いたまま。",sz_end:"5つ中 {n} つの扉を閉じた。",sz_again:"もっと扉を閉じる",sz_worm:"開いたままの扉ごとに、ミミズが大きくなる。",sz_ph:"単語を入力",sz_empty:"先に単語のあるデッキを選んでね。",
      yb_n:"湯婆婆の契約書",yb_a:"千と千尋の神隠し",yb_d:"湯屋の契約書にサインしよう。湯婆婆は名前を奪って、ひとかけらだけ残す。",yb_h:"雇用契約書",yb_t1:"契約が終わるまで湯屋で働きます。",yb_t2:"大湯を文句を言わずに磨きます。",yb_t3:"名前を経営者に差し出し、好きな部分を取られても構いません。",yb_ph:"名前を書いて",yb_sign:"署名",yb_say:"「贅沢な名前だねぇ。この字だけ残してやろう。今日からお前は {k} だ。」",yb_back:"本当の名前を思い出す",yb_ret:"思い出した：{n}。手放しちゃいけない、帰れなくなるから。",yb_need:"まず線の上に名前を書いて。",
@@ -6947,7 +6948,9 @@ window.Gadgets=(()=>{
   /* ---------- shell ---------- */
   function build(){ov=document.createElement("div");ov.className="gad";ov.hidden=true;ov.setAttribute("role","dialog");ov.setAttribute("aria-modal","true");ov.setAttribute("aria-labelledby","gad-h");
     ov.innerHTML='<div class="gad-box"><div class="gad-top"><button class="ghost gad-x" type="button" id="gad-back" hidden>←</button><h2 id="gad-h"></h2><button class="ghost gad-x" type="button" id="gad-x">×</button></div><div id="gad-v"></div></div>';
-    document.body.appendChild(ov);box=ov.firstChild;
+    document.body.appendChild(ov);box=ov.firstChild;box.tabIndex=-1;
+    /* while open, keys aimed anywhere outside the panel (body after a click on plain text, the search box after an egg) stop here, so nothing behind it flips, grades or answers */
+    addEventListener("keydown",e=>{if(ov.hidden)return;if(e.key==="Escape"){e.preventDefault();e.stopPropagation();close();return}if(!ov.contains(e.target))e.stopPropagation()},true);
     ov.addEventListener("click",e=>{if(e.target===ov)close()});
     /* keys typed here must not reach the flashcards, quiz or sky behind the panel */
     ov.addEventListener("keydown",e=>{if(e.key==="Escape"){e.preventDefault();close()}e.stopPropagation()});
@@ -6959,7 +6962,7 @@ window.Gadgets=(()=>{
     if(!id){h.innerHTML=`${esc(t("title"))}<small>${esc(t("sub"))}</small>`;
       v.innerHTML=`<div class="gad-grid">${G.map(([g,k])=>`<button type="button" class="gad-tile" data-g="${g}"><i aria-hidden="true">${k}</i><b>${esc(t(g+"_n"))}</b><span>${esc(t(g+"_a"))} · ${esc(t(g+"_d"))}</span></button>`).join("")}</div>`;
       v.querySelectorAll(".gad-tile").forEach(x=>x.onclick=()=>show(x.dataset.g));const f=v.querySelector(".gad-tile");if(f)f.focus({preventScroll:true});box.scrollTop=0;return}
-    h.innerHTML=`${esc(t(id+"_n"))}<small>${esc(t(id+"_a"))}</small>`;v.innerHTML="";box.scrollTop=0;V[id].render(v)}
+    h.innerHTML=`${esc(t(id+"_n"))}<small>${esc(t(id+"_a"))}</small>`;v.innerHTML="";box.scrollTop=0;V[id].render(v);if(!ov.contains(document.activeElement))box.focus({preventScroll:true})}
 
   /* words that work as a one-word answer */
   const oneWords=()=>pool().filter(w=>/^[a-z][a-z-]{3,13}$/i.test(w.w));
@@ -7043,13 +7046,13 @@ window.Gadgets=(()=>{
         const g=seg(name),idx=g.map((c,j)=>/[\p{L}\p{N}]/u.test(c)?j:-1).filter(j=>j>=0);if(!idx.length){say.textContent=t("yb_need");return}
         const low=name.toLowerCase().replace(/\s/g,"");
         keep=/千尋$/.test(name)?g.lastIndexOf("千"):idx[hash(low)%idx.length];
-        sig.innerHTML=g.map((c,j)=>`<span style="--dx:${((Math.random()-.5)*160)|0}px;--r:${((Math.random()-.5)*90)|0}deg">${c===" "?"&nbsp;":esc(c)}</span>`).join("");sig.hidden=false;inp.hidden=true;v.querySelector("#yb-go").hidden=true;
+        sig.innerHTML=g.map((c,j)=>`<span style="--dx:${((Math.random()-.5)*160)|0}px;--r:${((Math.random()-.5)*90)|0}deg">${c===" "?"&nbsp;":esc(c)}</span>`).join("");sig.hidden=false;inp.hidden=true;v.querySelector("#yb-go").hidden=true;box.focus({preventScroll:true});
         say.textContent="";back.hidden=true;S.stamp();stp.classList.add("on");
         const kept=/^chihiro$|^ogino ?chihiro$/i.test(name)?"Sen":g[keep].toUpperCase();
         setTimeout(()=>{S.whoosh();sig.querySelectorAll("span").forEach((s,j)=>{if(j===keep)s.classList.add("kept");else setTimeout(()=>s.classList.add("gone"),j*70)});
           setTimeout(()=>{say.textContent=t("yb_say",{k:kept});back.hidden=false;back.focus({preventScroll:true})},reduced?0:900)},reduced?0:650)};
-      back.onclick=()=>{sig.querySelectorAll("span").forEach((s,j)=>setTimeout(()=>s.classList.remove("gone","kept"),j*60));S.pop(2);say.textContent=t("yb_ret",{n:name});back.hidden=true;stp.classList.remove("on");
-        setTimeout(()=>{sig.hidden=true;inp.hidden=false;inp.value="";v.querySelector("#yb-go").hidden=false},reduced?0:2400)}}
+      back.onclick=()=>{sig.querySelectorAll("span").forEach((s,j)=>setTimeout(()=>s.classList.remove("gone","kept"),j*60));S.pop(2);say.textContent=t("yb_ret",{n:name});back.hidden=true;box.focus({preventScroll:true});stp.classList.remove("on");
+        setTimeout(()=>{sig.hidden=true;inp.hidden=false;inp.value="";v.querySelector("#yb-go").hidden=false;if(!ov.hidden&&box.contains(inp))inp.focus({preventScroll:true})},reduced?0:2400)}}
     return {render}})();
 
   /* ---------- 5 Centimeters per Second ---------- */
