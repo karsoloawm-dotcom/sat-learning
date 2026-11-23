@@ -43,6 +43,11 @@ export function makeHeadExtraction(T, body, stage, crown, addSkull) {
         uniform float hollowerCollapsed;
       `+shader.fragmentShader.replace('#include <map_fragment>',`#include <map_fragment>
         vec3 h = vHollowerHead - vec3(${rest.x.toFixed(6)},${rest.y.toFixed(6)},${rest.z.toFixed(6)});
+        // Inside of the emptied head, seen through the eye and mouth holes.
+        if(!gl_FrontFacing) {
+          if(hollowerCollapsed <= 0. || h.y < -.01) discard;
+          diffuseColor.rgb = vec3(.30,.045,.06);
+        }
         if(hollowerSeam > 0. && h.z > -.012 && h.y > .10) {
           float travel = ${crown.y.toFixed(6)} - h.y;
           float x = .018+.038*smoothstep(.124,.252,h.y);
@@ -61,9 +66,16 @@ export function makeHeadExtraction(T, body, stage, crown, addSkull) {
                         (1.-smoothstep(.022,.030,abs(h.x)));
           diffuseColor.rgb = mix(diffuseColor.rgb,vec3(.92,.51,.325),hollowerCollapsed);
           diffuseColor.rgb *= mix(vec3(1.),vec3(.45,.23,.30),hollowerCollapsed*max(sockets*.68,mouth));
+          // Once the skull is out, the sockets and mouth open into real holes with a raw rim.
+          float open = smoothstep(.35,1.,hollowerCollapsed);
+          float gape = length(vec2(h.x/.021,(h.y+.019-.07*h.x)/.0075));
+          float hole = min(length(eye)/.62, gape);
+          if(gl_FrontFacing && hole < open) discard;
+          diffuseColor.rgb = mix(diffuseColor.rgb, vec3(.42,.06,.07), open*(1.-smoothstep(open,open+.35,hole)));
         }` : ''}
       `);
     };
+    material.side=T.DoubleSide; // back faces are discarded except inside the emptied head
     material.customProgramCacheKey=()=>key+'/hollower-head/'+face;
   }
 
@@ -76,6 +88,13 @@ export function makeHeadExtraction(T, body, stage, crown, addSkull) {
     const piece=new T.Mesh(tooth,enamel);
     piece.position.set(i*.008,.052-.006*Math.abs(i)/4,.096-i*i*.0006);
     piece.rotation.z=i*.028;skull.add(piece);
+  }
+  // Wet blood on the skull: it should not come out bone clean.
+  const gore=new T.MeshLambertMaterial({color:0x5c0f1c,emissive:0x1a0205,flatShading:true});
+  const blob=new T.IcosahedronGeometry(1,1);
+  for(const [x,y,z,sx,sy,sz] of [[0,.030,.062,.040,.022,.026],[.046,.058,.074,.014,.020,.008],[-.050,.070,.070,.012,.016,.008],
+    [0,.012,-.010,.050,.016,.050],[.062,.105,.020,.010,.030,.016],[-.040,.150,.055,.014,.010,.012],[.020,.040,.088,.020,.008,.010]]){
+    const s=new T.Mesh(blob,gore);s.position.set(x,y,z);s.scale.set(sx,sy,sz);skull.add(s);
   }
   const heldRotation=new T.Quaternion(), baseRotation=new T.Quaternion();
   const floorRotation=new T.Quaternion().setFromEuler(new T.Euler(-.18,.45,-.54));
@@ -114,7 +133,7 @@ export function makeHeadExtraction(T, body, stage, crown, addSkull) {
     },
     dispose(){
       mesh.geometry=original;
-      geometry.dispose();tooth.dispose();enamel.dispose();
+      geometry.dispose();tooth.dispose();enamel.dispose();blob.dispose();gore.dispose();
     }
   };
 }
