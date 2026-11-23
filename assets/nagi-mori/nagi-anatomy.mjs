@@ -91,8 +91,10 @@ export function fitNagiAnatomy(actor){
     boneMesh.scale.set(radius,end.length(),radius);
     const joint=mesh("skeleton",owner,sphere,cartilage,owner+" joint");
     joint.position.copy(end);joint.scale.setScalar(radius*1.4);
-    const sign=owner.endsWith("L")?1:-1,len=end.length();
-    for(const [i,[name,x,z,w,d,peak]] of bundles[owner.slice(0,-1)].entries()){
+    const sign=owner.endsWith("L")?1:-1,len=end.length(),kind=owner.slice(0,-1);
+    const fill={Thigh:1.3,Shin:1.15,UpperArm:1.05,Forearm:1.1}[kind];
+    for(const [i,[name,x,z,w0,d0,peak]] of bundles[kind].entries()){
+      const w=w0*fill,d=d0*fill;
       loft("muscles",owner,name,[
         [sign*x*.44,-.014,z*.48,w*.22,d*.26],
         [sign*x*.86,len*peak*.54,z*.90,w*.75,d*.77],
@@ -129,8 +131,10 @@ export function fitNagiAnatomy(actor){
   for(let i=0;i<5;i++)oval("skeleton","Neck","cervical vertebra",[0,1.350+i*.020,-.027+i*.003],
     [.011,.009,.010],ivory);
   oval("skeleton","Head","atlas joint",[0,1.451,-.012],[.022,.015,.019],cartilage);
-  loft("muscles","Neck","deep neck flexors",[[0,1.331,-.002,.024,.022],[0,1.377,.002,.027,.026],
-    [0,1.418,.002,.021,.021],[0,1.450,-.002,.018,.017]],deep,true);
+  loft("muscles","Neck","deep neck flexors",[[0,1.331,-.002,.036,.032],[0,1.377,.002,.037,.034],
+    [0,1.418,.002,.032,.030],[0,1.450,-.002,.026,.024]],deep,true);
+  loft("muscles","Neck","splenius",[[0,1.325,-.032,.034,.014],[0,1.380,-.034,.036,.016],
+    [0,1.430,-.030,.032,.015],[0,1.470,-.026,.024,.011]],muscle,true);
   loft("muscles","Chest","intercostal layer",[[0,1.119,-.008,.070,.043],[0,1.172,-.006,.091,.052],
     [0,1.245,-.001,.096,.054],[0,1.301,-.003,.078,.044],[0,1.331,-.004,.046,.028]],deep,true);
   loft("muscles","Spine","abdominal wall",[[0,.928,-.002,.074,.035],[0,.984,.003,.077,.042],
@@ -174,11 +178,15 @@ export function fitNagiAnatomy(actor){
       [side*.065,1.196,-.045,.033,.015],[side*.089,1.243,-.031,.026,.012],
       [side*.113,1.286,-.016,.010,.006]],muscle,true);
     loft("muscles","UpperArm"+(side>0?"L":"R"),"deltoid",[
-      [side*.117,1.335,-.008,.013,.012],[side*.143,1.321,-.006,.034,.031],
-      [side*.152,1.292,-.004,.035,.030],[side*.170,1.267,-.002,.026,.022],
-      [side*.184,1.231,-.003,.010,.013]],muscle,true);
+      [side*.115,1.330,-.008,.012,.011],[side*.137,1.317,-.006,.029,.027],
+      [side*.146,1.290,-.004,.030,.026],[side*.160,1.265,-.002,.022,.019],
+      [side*.172,1.232,-.003,.009,.011]],muscle,true);
     loft("muscles","Hips","gluteus medius",[[side*.060,.829,-.036,.015,.012],[side*.087,.871,-.044,.032,.018],
       [side*.088,.912,-.034,.035,.025],[side*.069,.939,-.018,.023,.016]],deep,true);
+    loft("muscles","Hips","gluteus maximus",[[side*.018,.930,-.046,.012,.009],[side*.045,.895,-.054,.036,.018],
+      [side*.071,.848,-.052,.040,.020],[side*.092,.800,-.036,.023,.014],[side*.098,.772,-.020,.010,.007]],muscle,true);
+    loft("muscles","Thigh"+(side>0?"L":"R"),"adductors",[[side*.030,.838,.018,.012,.012],[side*.046,.780,.008,.028,.028],
+      [side*.058,.700,.000,.026,.026],[side*.068,.620,-.002,.017,.019],[side*.073,.550,.000,.007,.007]],deep,true);
     loft("muscles","Spine","external oblique",[[side*.083,.930,.009,.012,.010],[side*.073,.976,.025,.024,.017],
       [side*.070,1.030,.029,.025,.017],[side*.083,1.075,.013,.022,.021],[side*.080,1.141,-.003,.014,.011]],muscle,true);
     for(let i=0;i<5;i++){
