@@ -63,11 +63,26 @@ export function makeNagiWhiteThing({actor,layers,face,soul,origin,heading,reduce
     return mesh;
   }
   const head=actor.bones.get("Head"),eyes=[];
-  addMesh(head,new T.SphereGeometry(1,16,12),wall,0,.098,.009).scale.set(.085,.107,.071);
-  const muscleHead=head.children.at(-1);
-  layers.muscles.push(muscleHead);
-  muscleHead.name="Nagi · facial muscle";
-  muscleHead.visible=false;
+  // Facial muscle layer, sized to the skin head (the old single ellipsoid sat ~2 cm inside the face,
+  // so the eyes bulged off a featureless ball). Head-bone local units.
+  const faceMuscle=new T.MeshStandardMaterial({color:0xa44951,roughness:.63}),faceTendon=new T.MeshStandardMaterial({color:0xd49f92,roughness:.72});
+  materials.add(faceMuscle);materials.add(faceTendon);
+  const facePart=(name,shape,mat,[x,y,z],[sx,sy,sz]=[1,1,1],[rx,ry,rz]=[0,0,0])=>{
+    const m=addMesh(head,shape,mat,x,y,z);m.scale.set(sx,sy,sz);m.rotation.set(rx,ry,rz);
+    m.name="Nagi · "+name;m.visible=false;layers.muscles.push(m);return m;
+  };
+  facePart("cranial muscle",new T.SphereGeometry(1,20,14),wall,[0,.108,-.002],[.080,.112,.086]);
+  facePart("jaw and cheeks",new T.SphereGeometry(1,16,12),wall,[0,.050,.046],[.058,.052,.058]);
+  facePart("orbicularis oris",new T.TorusGeometry(.016,.006,8,18),faceMuscle,[0,.038,.100],[1,.55,.8],[-.18,0,0]);
+  facePart("nasal cartilage",new T.ConeGeometry(.012,.034,6),faceTendon,[0,.072,.099],[1,1,.8],[.42,0,0]);
+  for(const sign of [-1,1]){
+    facePart("orbicularis oculi",new T.TorusGeometry(.020,.0045,8,20),faceMuscle,[sign*.048,.109,.079],[1,.85,1],[-.12,sign*.12,0]);
+    // cheekbone to mouth corner, lying on the cheek
+    const zFrom=new T.Vector3(sign*.074,.088,.058),zTo=new T.Vector3(sign*.024,.043,.094),zDir=zTo.clone().sub(zFrom);
+    facePart("zygomaticus",new T.CylinderGeometry(.0042,.0068,zDir.length(),7),faceMuscle,zFrom.clone().add(zTo).multiplyScalar(.5).toArray())
+      .quaternion.setFromUnitVectors(new T.Vector3(0,1,0),zDir.normalize());
+    facePart("frontalis",new T.SphereGeometry(1,10,8),faceMuscle,[sign*.028,.158,.064],[.030,.034,.012],[-.38,sign*.18,0]);
+  }
   for(const sign of [-1,1]){
     const eye=new T.Group();eye.name="Nagi · exposed eye";eye.position.set(sign*.048,.109,.078);
     head.add(eye);eyes.push(eye);eye.visible=false;

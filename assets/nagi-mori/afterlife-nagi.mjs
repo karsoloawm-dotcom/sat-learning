@@ -2,9 +2,9 @@
 import * as THREE from "three";
 import {GLTFLoader} from "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js";
 import {clone} from "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/utils/SkeletonUtils.js";
-import {fitNagiAnatomy,garments} from "./nagi-anatomy.mjs?v=white-thing";
-import {createNagiFaces,attachNagiFace} from "./nagi-face.mjs?v=white-thing";
-import {makeNagiWhiteThing} from "./nagi-white-thing.mjs?v=white-thing";
+import {fitNagiAnatomy,garments} from "./nagi-anatomy.mjs?v=muscle-layer";
+import {createNagiFaces,attachNagiFace} from "./nagi-face.mjs?v=muscle-layer";
+import {makeNagiWhiteThing} from "./nagi-white-thing.mjs?v=muscle-layer";
 
 const patrol=[
   [.86,6.8],[.82,2.5],[.68,-3.7],[.65,-5.35],
