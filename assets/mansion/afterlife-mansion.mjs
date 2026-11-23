@@ -1,6 +1,7 @@
 import {createStairPerformance,stairFootWeights,STAIR_IMPACT,STAIR_TWITCH_END,STAIR_END} from "./stair-performance.mjs";
 import {playStairCue} from "./stair-sound.mjs";
 import {createKeeperHunt} from "./keeper-hunt.mjs";
+import {furnishInterior} from "./mansion-interior.mjs?v=renovation";
 
 export function buildMansion(THREE, scene, northLimit) {
   const group = new THREE.Group();
@@ -81,9 +82,14 @@ export function buildMansion(THREE, scene, northLimit) {
     const object = box(size,length,size,material,(x+ex)/2,(y+ey)/2,(z+ez)/2);
     object.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), direction.normalize());
   }
-  function light(x,y,z,power,range) {
-    box(.30,.38,.30,lantern,x,y,z);
-    for(const h of [-.23,.23])box(.38,.075,.38,iron,x,y+h,z);
+  function light(x,y,z,power,range,fixture=true) {
+    if(fixture){
+      box(.30,.38,.30,lantern,x,y,z);
+      for(const h of [-.23,.23])box(.38,.075,.38,iron,x,y+h,z);
+      // Indoor lanterns hang from the ceiling instead of floating.
+      const top=Math.abs(x)<12&&z<6.5&&z>-26.4?(z>-6.5?3.39:6.75):0;
+      if(top>y+.27)box(.03,top-y-.27,.03,iron,x,(top+y+.27)/2,z);
+    }
     const source = new THREE.PointLight(0xffab63,power,range,1.65);
     source.position.set(x,y,z);
     group.add(source);
@@ -226,10 +232,10 @@ export function buildMansion(THREE, scene, northLimit) {
   sign("LEATHER WORKSHOP",0,2.75,-2.51,2.38);
   sign("BROOM WORKSHOP",-8.45,2.7,-2.52,2.15);
   sign("KITCHEN",8.2,2.7,-2.52,1.65);
-  sign("REAR HALLS",0,2.72,-6.36,2.14);
+  sign("REAR HALLS",0,2.72,-6.32,2.14);
   box(2.4,.025,7.4,red,0,.145,2.28,false,true);
   for(const x of [-1.11,1.11])box(.055,.026,7.28,brass,x,.148,2.28,false,true);
-  light(0,2.97,2.7,15,10);
+  light(0,2.97,2.7,15,10,false); // the hall chandelier is part of the interior
   light(-9.7,2.65,.12,12,9);
   light(9.0,2.75,.18,12,10);
   light(0,2.52,-5.62,17,11);
@@ -392,12 +398,17 @@ export function buildMansion(THREE, scene, northLimit) {
     ? .115+Math.min(2.16,Math.max(0,(stairs.start-z)/.51*.27)):0;
   stairs.triggers=(x,z)=>Math.abs(x)<1.055&&z<=stairs.impact+.61&&z>stairs.impact-.22;
 
+  function solid(w,h,d,x,y,z){
+    solids.push(new THREE.Box3(new THREE.Vector3(x-w/2,y-h/2,z+centerZ-d/2),new THREE.Vector3(x+w/2,y+h/2,z+centerZ+d/2)));
+  }
+  const interior=furnishInterior(THREE,{group,box,mesh,mat,maps,window,wall,sign,beam,solid,centerZ,brick,plasterWall:plaster});
+
   // Combine the static trim, furniture and cladding by material. Collision
   // keeps its own box data, so grouped meshes never need per-frame raycasts.
   group.updateMatrixWorld(true);
   const local = group.matrixWorld.clone().invert(), batches = new Map();
   group.traverse(object => {
-    if(!object.isMesh||object===closed||[spike,tread,latch,serviceDoor].includes(object.parent))return;
+    if(!object.isMesh||object===closed||interior.live.has(object)||[spike,tread,latch,serviceDoor].includes(object.parent))return;
     const key=object.material.id+"/"+object.castShadow;
     if(!batches.has(key))batches.set(key,[]);
     batches.get(key).push(object);
@@ -513,7 +524,7 @@ export function buildMansion(THREE, scene, northLimit) {
     [7.4,3.53],[10.76,3.53],[11.35,3.53],[12.55,3.53],[14.28,3.62],
     [14.25,4.91],[12.62,4.94],[12.60,7.12],[10.95,7.18],[-.75,.7],[-4.1,.7],[-5.45,.7],
     [.9,-5.8],[.9,-7.2],[.9,-10.98],[-.95,-10.98],[-3.2,-10.98],[3.2,-10.98],
-    [-4.3,-15],[4.3,-15]
+    [-4.3,-15],[4.3,-15],[4.7,-8.15],[6.25,-8.15],[8.9,-9.3]
   ].map(([x,z])=>huntPoint(x,z));
   // A small visibility graph lets the Keeper go around furniture and use the
   // currently open exits without receiving the player's position from navigation.
@@ -546,7 +557,7 @@ export function buildMansion(THREE, scene, northLimit) {
     return x<-4.9?"keeper3":x>4.9?"keeper2":null;
   }
   const grounds=(_x,z)=>z<-31;
-  return {group,centerZ,northLimit,inside,grounds,rooms,stairs,roomAt,huntLayout,door,toggleServiceDoor,setServiceDoor,
+  return {group,centerZ,northLimit,inside,grounds,rooms,stairs,roomAt,huntLayout,door,toggleServiceDoor,setServiceDoor,bath:interior.bath,
     createHunt:(actor,cue,capture)=>createKeeperHunt(huntLayout,actor,cue,capture),
-    gallowsOpen(on){closed.visible=!on},blocked,move,clearCamera,dispose(){maps.forEach(t=>t.dispose())}};
+    gallowsOpen(on){closed.visible=!on},blocked,move,clearCamera,dispose(){maps.forEach(t=>t.dispose());interior.bath.dispose()}};
 }
