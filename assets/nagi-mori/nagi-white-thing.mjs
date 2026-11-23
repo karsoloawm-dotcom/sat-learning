@@ -73,15 +73,59 @@ export function makeNagiWhiteThing({actor,layers,face,soul,origin,heading,reduce
   };
   facePart("cranial muscle",new T.SphereGeometry(1,20,14),wall,[0,.108,-.002],[.080,.112,.086]);
   facePart("jaw and cheeks",new T.SphereGeometry(1,16,12),wall,[0,.050,.046],[.058,.052,.058]);
-  facePart("orbicularis oris",new T.TorusGeometry(.016,.006,8,18),faceMuscle,[0,.038,.100],[1,.55,.8],[-.18,0,0]);
-  facePart("nasal cartilage",new T.ConeGeometry(.012,.034,6),faceTendon,[0,.072,.099],[1,1,.8],[.42,0,0]);
+  facePart("orbicularis oris",new T.TorusGeometry(.016,.006,8,18),faceMuscle,[0,.038,.104],[1,.55,.8],[-.18,0,0]);
+  const fascia=new T.MeshStandardMaterial({color:0xcf9f97,roughness:.55}),toothMat=new T.MeshStandardMaterial({color:0xeee6d6,roughness:.35});
+  materials.add(fascia);materials.add(toothMat);
+  // A flat tapered strap from a to b, its wide face turned out from the skull centre.
+  const centre=new T.Vector3(0,.085,-.01),basis=new T.Matrix4();
+  // Straps are laid on the muscle shell: each end is pushed out from the centre to the surface of the
+  // cranium/jaw ellipsoids (plus a small lift), and long ones are split so they follow the curve.
+  const shells=[[[0,.108,-.002],[.080,.112,.086]],[[0,.050,.046],[.058,.052,.058]]];
+  const onSkin=(p,lift=.0035)=>{
+    const d=new T.Vector3(...p).sub(centre).normalize();let t=0;
+    for(const [[cx,cy,cz],[sx,sy,sz]] of shells){
+      const ox=(centre.x-cx)/sx,oy=(centre.y-cy)/sy,oz=(centre.z-cz)/sz,dx=d.x/sx,dy=d.y/sy,dz=d.z/sz;
+      const A=dx*dx+dy*dy+dz*dz,B=ox*dx+oy*dy+oz*dz,C=ox*ox+oy*oy+oz*oz-1;
+      const disc=B*B-A*C;if(disc>=0)t=Math.max(t,(-B+Math.sqrt(disc))/A); // the jaw shell can miss
+    }
+    return centre.clone().addScaledVector(d,t+lift);
+  };
+  const strap=(name,a,b,r0,r1,mat,flat=.32)=>{
+    const from=onSkin(a),to=onSkin(b);
+    if(from.distanceTo(to)>.04){ // split long straps so the middle does not sink
+      const m=from.clone().add(to).multiplyScalar(.5).toArray(),rm=(r0+r1)/2;
+      strap(name,from.toArray(),m,r0,rm,mat,flat);return strap(name,m,to.toArray(),rm,r1,mat,flat);
+    }
+    const dir=to.clone().sub(from),len=dir.length();dir.normalize();
+    const mid=from.clone().add(to).multiplyScalar(.5),out=mid.clone().sub(centre);
+    out.addScaledVector(dir,-out.dot(dir)).normalize();
+    const m=facePart(name,new T.CylinderGeometry(r1,r0,len*1.12,8),mat,mid.toArray(),[1,1,flat]);
+    m.quaternion.setFromRotationMatrix(basis.makeBasis(dir.clone().cross(out),dir,out));
+    return m;
+  };
+  // galea aponeurotica: the pale tendon cap over the top of the skull
+  facePart("galea aponeurotica",new T.SphereGeometry(1,20,8,0,Math.PI*2,0,1.05),fascia,[0,.108,-.004],[.0835,.117,.0895],[-.12,0,0]);
+  facePart("mentalis",new T.SphereGeometry(1,10,8),faceMuscle,[0,.012,.090],[.012,.009,.007]);
+  strap("procerus",[0,.096,.097],[0,.128,.093],0.0045,0.0030,faceMuscle);
+  facePart("nasal cartilage",new T.ConeGeometry(.010,.030,6),fascia,[0,.070,.104],[1,1,.7],[2.55,0,0]); // tip down and forward
+  for(let i=0;i<6;i++){ // teeth showing through the mouth ring
+    const x=(i-2.5)*.0052,arcZ=.104-Math.abs(x)*.35;
+    facePart("upper tooth",new T.BoxGeometry(.0046,.0062,.004),toothMat,[x,.0405,arcZ]);
+    facePart("lower tooth",new T.BoxGeometry(.0044,.0052,.004),toothMat,[x,.0335,arcZ-.002]);
+  }
   for(const sign of [-1,1]){
     facePart("orbicularis oculi",new T.TorusGeometry(.020,.0045,8,20),faceMuscle,[sign*.048,.109,.079],[1,.85,1],[-.12,sign*.12,0]);
-    // cheekbone to mouth corner, lying on the cheek
-    const zFrom=new T.Vector3(sign*.074,.088,.058),zTo=new T.Vector3(sign*.024,.043,.094),zDir=zTo.clone().sub(zFrom);
-    facePart("zygomaticus",new T.CylinderGeometry(.0042,.0068,zDir.length(),7),faceMuscle,zFrom.clone().add(zTo).multiplyScalar(.5).toArray())
-      .quaternion.setFromUnitVectors(new T.Vector3(0,1,0),zDir.normalize());
-    facePart("frontalis",new T.SphereGeometry(1,10,8),faceMuscle,[sign*.028,.158,.064],[.030,.034,.012],[-.38,sign*.18,0]);
+    strap("zygomaticus major",[sign*.074,.088,.058],[sign*.024,.041,.095],0.0051,0.0032,faceMuscle,.6);
+    strap("zygomaticus minor",[sign*.060,.091,.074],[sign*.017,.048,.101],0.0032,0.0023,faceMuscle,.6);
+    strap("levator labii",[sign*.036,.090,.091],[sign*.010,.049,.104],0.0041,0.0026,faceMuscle);
+    strap("risorius",[sign*.071,.033,.062],[sign*.024,.038,.096],0.0034,0.0023,faceMuscle);
+    strap("depressor anguli oris",[sign*.024,.035,.097],[sign*.042,.002,.078],0.0023,0.0053,faceMuscle);
+    strap("depressor labii",[sign*.009,.031,.101],[sign*.020,.004,.089],0.0023,0.0041,faceMuscle);
+    strap("frontalis",[sign*.026,.120,.088],[sign*.032,.190,.050],0.0120,0.0142,faceMuscle,.3);
+    strap("corrugator",[sign*.010,.124,.094],[sign*.040,.132,.088],0.0026,0.0019,faceMuscle);
+    facePart("buccinator",new T.SphereGeometry(1,10,8),faceMuscle,[sign*.050,.042,.066],[.009,.012,.016],[0,sign*.5,0]);
+    facePart("alar cartilage",new T.SphereGeometry(1,8,6),fascia,[sign*.010,.061,.103],[.0055,.0045,.0055]);
+    facePart("ear cartilage",new T.TorusGeometry(.020,.0045,6,14,Math.PI*1.45),fascia,[sign*.086,.092,-.006],[.7,1,1],[0,sign*Math.PI/2,-.6]);
   }
   for(const sign of [-1,1]){
     const eye=new T.Group();eye.name="Nagi · exposed eye";eye.position.set(sign*.048,.109,.078);
