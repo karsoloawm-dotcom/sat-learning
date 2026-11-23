@@ -12625,7 +12625,7 @@ const GIRL_URL=LAB.model==="v3"?(new URLSearchParams(location.search).get("hanak
     veil=dieVeil();
     const load=(THREE?Promise.resolve(THREE):import(URL3)).then(t=>THREE=t);
     Promise.all([load,loadGirl(),wait(reduced?400:3600),import("./assets/mansion/afterlife-mansion.mjs"),import("./assets/mansion/afterlife-night.mjs"),import("./assets/mansion/afterlife-encounters.mjs"),import("./assets/hanako/anatomy.mjs"),import("./assets/mansion/afterlife-set-pieces.mjs"),
-      import("./assets/mansion/afterlife-hollower.mjs"),fetch("./assets/mansion/bell-and-portrait.json").then(response=>{if(!response.ok)throw Error("Mansion props unavailable");return response.json()}),import("./assets/hanako/faces.mjs")
+      import("./assets/mansion/afterlife-hollower.mjs?v=hollower-holes"),fetch("./assets/mansion/bell-and-portrait.json").then(response=>{if(!response.ok)throw Error("Mansion props unavailable");return response.json()}),import("./assets/hanako/faces.mjs")
     ]).then(([, , , mansionModule, nightModule, encountersModule, anatomyModule, setPieceModule, hollowerModule, propData, faces])=>{
       document.documentElement.style.filter="";
       try{build(mansionModule.buildMansion,nightModule.createAfterlifeNight(),encountersModule.buildEncounters,anatomyModule.anatomyBuilder,setPieceModule,hollowerModule,propData,faces)}catch(e){console.error(e);fail();return}

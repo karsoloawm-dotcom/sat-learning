@@ -1,5 +1,5 @@
 import {makeTorso} from './hollower-torso.mjs';
-import {makeHeadExtraction} from './hollower-head.mjs';
+import {makeHeadExtraction} from './hollower-head.mjs?v=hollower-holes';
 export {playHollowerRebirth} from './hollower-rebirth.mjs';
 
 const smooth=x=>{x=Math.max(0,Math.min(1,x));return x*x*(3-2*x)};
@@ -123,6 +123,9 @@ export function playHollower(T, site, o){
     outline.setXY(i,outline.getX(i)*ripple,outline.getY(i)*ripple);
   }
   outline.setXYZ(outline.count-1,outline.getX(1),outline.getY(1),0);
+  const core=mesh(new T.CircleGeometry(.2,17),mat(0x3a0812,0x0a0103),pool,.02,-.04,.0008);
+  const drips=[[.46,.18,.035],[-.41,.33,.028],[.30,-.52,.04],[-.18,-.61,.025],[.58,-.20,.022],[-.52,-.12,.032],[.12,.66,.026]]
+    .map(([x,y,r],i)=>{const d=mesh(new T.CircleGeometry(r,9),i%2?red:pool.material,stage,.025+x,.0095,.12-y);d.rotation.x=-Math.PI/2;return d});
   const stain=mesh(new T.CircleGeometry(.16,11),red,stage,.02,.010,-.55);
   stain.rotation.x=-Math.PI/2;
   const light=new T.PointLight(0xa9ddd2,8,4);
@@ -137,7 +140,7 @@ export function playHollower(T, site, o){
     [6.36,-.39,.126,-.48],[6.90,-.56,.167,-.55],[8.05,-.74,.203,-.57],
     [9.39,-.72,.172,-.57],[10.4,-.42,.108,-.48],[11.12,-.37,.12,-.37],
     [11.84,-.57,.212,-.43],[12.43,-.59,.188,-.44],[13.14,-.62,.122,-.52],
-    [15.38,-.71,.139,-.63]
+    [15.38,-.71,.139,-.63],[17.6,-1.55,.139,-1.85]
   ];
   const clawKeys=[
     [[2,-.36,.11,-.32],[2.84,-.14,.22,-.24],[3.12,-.056,.23,-.25],[3.67,-.215,.285,-.25],
@@ -165,7 +168,7 @@ export function playHollower(T, site, o){
   ];
 
   const headBone=body.userData.bones.head;
-  const flatLook=V(0,0,0),cameraPoint=V(0,0,0),headMark=V(0,0,0),cutMark=V(0,0,0),skullGrip=V(0,0,0);
+  const skullHold=V(0,0,0),flatLook=V(0,0,0),cameraPoint=V(0,0,0),headMark=V(0,0,0),cutMark=V(0,0,0),skullGrip=V(0,0,0);
   const fingers=[-.034,0,.034].map(offset=>({offset,parts:segments(shade,[.018,.012])}));
   const cutter=segments(shade,[.022,.012]);
   const extracts=[
@@ -239,7 +242,8 @@ export function playHollower(T, site, o){
     for(let i=0;i<6;i++){
       const s=i<3?-1:1,j=i%3,z=j*.37-.61;
       const step=ease(t,1.67+j*.11,2.12+j*.11), retreat=ease(t,12.73+j*.13,13.58+j*.13);
-      const arc=.16*Math.sin(Math.PI*step)+.13*Math.sin(Math.PI*retreat);
+      const crawl=ease(t,15.3,15.7)*Math.max(0,Math.sin(t*11+j*2.1+(s<0?0:Math.PI)));
+      const arc=.16*Math.sin(Math.PI*step)+.13*Math.sin(Math.PI*retreat)+.07*crawl;
       const floor=.018-hunter.position.y*ease(t,1,1.37)+arc;
       const giveRoom=ease(t,7.61,8.32)*(1-ease(t,9.76,10.40));
       const span=s<0?.70:.59-.24*giveRoom;
@@ -301,6 +305,7 @@ export function playHollower(T, site, o){
     if(clock>=extractionTime)body.userData.face(on?"emptyMouth":"deathRest");
     torso.update(open,fabric,on);
     pool.visible=on&&clock>=4.43;stain.visible=on&&clock>=9.13;
+    drips.forEach((d,i)=>d.visible=on&&clock>=4.9+i*.9);
     const zip=.44*ease(clock,8.66,8.97)+.56*ease(clock,9.06,9.33);
     headEffect.update(on,zip,ease(clock,9.32,9.88),ease(clock,10.46,11.06),skullGrip);
   }
@@ -313,6 +318,12 @@ export function playHollower(T, site, o){
       const carry=tallPerformance(t,take);
       open=sample(apertureKeys,t);fabric=sample(clothKeys,t);
       showGore(gore);
+      // The crawler takes the skull in its jaws and drags it off into the dark.
+      const carried=ease(t,12.95,13.45);
+      if(carried>0&&headEffect.skull.visible){
+        head.getWorldPosition(skullHold).sub(stage.position).add(V(0,-.06,.12));
+        headEffect.skull.position.lerp(skullHold,carried);
+      }
       for(const item of extracts){
         const {organ,claw,start,release,land,rest,to}=item;
         const draw=ease(t,start,start+.41),drop=ease(t,release,land);
@@ -330,6 +341,8 @@ export function playHollower(T, site, o){
       const spread=ease(t,4.43,12.35);
       pool.scale.set(.19+.86*spread,.20+1.14*spread,1);
       stain.scale.setScalar(.14+.86*ease(t,9.13,10.4));
+      core.scale.setScalar(.3+.7*ease(t,5.2,12.8));
+      drips.forEach((d,i)=>d.scale.setScalar(.2+.8*ease(t,4.9+i*.9,5.6+i*.9)));
 
       soul.visible=t>liftTime;
       o.bind(soul);
@@ -353,8 +366,11 @@ export function playHollower(T, site, o){
     },
     camera(t){
       const handoff=ease(t,duration-.70,duration);
-      o.camera.position.copy(stage.position).add(cameraPoint.fromArray(sample(cameraKeys,t))).lerp(o.handoff,handoff);
-      flatLook.copy(stage.position).add(cameraPoint.fromArray(sample(aimKeys,t))).lerp(o.target,handoff);
+      flatLook.copy(stage.position).add(cameraPoint.fromArray(sample(aimKeys,t)));
+      // Close in on the work (tearing to the soul lift), then pull back for the ghost.
+      const push=.38*ease(t,3.6,5.4)*(1-ease(t,12.4,13.9));
+      o.camera.position.copy(stage.position).add(cameraPoint.fromArray(sample(cameraKeys,t))).lerp(flatLook,push).lerp(o.handoff,handoff);
+      flatLook.lerp(o.target,handoff);
       o.camera.lookAt(flatLook);
     },
     showGore(on){if(on!==visibleGore)showGore(on)},
