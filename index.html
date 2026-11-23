@@ -18727,7 +18727,7 @@ const GIRL_URL=LAB.model==="v3"?(new URLSearchParams(location.search).get("hanak
       cv.focus({preventScroll:true});try{cv.requestPointerLock()?.catch?.(()=>{})}catch(err){}
     }};
     const moveKeys=new Set(["w","a","s","d","q","c","arrowup","arrowdown","arrowleft","arrowright","shift"," "]);
-    const shortcutKeys=new Set(["e","f","v","t","b","k","escape"]);
+    const shortcutKeys=new Set(["e","r","f","v","t","b","k","escape"]);
     const gameKey=e=>{
       const key=e.key.toLowerCase(),physical=/^Key[A-Z]$/.test(e.code)?e.code.slice(3).toLowerCase():key;
       return moveKeys.has(physical)||shortcutKeys.has(physical)?physical:key;
@@ -18751,7 +18751,7 @@ const GIRL_URL=LAB.model==="v3"?(new URLSearchParams(location.search).get("hanak
         if(sgP.style.display!=="none"){sgP.style.display="none";cv.focus();return}
         if(dmP.style.display!=="none"){dmToggle();cv.focus();return}
         if(performance.now()-unlockT>600)exit();
-      }else if(d&&k==="v"&&!e.repeat){e.preventDefault();mouseToggle()}else if(d&&k==="t"&&!e.repeat){e.preventDefault();setView(!tp)}else if(d&&k==="b"&&!e.repeat){e.preventDefault();blood.set(!blood.on);bLbl()}else if(d&&k==="k"&&!e.repeat){e.preventDefault();dmToggle()}else if(d&&k==="f"&&!e.repeat){e.preventDefault();freeCam(!FC.on)}else if(d&&k==="e"&&!e.repeat){e.preventDefault();if(eb.style.display!=="none")revive();else useMansionAction()}};
+      }else if(d&&k==="v"&&!e.repeat){e.preventDefault();mouseToggle()}else if(d&&k==="t"&&!e.repeat){e.preventDefault();setView(!tp)}else if(d&&k==="b"&&!e.repeat){e.preventDefault();blood.set(!blood.on);bLbl()}else if(d&&k==="k"&&!e.repeat){e.preventDefault();dmToggle()}else if(d&&k==="f"&&!e.repeat){e.preventDefault();freeCam(!FC.on)}else if(d&&k==="e"&&!e.repeat){e.preventDefault();if(eb.style.display!=="none")revive();else useMansionAction()}else if(d&&k==="r"&&!e.repeat&&eb.style.display!=="none"&&mansionAction.style.display!=="none"){e.preventDefault();useMansionAction()}};
     const sceneKey=(e,down)=>{if(!api.on||nightPanel.open)return;
       if(dth.m==="poker"&&e.key!=="Escape"){
         const panel=dth.f.panel;
@@ -18861,7 +18861,7 @@ const GIRL_URL=LAB.model==="v3"?(new URLSearchParams(location.search).get("hanak
       const action=nearbyMansionAction();
       mansionAction.style.display=action?"":"none";
       if(action){
-        const label=(action.startsWith("landmark:")?action.slice(9):action==="dealer"?"Sit with the Dealer":T("rp_"+action))+(coarse?"":" · E");
+        const label=(action.startsWith("landmark:")?action.slice(9):action==="dealer"?"Sit with the Dealer":T("rp_"+action))+(coarse?"":eb.style.display!=="none"?" · R":" · E");/* E is taken by "Get back in your body" while it shows */
         if(mansionAction.textContent!==label)mansionAction.textContent=label;
         mansionAction.style.bottom=!alive&&body.at==="casket"&&!night.state.ending?"calc(105px + env(safe-area-inset-bottom,0px))":"calc(64px + env(safe-area-inset-bottom,0px))";
       }
