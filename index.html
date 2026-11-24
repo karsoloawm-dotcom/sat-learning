@@ -12349,6 +12349,7 @@ Object.assign(I18N.ja,{rp_love_potion:"惚れ薬を飲む"});
 Object.assign(I18N.en,{rp_love_sunrise:"Ask Nagi to watch the sunrise"});
 Object.assign(I18N.vi,{rp_love_sunrise:"Rủ Nagi ngắm bình minh"});
 Object.assign(I18N.ja,{rp_love_sunrise:"凪を日の出に誘う"});
+Object.assign(I18N.en,{rp_nagi_ghosts:"Ask Nagi about ghosts"});Object.assign(I18N.vi,{rp_nagi_ghosts:"Hỏi Nagi về ma"});Object.assign(I18N.ja,{rp_nagi_ghosts:"凪に幽霊の話を聞く"});
 Object.assign(I18N.en,{rp_nagi_remains:"Collect Nagi’s head and spine"});
 Object.assign(I18N.vi,{rp_nagi_remains:"Nhặt đầu và cột sống của Nagi"});
 Object.assign(I18N.ja,{rp_nagi_remains:"凪の頭と背骨を拾う"});
@@ -18725,6 +18726,52 @@ const GIRL_URL=LAB.model==="v3"?(new URLSearchParams(location.search).get("hanak
         tell(possessedDoll?"You fit under the lintel. It opens onto the central hall.":"The gap is too low for you. Something small has worn the boards smooth.");
       }
     }
+    /* Nagi's ghost talk: how different traditions treat the dead. Pick a question, she answers, pick another. */
+    const GHOST_TALK={
+      start:{a:["You want to know what people think of ghosts? Here, of all places. ...Fine. Ask me anything. I read too much about this when I was little.",
+        "Cậu muốn biết người ta nghĩ gì về ma à? Ở đây, giữa chốn này. ...Được thôi. Hỏi gì cũng được. Hồi nhỏ mình đọc về chuyện này nhiều lắm.",
+        "幽霊のことをどう思われてるか知りたいの？よりによってここで。……いいよ、何でも聞いて。子どもの頃、こういう本ばかり読んでたから。"]},
+      japan:{q:["What are ghosts like in Japan?","Ma ở Nhật Bản thế nào?","日本の幽霊ってどんな感じ？"],
+        a:["In Japan a yūrei is someone who couldn't move on: too much love, too much anger, or no proper funeral. Most of the dead are welcome, though. At Obon each summer families light a small fire to guide their ancestors home and float lanterns to send them back. The ones to fear are onryō, the ghosts with a grudge.",
+          "Ở Nhật, yūrei là người chết mà không siêu thoát được: vì thương quá, giận quá, hoặc chưa được làm tang lễ đàng hoàng. Nhưng phần lớn người đã khuất đều được chào đón. Mỗi mùa hè vào lễ Obon, các gia đình đốt lửa nhỏ để dẫn tổ tiên về nhà, rồi thả đèn lồng tiễn họ đi. Đáng sợ là onryō, những hồn ma mang oán hận.",
+          "日本の幽霊は、この世を離れられなかった人。愛が強すぎたり、恨みが深すぎたり、ちゃんと弔われなかったり。でも死者のほとんどは歓迎されるの。お盆には迎え火でご先祖さまを家に案内して、灯籠流しで送り返す。怖いのは怨霊、恨みを抱えた霊のほう。"]},
+      vietnam:{q:["And in Vietnam?","Còn ở Việt Nam thì sao?","ベトナムでは？"],
+        a:["In Vietnam the dead stay part of the family. There's an altar in the house, incense every day, and a meal on the anniversary of each death, the giỗ. Ancestors who are remembered look after you. The ones people worry about are cô hồn, wandering souls with no one to feed them, so on the full moon of the seventh lunar month people leave porridge, rice and candy outside for them too.",
+          "Ở Việt Nam, người đã khuất vẫn là một phần của gia đình. Trong nhà có bàn thờ, ngày nào cũng thắp hương, và đến ngày giỗ thì làm cơm cúng. Tổ tiên được nhớ đến thì phù hộ con cháu. Thứ người ta lo là cô hồn, những vong hồn lang thang không ai cúng kiếng, nên vào rằm tháng Bảy người ta bày cháo, gạo muối và bánh kẹo ngoài sân cho họ nữa.",
+          "ベトナムでは、死んだ人もずっと家族の一員。家には祭壇があって、毎日お線香をあげて、命日（ゾー）にはご飯を供える。覚えていてもらえるご先祖さまは家族を守ってくれる。心配されるのは、供養してくれる人のいない彷徨う魂（コーホン）。だから旧暦七月の満月には、その魂たちのためにも外にお粥やお米やお菓子を置くの。"]},
+      china:{q:["What about China?","Còn Trung Quốc?","中国は？"],
+        a:["In China the seventh lunar month is Ghost Month. People say the gates of the underworld open and the hungry ghosts come out, so families burn paper money, set out food and stay away from deep water at night. Their own ancestors are honoured too, at Qingming in spring, when they sweep the graves.",
+          "Ở Trung Quốc, tháng Bảy âm lịch là tháng cô hồn. Người ta bảo cửa âm phủ mở ra và ngạ quỷ đi lang thang, nên các gia đình đốt vàng mã, bày đồ cúng và tránh xa chỗ nước sâu vào ban đêm. Tổ tiên của họ thì được tưởng nhớ vào tiết Thanh Minh mùa xuân, khi cả nhà đi tảo mộ.",
+          "中国では旧暦七月が鬼月。あの世の門が開いて、飢えた幽霊が出てくるって言われてる。だから紙のお金を燃やして、食べ物を供えて、夜は深い水に近づかない。自分たちのご先祖さまは、春の清明節にお墓を掃除してお参りするの。"]},
+      mexico:{q:["Is anyone happy to see their dead?","Có nơi nào vui khi người chết trở về không?","死んだ人が帰ってくるのを喜ぶ国はある？"],
+        a:["Mexico. On the Day of the Dead, the first two days of November, the dead are invited home. Families build an ofrenda with photos, candles and the food the person loved, and lay paths of orange marigold petals so they can find the way. There's music and sugar skulls. Nobody is scared. It's a reunion.",
+          "Mexico. Vào Ngày của Người chết, hai ngày đầu tháng Mười Một, người đã khuất được mời về nhà. Các gia đình dựng bàn ofrenda với ảnh, nến và những món người đó thích ăn, rồi rải cánh cúc vạn thọ màu cam làm lối để họ tìm đường về. Có nhạc, có đầu lâu bằng đường. Chẳng ai sợ cả. Đó là một cuộc đoàn tụ.",
+          "メキシコ。死者の日、十一月の最初の二日間は、死んだ人を家に招くの。写真とろうそくと、その人の好きだった料理でオフレンダを作って、オレンジのマリーゴールドの花びらで道を作る。迷わず帰ってこられるように。音楽があって、砂糖のドクロがある。誰も怖がらない。再会のお祝いなの。"]},
+      india:{q:["What happens in Hindu tradition?","Theo truyền thống Hindu thì sao?","ヒンドゥーの伝統では？"],
+        a:["In Hindu tradition, a soul whose last rites weren't done can be stuck as a preta, a hungry ghost. The rites, and the rice balls called pinda offered for the dead, help it on to join the ancestors. Every year, during Pitru Paksha, families make offerings so their ancestors aren't left hungry.",
+          "Theo truyền thống Hindu, linh hồn chưa được làm lễ cuối có thể bị kẹt lại thành preta, một ngạ quỷ. Các nghi lễ, cùng những nắm cơm gọi là pinda dâng cho người chết, giúp linh hồn đi tiếp để về với tổ tiên. Mỗi năm, vào dịp Pitru Paksha, các gia đình dâng lễ để tổ tiên không phải chịu đói.",
+          "ヒンドゥーの伝統では、最後の儀式をしてもらえなかった魂はプレータ、飢えた霊になって留まることがあるの。儀式と、死者に供えるピンダというお米の団子が、魂をご先祖さまのもとへ送ってくれる。毎年ピトリ・パクシャの間、家族はご先祖さまが飢えないように供え物をするの。"]},
+      europe:{q:["And the old ghosts of Europe?","Còn hồn ma ở châu Âu xưa?","昔のヨーロッパの幽霊は？"],
+        a:["In medieval Europe a ghost was often a soul from purgatory that came back to ask for prayers or to finish something left undone. Before that, the Gaels kept Samhain at the end of October, when the wall between worlds went thin. People left food out for the dead and wore disguises so wandering spirits wouldn't know them. That's where Halloween comes from.",
+          "Ở châu Âu thời trung cổ, hồn ma thường là linh hồn từ luyện ngục quay về xin người sống cầu nguyện, hoặc để làm nốt việc còn dang dở. Trước đó nữa, người Gael có lễ Samhain vào cuối tháng Mười, khi bức tường giữa hai thế giới mỏng đi. Người ta để đồ ăn cho người chết và hóa trang để các linh hồn lang thang không nhận ra mình. Halloween bắt nguồn từ đó.",
+          "中世のヨーロッパでは、幽霊は煉獄から戻ってきた魂で、祈りを頼んだり、やり残したことを終わらせに来たりするものだった。もっと昔、ゲール人は十月の終わりにサウィンを祝ったの。二つの世界の壁が薄くなる夜。死者のために食べ物を置いて、彷徨う霊に正体がばれないように変装した。それがハロウィンの始まり。"]},
+      thailand:{q:["Do ghosts get houses?","Ma có nhà để ở không?","幽霊に家はあるの？"],
+        a:["In Thailand, yes. Outside homes and shops you'll see little spirit houses on posts, the san phra phum. They're for the spirits of the land, so they have somewhere to live instead of moving in with you. People bring them flowers, water and sweets every day. Keep them happy and they guard the place.",
+          "Ở Thái Lan thì có. Trước nhà và cửa hàng, cậu sẽ thấy những ngôi miếu nhỏ đặt trên cột, gọi là san phra phum. Đó là nhà cho các linh hồn đất đai, để họ có chỗ ở mà không dọn vào ở chung với mình. Ngày nào người ta cũng mang hoa, nước và bánh kẹo tới. Làm họ vui thì họ sẽ canh giữ nơi đó.",
+          "タイにはあるの。家やお店の前に、柱の上の小さな精霊の家、サンプラプームが建ってる。土地の精霊のための家で、人の家に住みつかないように、そこに住んでもらうの。毎日お花とお水とお菓子を供える。機嫌よくしてもらえれば、その場所を守ってくれる。"]},
+      kind:{q:["So are ghosts friendly or dangerous?","Vậy ma hiền hay dữ?","じゃあ幽霊って優しいの？怖いの？"],
+        a:["Almost everywhere the answer is the same. The dead who are remembered, fed and properly sent off are family, sometimes even guardians. The dangerous ones are the forgotten, the wronged, and the ones who died before they were ready. Maybe that's why I worry about you a little.",
+          "Gần như ở đâu câu trả lời cũng giống nhau. Người chết được nhớ đến, được cúng, được tiễn đưa đàng hoàng là người nhà, có khi còn là người bảo hộ. Đáng sợ là những người bị lãng quên, bị đối xử bất công, và những người chết khi chưa sẵn sàng. Chắc vì thế mà mình hơi lo cho cậu.",
+          "答えはどこでもだいたい同じ。覚えていてもらえて、供養されて、ちゃんと送られた死者は家族で、守り神になることもある。危ないのは、忘れられた人、ひどい目にあった人、心の準備ができないまま死んだ人。……だから少しだけ、あなたのことが心配なの。"]}
+    };
+    const ghostAsked=new Set();
+    function nagiGhostTalk(k="start"){
+      if(k!=="start")ghostAsked.add(k);
+      const choices=Object.keys(GHOST_TALK).filter(id=>id!=="start"&&id!==k&&(id!=="kind"||ghostAsked.size>=2))
+        .map(id=>[(ghostAsked.has(id)?"✓ ":"")+L(GHOST_TALK[id].q),()=>nagiGhostTalk(id)]);
+      choices.push([L(["That's enough ghost stories for tonight.","Tối nay nghe chuyện ma thế là đủ rồi.","今夜の怪談はこのくらいで。"]),null]);
+      showNightPanel(L(["Nagi","Nagi","凪"]),L(GHOST_TALK[k].a),choices);
+    }
     function nearbyMansionAction(){
       if(FC.on||pr||dth.m||fx.m!=="none"||mansionPaused()||nightPanel.open)return null;
       if(nagi?.remains&&near(nagi.remains,1.05)&&mansion.huntLayout.reachable(pos,nagi.remains))return "nagi_remains";
@@ -18737,6 +18784,8 @@ const GIRL_URL=LAB.model==="v3"?(new URLSearchParams(location.search).get("hanak
       if(alive&&love.level>=100&&!love.sunrise&&!(reaper.ph==="chase"&&reaper.seesPlayer)&&
         nagi?.isAlive&&near(nagi.body.root.position,2.1)&&
         mansion.huntLayout.reachable(pos,nagi.body.root.position))return "love_sunrise";
+      if(alive&&!possessedDoll&&nagi?.isAlive&&!(reaper.ph==="chase"&&reaper.seesPlayer)&&near(nagi.body.root.position,2.1)&&
+        mansion.huntLayout.reachable(pos,nagi.body.root.position))return "nagi_ghosts";
       if(alive&&!SET.noChase&&!night.state.ending&&!hollowLock&&!hollowTime&&!setPieces.active&&!sites.active&&near(hollowSite,1.12))return "hollower_chime";
       if(alive&&!possessedDoll&&!night.state.ending&&!bathBoost.cool&&!bathBoost.soak&&!hollowTime&&!setPieces.active&&!sites.active&&mansion.bath.near(pos))return "bath";
       if(alive&&!possessedDoll&&!SET.noChase&&!night.state.ending&&!sites.active){
@@ -18765,6 +18814,7 @@ const GIRL_URL=LAB.model==="v3"?(new URLSearchParams(location.search).get("hanak
         aliveBody.userData.face(0);sfx.hum(.55);
         return;
       }
+      if(action==="nagi_ghosts"){nagiGhostTalk();return}
       if(action==="love_sunrise"&&nagi.offerSunrise()){
         love.sunrise=true;
         plea.line(["Will you watch the sunrise with me?","Cậu ngắm bình minh với mình nhé?","一緒に日の出を見ない？"],2.35);
