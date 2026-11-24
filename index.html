@@ -8051,10 +8051,36 @@ const Sky=(()=>{
     /* 走 the night ride north up Kōnan-dōri in Koenji, under the Chuo line just as a train goes over */
     const KRP=[[-3.6,-110],[-3.7,-76],[-3.6,-57.1],[-4,-36.6],[-5.4,-26.5],[-7.7,-19.7],[-8.6,-2],[-8.8,14.6],[-9,22.5],[-9.5,31.2],[-8.9,47.4],[-8.6,80]],KRS=6.4,KR0=44,
       KTK=[[-43.5,.1],[23.7,3.6]],KTD=nrm2([67.2,3.5]);
+
+    /* Kōnan-dōri's street life: where the map has no building on the frontage, a row of two- and three-storey shops,
+       with lit fronts or shutters, awnings, blade signs, red lanterns, bikes parked at the kerb and a kerb rail */
+    let KLOTS=null;
+    const sgd=(P,a,b)=>{const dx=b[0]-a[0],dy=b[1]-a[1],l2=dx*dx+dy*dy||1,u=cl(((P[0]-a[0])*dx+(P[1]-a[1])*dy)/l2);return Math.hypot(a[0]+dx*u-P[0],a[1]+dy*u-P[1])};
+    function kLots(){const PL=RL.place("koen");if(!PL)return null;
+      const B=KOEY.b.map(b=>{const c=b.slice(5),o=[];for(let j=0;j+1<c.length;j+=2)o.push([c[j]/10,c[j+1]/10]);return o}).filter(ps=>ps.some(q=>Math.abs(q[0]+6)<45&&q[1]>-130&&q[1]<210));
+      const near=Q=>{for(const ps of B)for(let i=0;i+1<ps.length;i++)if(sgd(Q,ps[i],ps[i+1])<4.2)return true;return false},
+        onRd=Q=>PL.ROADS.some(rd=>(rd.t<=2||rd.t===5)&&rd.p.some((a,i)=>i+1<rd.p.length&&sgd(Q,a,rd.p[i+1])<rd.w/2+.6)),out=[];
+      let n=0;for(const sd of [-1,1])for(let sv=4;sv<215;n++){const w=5+hs(n*3.1)*4,p=plAt(KRP,sv+w/2),nx=-p[3]*sd,ny=p[2]*sd,F=[p[0]+nx*6.3,p[1]+ny*6.3],Cn=[p[0]+nx*10.3,p[1]+ny*10.3];sv+=w;
+        if(near(F)||near(Cn)||onRd(F))continue;const und=Math.abs(p[1]-2)<10;
+        out.push({s:sv-w/2,x:p[0],y:p[1],dx:p[2],dy:p[3],nx,ny,w,h:und?4.4:L(5.6,11,hs(n*7.7)),n})}
+      return out}
+    const KPAL=[[196,186,170],[168,170,172],[214,206,190],[150,144,138],[186,176,160],[226,220,210],[132,138,146]],KAW=[[176,40,44],[38,92,150],[44,120,80],[200,150,40],[90,60,120],[60,60,64]],
+      KSG=[[255,90,80],[80,200,255],[255,210,80],[140,255,170],[255,140,220],[255,255,255]];
+    function kStreet(sv){if(!KLOTS)KLOTS=kLots();if(!KLOTS)return;
+      for(const o of KLOTS){if(o.s<sv-8||o.s>sv+95)continue;const {x,y,dx,dy,nx,ny,w,h,n}=o,at=(d,a=0)=>[x+nx*d+dx*a,y+ny*d+dy*a],q=k=>hs(n*13.3+k),lit=q(1)<.72;
+        let c=at(10.3);obx(c[0],c[1],dx,dy,8,w-.25,0,h,KPAL[(q(2)*KPAL.length)|0],{am:.7});
+        c=at(6.27);obx(c[0],c[1],dx,dy,.08,w-1.1,.12,2.5,lit?[255,226,186]:[116,118,124],lit?{emit:.42,am:.9}:{am:.6});
+        if(h>6&&q(3)<.6){c=at(6.27);obx(c[0],c[1],dx,dy,.08,w-1.6,3.7,4.7,[255,236,206],{emit:.22,am:.9})}
+        c=at(5.75);obx(c[0],c[1],dx,dy,1.1,w-.5,2.62,2.82,KAW[(q(4)*KAW.length)|0],{am:.8});
+        if(q(5)<.45){c=at(5.85,(w/2-.5)*(q(6)<.5?-1:1));obx(c[0],c[1],dx,dy,.85,.14,3.1,L(4.8,6.4,q(7)),KSG[(q(8)*KSG.length)|0],{emit:.75,am:.9})}
+        if(lit&&q(9)<.3)for(const a of [-.9,.9]){c=at(5.5,a);RL.lamp(c[0],-2.25,c[1],[255,70,40],{sz:.17,glow:2.2,li:0})}
+        if(q(10)<.4){const nb=2+((q(11)*4)|0);for(let i=0;i<nb;i++){c=at(5.15,(i-(nb-1)/2)*.62);obx(c[0],c[1],nx,ny,.06,1.62,.3,.92,KAW[(q(12+i)*KAW.length)|0],{am:.55});
+            const hb=at(4.45,(i-(nb-1)/2)*.62);obx(hb[0],hb[1],dx,dy,.5,.04,.95,1.0,[40,40,44],{am:.5})}}
+        else if(q(20)<.6){const a=at(4.35,-w/2+.3),b=at(4.35,w/2-.3);for(const P of [a,b])RL.beam([P[0],0,P[1]],[P[0],-.82,P[1]],[226,226,232],.035);RL.beam([a[0],-.8,a[1]],[b[0],-.8,b[1]],[226,226,232],.03)}}}
     function rideR(T){const t=T-bar(56.5),k=t/(bar(63.4)-bar(56.5)),bob=.04*Math.abs(Math.sin(PI*(T-.13)/BP)),sv=KR0+t*KRS,p=plAt(KRP,sv),q=plAt(KRP,sv+14),lo=1.6;
       const ex=p[0]-p[3]*lo,ez=p[1]+p[2]*lo,tx=q[0]-q[3]*lo*.6,tz=q[1]+q[2]*lo*.6;lookAt([ex+.15*Math.sin(t*.7),-1.42-bob,ez],[tx,-1.1+.6*sm(6,11,t),tz],-.035*Math.sin(t*.7));
       if(CAP){RL.look({zen:[8,10,36],mid:[34,30,86],hor:[150,90,120],disc:0,key:{d:[.2,-.7,1],c:[140,150,210],i:.15},hemi:[[50,50,110],[30,24,40],.32],stars:.4,night:1,fog:[[44,36,84],60,700],exp:1.08,sh:{c:[p[0],p[1]+20],r:50},near:.2,bloom:.5,bth:1.05,env:"ride"});
-        RL.area("koen",{c:[p[0],p[1]+8]});
+        RL.area("koen",{c:[p[0],p[1]+8]});kStreet(sv);
         /* the Chuo line rapid, ten orange-banded cars eastbound over the street */
         const ft=-9+(t-3)*17;for(let c=0;c<10;c++){const d=ft-c*20-10;if(d<-260||d>240)continue;const x=KTK[0][0]+KTD[0]*(d-KTK[0][0]),y=KTK[0][1]+KTD[1]*(d-KTK[0][0]);car3(x,y,KTD[0],KTD[1],7.5+1.05,[240,118,36]);
           if(c===0)for(const sd of [-1,1])RL.lamp(x+KTD[0]*9.8-KTD[1]*sd*1,-(7.5+1.6),y+KTD[1]*9.8+KTD[0]*sd*1,[255,246,226],{sz:.14,glow:6,li:sd>0?60:0,rad:40})}
@@ -8517,6 +8543,7 @@ const Sky=(()=>{
           if(fine){x.setLineDash([]);for(const ps of TKS)for(let i=0;i+1<ps.length;i++){const a=ps[i],b=ps[i+1],ln=Math.hypot(b[0]-a[0],b[1]-a[1]),nx=(b[1]-a[1])/ln,ny=-(b[0]-a[0])/ln;
             x.fillStyle="#4c4642";for(let s=0;s<ln;s+=.62){const u=s/ln,cx=L(a[0],b[0],u),cy=L(a[1],b[1],u);path([[cx-nx*1.1,cy-ny*1.1],[cx+nx*1.1,cy+ny*1.1]]);x.lineWidth=.22*k;x.strokeStyle="#4a4440";x.stroke()}}}
           for(const rd of ROADS)if(rd.t===5)line(rd.p,rd.w,"#8a7c70");
+          for(const rd of ROADS)if(rd.t===0)line(rd.p,rd.w+4.8,"#57544f");
           for(const rd of ROADS)if(rd.t<=2)line(rd.p,rd.w+.5,"#9c9890");
           for(const rd of ROADS)if(rd.t<=2)line(rd.p,rd.w,rd.t===2?"#3c3c3e":"#2e2e31");
           for(const rd of ROADS)if(rd.t===0&&rd.w>=8)line(rd.p,.15,"#d8d6d0",[3,4]);x.setLineDash([]);
@@ -8639,7 +8666,7 @@ const Sky=(()=>{
       function free(){areaFree();try{if(envRT)envRT.dispose();if(pm)pm.dispose();if(comp)comp.dispose();for(const D of DOL)if(D.tex)D.tex.dispose();if(R){R.dispose();R.forceContextLoss()}}catch(e){}
         R=comp=envRT=pm=null;cvs=null;DOL=[];PL=[];envK="";ww=hh=0;if(st===3)st=2}
       return {load,free,ok:()=>st===3&&want(),begin,box,poly,beam,lamp,umb,city,roofs,house,tower,render,blit,doll:dollC,look:o=>Object.assign(lk,o),spiral:m=>{spi=m},area:areaSet,shib:o=>areaSet("shib",o),place:k=>ARS[k]||null,flush:()=>{lay++},
-        real:v=>{force=v;if(v&&on)load()},ovr:o=>{ovr=o||{}},parts:()=>({sun,PL,R,scn,BX,bloom,lk}),state:()=>st,cam:()=>cam,T:()=>T}})();
+        real:v=>{force=v;if(v&&on)load()},ovr:o=>{ovr=o||{}},parts:()=>({sun,PL,R,scn,cam,BX,bloom,lk}),state:()=>st,cam:()=>cam,T:()=>T}})();
     /* run a Tokyo scene for the realistic renderer: first to collect its 3D, then for its paper overlay, which the render goes under */
     let RM=false,CAP=false,BLT=false,RMF=false,NUL=null;
     function rm3(){if(!RM)return false;if(!CAP&&BLT){BLT=false;RL.blit()}return true}
