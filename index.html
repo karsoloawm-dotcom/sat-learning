@@ -13297,18 +13297,45 @@ const GIRL_URL=LAB.model==="v3"?(new URLSearchParams(location.search).get("hanak
     function soulOut(a,to){if(!SOUL.g){const g=makeGirl("ghost","float");SOUL.mats=g.userData.mesh.material.map(m=>{const c=m.clone();c.transparent=true;c.depthWrite=false;c.opacity=0;c.emissive.setHex(0x4a6cc8);return c});g.userData.mesh.material=SOUL.mats;
         g.traverse(o=>{if(o.isMesh){o.castShadow=false;o.receiveShadow=false;o.renderOrder=6}});g.userData.glow=new THREE.PointLight(0x9fc4ff,0,4);g.add(g.userData.glow);g.userData.glow.position.set(0,1.1,.2);g.visible=false;scene.add(g);SOUL.g=g}
       SOUL.a.set(a.x,0,a.z);SOUL.b.copy(to||pos);SOUL.yaw=Math.atan2(SOUL.b.x-a.x,SOUL.b.z-a.z);SOUL.t=0;SOUL.g.visible=true;SOUL.g.userData.face(4);sfx.soul()}
-    const sHip=new THREE.Vector3(),sOff=new THREE.Vector3(),sTo=new THREE.Vector3(),sQ=new THREE.Quaternion(),sE=new THREE.Euler();
-    function soulStep(dt){if(SOUL.t<0)return;const g=SOUL.g,t=(SOUL.t+=dt),T1=1.6,T2=3.2,H=.92,k=x=>x*x*(3-2*x),c=x=>Math.max(0,Math.min(1,x));g.userData.update(dt);
-      const up=k(c(t/T1)),sit=k(c((t-.25)/(T1-.25))),go=k(c((t-T1)/(T2-T1)));
-      /* hips: from inside the body up to standing height, then out to you */
-      sHip.set(SOUL.a.x,.18+up*(H-.18+.12),SOUL.a.z);if(go>0)sHip.lerp(sTo.set(SOUL.b.x,SOUL.b.y-.55,SOUL.b.z),go);
-      const ry=go>0?Math.atan2(SOUL.b.x-SOUL.a.x,SOUL.b.z-SOUL.a.z):SOUL.yaw,rx=-(1-sit)*Math.PI/2+go*.25;
-      // The departing soul hesitates and turns back once before drifting away.
-      const glance=reduced?0:k(c((t-.75)/.5))*(1-k(c((t-1.62)/.65)));
-      sQ.setFromEuler(sE.set(rx-.07*glance,ry+.52*glance,.07*glance,"YXZ"));g.quaternion.copy(sQ);sOff.set(0,H,0).applyQuaternion(sQ);g.position.copy(sHip).sub(sOff);
-      g.scale.setScalar(1+go*.15);g.userData.face(t<1.1?4:t<T1+.6?0:4);
-      const op=c(t/.5)*(1-k(c((t-T2+.75)/.75)))*.7;SOUL.mats.forEach(m=>m.opacity=op);g.userData.glow.intensity=op*6;
-      if(t>=T2){g.visible=false;SOUL.t=-1}}
+    /* two-bone arm reach toward a world point; the elbow bends toward the world-space hint */
+    const ikS=new THREE.Vector3(),ikE=new THREE.Vector3(),ikW=new THREE.Vector3(),ikD=new THREE.Vector3(),ikN=new THREE.Vector3(),ikQ=new THREE.Quaternion();
+    function ikAim(bone,child,from,to){bone.parent.getWorldQuaternion(ikQ).invert();ikD.subVectors(to,from).normalize().applyQuaternion(ikQ);bone.quaternion.setFromUnitVectors(ikN.copy(child.position).normalize(),ikD);bone.updateMatrixWorld(true)}
+    function reachTo(g,side,target,hint){const B=g.userData.bones,u=B["upperarm_"+side],f=B["forearm_"+side],h=B["hand_"+side];g.updateMatrixWorld(true);
+      u.getWorldPosition(ikS);f.getWorldPosition(ikE);h.getWorldPosition(ikW);const a=ikS.distanceTo(ikE),c=ikE.distanceTo(ikW);
+      const L=Math.min(a+c-.001,Math.max(.05,ikS.distanceTo(target)));ikD.subVectors(target,ikS).normalize();const dir=ikD.clone(),along=(a*a+L*L-c*c)/(2*L);
+      ikN.copy(hint).addScaledVector(dir,-hint.dot(dir)).normalize();ikE.copy(ikS).addScaledVector(dir,along).addScaledVector(ikN,Math.sqrt(Math.max(0,a*a-along*along)));
+      ikW.copy(ikS).addScaledVector(dir,L);const e=ikE.clone(),w=ikW.clone();ikAim(u,f,ikS,e);ikAim(f,h,e,w)}
+    /* hand-keyed: the soul peels up out of the body (hands last to let go), stands, looks back down at herself,
+       covers her mouth when she understands, then turns away and drifts into you */
+    const sHip=new THREE.Vector3(),sOff=new THREE.Vector3(),sTo=new THREE.Vector3(),sQ=new THREE.Quaternion(),sE=new THREE.Euler(),sP=new THREE.Vector3(),sH=new THREE.Vector3(),sX=new THREE.Vector3(),sY=new THREE.Vector3();
+    const SOUL_T=7.6;
+    function soulStep(dt){if(SOUL.t<0)return;const g=SOUL.g,t=(SOUL.t+=dt),H=.92,k=x=>x*x*(3-2*x),c=x=>Math.max(0,Math.min(1,x));
+      const rise=k(c((t-.3)/2.5)),stand=k(c((t-2.7)/1.3)),turn=k(c((t-4.0)/.9))*(1-k(c((t-6.1)/.7))),hands=k(c((t-4.7)/.6))*(1-k(c((t-6.0)/.6))),go=k(c((t-6.3)/1.3));
+      const lag=4*rise*(1-rise),floor=mansion.stairs.floor(SOUL.a.x,SOUL.a.z),bob=Math.sin(t*1.7)*.02*stand;
+      g.userData.holdPose();bindPose(g);const B=g.userData.bones;
+      /* root: lying face up inside the corpse, sitting up, then standing a step nearer you */
+      sHip.set(SOUL.a.x,floor+.18+stand*(H-.18)+bob,SOUL.a.z);sTo.set(SOUL.b.x,SOUL.b.y-.55,SOUL.b.z);sHip.lerp(sTo,.12*stand+.88*go);sHip.x+=Math.cos(SOUL.yaw)*.42*stand*(1-go);sHip.z-=Math.sin(SOUL.yaw)*.42*stand*(1-go);/* a half step aside, so she stands beside her body, not on it */
+      const rx=-(1-rise)*Math.PI/2+(1-stand)*.12*rise+go*.2,ry=SOUL.yaw-.85*turn;
+      sQ.setFromEuler(sE.set(rx,ry,0,"YXZ"));g.quaternion.copy(sQ);sOff.set(0,H,0).applyQuaternion(sQ);g.position.copy(sHip).sub(sOff);g.scale.setScalar(1+go*.15);
+      /* spine: the chest leads and the head trails while she peels up; then she twists to look down behind her */
+      B.chest.rotation.set(-.3*lag+.1*hands,-.55*turn,0);
+      B.head.rotation.set(-.6*lag+.25*rise*(1-stand)+.45*turn,-.75*turn,.12*turn);
+      /* legs stay flat on the ground until she stands */
+      const flat=-(rx+Math.PI/2)*(1-stand),knee=Math.sin(Math.PI*stand)*.9;
+      B.thigh_L.rotation.x=flat-knee*.6;B.thigh_R.rotation.x=flat-knee*.5;B.shin_L.rotation.x=knee;B.shin_R.rotation.x=knee*.85;
+      /* arms: hanging, except the hands that cling to the floor beside the body and the hands that go to her mouth */
+      B.upperarm_L.rotation.set(0,0,-1.25);B.upperarm_R.rotation.set(0,0,1.25);g.updateMatrixWorld(true);
+      sX.set(1,0,0).applyQuaternion(sQ);sY.set(0,0,1).applyQuaternion(sQ);
+      const cling=(1-k(c((t-2.3)/.9)))*c(t/.3);
+      for(const [side,sx] of [["L",1],["R",-1]]){
+        if(cling>.01){B["upperarm_"+side].getWorldPosition(sP);sH.set(SOUL.a.x,floor+.07,SOUL.a.z).addScaledVector(sX,sx*.3).addScaledVector(sY,-.05).lerp(sP.addScaledVector(sX,sx*.15).setY(sP.y-.45),1-cling);
+          reachTo(g,side,sH,sTo.copy(sX).multiplyScalar(sx).add(sP.set(0,.4,0)))}
+        else if(hands>.01){B.head.getWorldPosition(sH);B.head.getWorldQuaternion(qq);sH.add(sP.set(sx*.035,.05,.12).applyQuaternion(qq));
+          B["upperarm_"+side].getWorldPosition(sP);sP.addScaledVector(sX,sx*.04).y-=.48;sP.lerp(sH,hands);
+          reachTo(g,side,sP,sTo.copy(sX).multiplyScalar(sx*.6).add(sH.set(0,-.8,0)))}}
+      g.userData.face(t<1.6?4:t<4.3?0:hands>.5?"panic":turn>.25?"dread":0);
+      const op=c(t/.6)*(1-k(c((t-SOUL_T+.75)/.75)))*.7;SOUL.mats.forEach(m=>m.opacity=op);g.userData.glow.intensity=op*6;
+      if(t>=SOUL_T){g.visible=false;SOUL.t=-1}}
     function behead(dir){countDeath();soulOut(aliveBody.position,new THREE.Vector3(aliveBody.position.x+Math.sin(yaw)*2.2,1.55,aliveBody.position.z+Math.cos(yaw)*2.2));rag=makeRagdoll(aliveBody,dir,true);alive=false;body={at:"gone"};pos.set(aliveBody.position.x,1.55,aliveBody.position.z);calm();syncVis();gb.style.display="none";
       blood.spray(rag.P.neck,dir,70,3);blood.neck(rag,3,70);const hd=rag.head;hd.name="Hanako · settled head";blood.gush(()=>hd.position,null,1.8,14,.6);
       flashC(WHITE,2.4);tell(T(pr?"rp_practice":"rp_final_s"));hudT=-25}
@@ -13558,8 +13585,17 @@ const GIRL_URL=LAB.model==="v3"?(new URLSearchParams(location.search).get("hanak
           else if(st.ph==="tug"){/* Death holds you by the shoulder and draws the soul out of your back; you pull it back in by mashing */
             const a=Math.atan2(dx,dz),ox=-Math.sin(a),oz=-Math.cos(a),v=tug.shown;g.rotation.y=a;g.position.set(pos.x+ox*(1.05+v),.2+Math.sin(el*3)*.04,pos.z+oz*(1.05+v));
             aL.rotation.set(-1.12-v*.87,0,.28);aR.rotation.set(-.4,0,-.15);sc.rotation.set(0,0,0);
-            const b=aliveBody;b.position.set(pos.x,.035*v,pos.z);b.rotation.set(.09+.22*v,a+.09*Math.sin(st.t*2.7),-.08*v);b.userData.play("struggle",.15,1.1);b.userData.face(Math.floor(st.t*2.5)%2?7:1);
-            soulG.visible=true;soulG.position.set(pos.x+ox*v*1.28,.05+v*.31,pos.z+oz*v*1.28);soulG.rotation.set(.16-v*.22,a,.08*v);soulG.userData.play("struggle",0,1.7);soulG.userData.update(dt);
+            const b=aliveBody;b.position.set(pos.x,.035*v,pos.z);b.rotation.set(.09+.22*v,a+.09*Math.sin(st.t*2.7),-.08*v);b.userData.holdPose();bindPose(b);{const BB=b.userData.bones,sw=Math.sin(st.t*1.3);/* the body is already empty: it hangs off his grip */
+              BB.upperarm_L.rotation.set(0,.15+.05*sw,-1.32);BB.upperarm_R.rotation.set(0,-.15-.05*sw,1.32);BB.chest.rotation.set(.22,0,.05*sw);
+              BB.head.rotation.set(.6+.06*Math.sin(st.t*.9),.12,.28);BB.thigh_L.rotation.x=-.18;BB.thigh_R.rotation.x=-.1;BB.shin_L.rotation.x=.38;BB.shin_R.rotation.x=.3}b.userData.face("vacant");
+            soulG.visible=true;soulG.position.set(pos.x+ox*v*1.28,.05+v*.31,pos.z+oz*v*1.28);soulG.rotation.set(.16-v*.22,a,.08*v);soulG.userData.holdPose();bindPose(soulG);
+            {const SB=soulG.userData.bones,q=st.t;/* the soul fights to get back: kicking, twisting, clawing at her own chest */
+              SB.chest.rotation.set(-.2,.25*Math.sin(q*3.1),.1*Math.sin(q*4.4));SB.head.rotation.set(-.25+.15*Math.sin(q*5),.35*Math.sin(q*3.3),.18*Math.sin(q*4.1));
+              SB.thigh_L.rotation.x=-.45-.55*Math.max(0,Math.sin(q*6.2));SB.thigh_R.rotation.x=-.45-.55*Math.max(0,Math.sin(q*6.2+Math.PI));
+              SB.shin_L.rotation.x=.5+.6*Math.max(0,Math.sin(q*6.2+1));SB.shin_R.rotation.x=.5+.6*Math.max(0,Math.sin(q*6.2+Math.PI+1));
+              aliveBody.userData.bones.chest.getWorldPosition(hv2);nv.set(Math.cos(a),0,-Math.sin(a));
+              for(const [side,sx,ph] of [["L",1,0],["R",-1,Math.PI]]){lk.copy(hv2).addScaledVector(nv,sx*.12).add(tA.set(0,.12*Math.sin(q*7+ph),0));reachTo(soulG,side,lk,tB.copy(nv).multiplyScalar(sx).add(tA.set(0,-.6,0)))}}
+            soulG.userData.face(Math.floor(st.t*2.5)%2?7:"panic");
             tA.set(pos.x,1.0,pos.z);tB.set(soulG.position.x,soulG.position.y+.95,soulG.position.z);tether.visible=v>.05;tether.position.addVectors(tA,tB).multiplyScalar(.5);tB.sub(tA);tether.scale.set(1,Math.max(.01,tB.length()),1);tether.quaternion.setFromUnitVectors(UPV,tB.normalize());
             if(!reduced&&!SET.noShake)camera.position.add(new THREE.Vector3(R(-1,1),R(-1,1),R(-1,1)).multiplyScalar(.012+v*.03));
             if(!tug.result){
@@ -18331,7 +18367,7 @@ const GIRL_URL=LAB.model==="v3"?(new URLSearchParams(location.search).get("hanak
       const RD=k=>RB[k].position.clone().normalize(),rA=[RD("forearm_L"),RD("forearm_R")],rL=[RD("shin_L"),RD("shin_R")],up=new THREE.Vector3(),sd=new THREE.Vector3(),fw=new THREE.Vector3();
       let acc=0,age=0;const R2={pin:null,get age(){return age}};
       function sim(){for(const k in P){const p=P[k],o=O[k],vx=(p.x-o.x)*.995,vy=(p.y-o.y)*.995,vz=(p.z-o.z)*.995;o.copy(p);p.x+=vx;p.y+=vy-9.8*h*h;p.z+=vz;
-          const rr=k==="head"?.17*HSC:.06,fr=cut&&k==="head"?.985:.7;if(p.y<rr){p.y=rr;o.y=p.y+vy*.35;o.x=p.x-vx*fr;o.z=p.z-vz*fr;if(cut&&k==="head")w.multiplyScalar(.96)}p.x=Math.max(-24.5,Math.min(24.5,p.x));p.z=Math.max(-24.5,Math.min(24.5,p.z))}
+          const rr=(k==="head"?.17*HSC:.06)+mansion.stairs.floor(p.x,p.z),fr=cut&&k==="head"?.985:.7;if(p.y<rr){p.y=rr;o.y=p.y+vy*.35;o.x=p.x-vx*fr;o.z=p.z-vz*fr;if(cut&&k==="head")w.multiplyScalar(.96)}p.x=Math.max(-24.5,Math.min(24.5,p.x));p.z=Math.max(mansion.northLimit,Math.min(24.5,p.z))}/* the house reaches past z=-24.5; the old clamp threw bodies out of it */
         if(cut&&!head.userData.held){de.set(w.x*h,w.y*h,w.z*h);head.quaternion.premultiply(dq.setFromEuler(de))}
         if(R2.pin){P.neck.copy(R2.pin);O.neck.copy(R2.pin)}
         for(let it=0;it<8;it++)for(const [a,b,L] of C){if(R2.pin)P.neck.copy(R2.pin);tv.subVectors(P[b],P[a]);const dl=tv.length()||1e-4,f=(dl-L)/dl*.5;P[a].addScaledVector(tv,f);P[b].addScaledVector(tv,-f)}}
