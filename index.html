@@ -7465,7 +7465,8 @@ const Sky=(()=>{
        -1  (0)      a needle pulls the red thread across the dark
         0  (1.84)   開 a pop-up book opens: her afternoon on the left page, his night on the right
         1.2(4.59)   昼 into her page: the paper town stands up and she jumps on every beat
-        4  (10.99)  夜 a whip across the gutter to his rooftop, the moon, the quiet
+        3.5(9.84)     a paper theatre in stop motion: her set folds away, the sun card turns over into the moon, his set stands up
+        4.6(12.36)  夜 his rooftop, the moon, the quiet
         7  (17.84)     back to the book; the thread lifts off the paper between them
         8  (20.13)  引 opposite poles: a warm and a cool sphere and the field lines between them, drawing closer
        12  (29.27)  舟 two paper boats on the evening water drift together on the thread, rippling on every bar
@@ -7554,8 +7555,39 @@ const Sky=(()=>{
         if(win){const cw=w*.16;for(let yy=base-hh+cw*1.4;yy<base-cw*2;yy+=cw*2.4)for(let xx=x+cw*.8;xx<x+w-cw*1.2;xx+=cw*2.2){const lit=r()<win[2];if(lit&&!SHP){ink(win[0],win[1]);g.fillRect(xx,yy,cw,cw*1.2)}}}
         x+=w*(.94+.2*r())}}
     /* her: a paper girl mid-jump, arms up */
-    function girl(x,y,h,t){const sw=Math.sin(t*PI/BP)*.5,J={eB:[-.14,-.46+.02*sw],hB:[-.21,-.6+.03*sw],eF:[.14,-.45],hF:[.22,-.59-.03*sw],kA:[.13,.08],fA:[.05,.3],kB:[-.05,.19],fB:[-.17,.31]};
+    /* her as a cut-paper puppet: rough card pieces with torn white edges, joined by brass split pins at the shoulders, elbows, hips and knees */
+    let RUF=null;
+    function rough(){if(RUF)return RUF;const c=document.createElement("canvas");c.width=c.height=160;const x=c.getContext("2d"),im=x.createImageData(160,160),r=mkR(31);
+      for(let i=0;i<im.data.length;i+=4){const v=224+r()*31;im.data[i]=v;im.data[i+1]=v-4;im.data[i+2]=v-10;im.data[i+3]=255}x.putImageData(im,0,0);
+      x.globalAlpha=.3;x.strokeStyle="#9c8a74";x.lineWidth=.7;for(let i=0;i<140;i++){const a=r()*160,b=r()*160,an=r()*TAU,l=4+r()*14;x.beginPath();x.moveTo(a,b);x.lineTo(a+Math.cos(an)*l,b+Math.sin(an)*l);x.stroke()}
+      return RUF=g.createPattern(c,"repeat")}
+    /* a piece of card: filled in its colour, the paper's grain multiplied over it, then the white core showing at its torn edge */
+    function piece(path,col,h,sd){ink(col);path();g.fill();if(SHP)return;const pt=rough();pt.setTransform(new DOMMatrix().scale(1/h).translate(hs(sd)*160,hs(sd+1)*160));
+      g.save();g.globalCompositeOperation="multiply";g.fillStyle=pt;path();g.fill();g.restore();g.strokeStyle="rgba(255,250,242,.8)";g.lineWidth=2.2/h;path();g.stroke()}
+    function pseg(a,b,w,sd){const an=Math.atan2(b[1]-a[1],b[0]-a[0]),cs=Math.cos(an),sn=Math.sin(an),N=6,E=(i,sg)=>{const u=i/N,j=w/2*(1+(hs(sd+i*1.7+sg)-.5)*.22);return [a[0]+(b[0]-a[0])*u-sn*j*sg,a[1]+(b[1]-a[1])*u+cs*j*sg]};
+      return ()=>{g.beginPath();for(let i=0;i<=N;i++)g.lineTo(...E(i,1));g.arc(b[0],b[1],w/2,an+PI/2,an-PI/2,true);for(let i=N;i>=0;i--)g.lineTo(...E(i,-1));g.arc(a[0],a[1],w/2,an-PI/2,an+PI/2,true);g.closePath()}}
+    function brad(p,h){if(SHP)return;g.fillStyle="#a8781f";g.beginPath();g.arc(p[0],p[1],.0125,0,TAU);g.fill();g.fillStyle="#f6d887";g.beginPath();g.arc(p[0]-.0035,p[1]-.0035,.0055,0,TAU);g.fill();
+      g.strokeStyle="rgba(70,44,10,.7)";g.lineWidth=1.2/h;g.beginPath();g.arc(p[0],p[1],.0125,0,TAU);g.stroke()}
+    function girl(x,y,h,t,o={}){const sw=Math.sin(t*PI/BP)*.5,J={eB:[-.14,-.46+.02*sw],hB:[-.21,-.6+.03*sw],eF:[.14,-.45],hF:[.22,-.59-.03*sw],kA:[.13,.08],fA:[.05,.3],kB:[-.05,.19],fB:[-.17,.31]};
+      if(o.wave!=null){J.eF=[.15,-.43];J.hF=[.15+Math.sin(o.wave)*.12,-.43-Math.cos(o.wave)*.12]}
       g.save();g.translate(x,y);g.scale(h,h);g.lineCap=g.lineJoin="round";
+      if(o.rod&&!SHP){ink([150,108,66]);g.fillRect(-.009,-.12,.018,4);ink([120,84,50]);g.fillRect(-.009,-.12,.005,4)}
+      const SA=[-.06,-.32],SF=[.06,-.32],HA=[.03,0],HB=[-.03,0],sl=(S,E)=>[L(S[0],E[0],.38),L(S[1],E[1],.38)];
+      piece(pseg(HA,J.kA,.052,11),SKIN,h,11);piece(pseg(J.kA,J.fA,.047,13),SKIN,h,13);piece(pseg(HB,J.kB,.052,15),SKIN,h,15);piece(pseg(J.kB,J.fB,.047,17),SKIN,h,17);
+      piece(()=>{g.beginPath();g.ellipse(J.fA[0]+.02,J.fA[1]+.01,.038,.022,.2,0,TAU)},NAVY,h,19);piece(()=>{g.beginPath();g.ellipse(J.fB[0]-.02,J.fB[1]+.01,.038,.022,-.3,0,TAU)},NAVY,h,21);
+      brad(J.kA,h);brad(J.kB,h);
+      const fl=.025*Math.sin(t*5);piece(()=>{g.beginPath();g.moveTo(-.07,-.07);g.lineTo(.07,-.07);g.lineTo(.15+fl,.1);g.quadraticCurveTo(0,.14,-.15+fl,.09);g.closePath()},CORAL,h,23);brad(HA,h);brad(HB,h);
+      piece(()=>{g.beginPath();g.moveTo(-.065,-.05);g.lineTo(.065,-.05);g.lineTo(.08,-.33);g.lineTo(-.08,-.33);g.closePath()},BLOUSE,h,25);
+      piece(()=>{g.beginPath();g.moveTo(-.085,-.34);g.lineTo(.085,-.34);g.lineTo(.05,-.27);g.lineTo(0,-.24);g.lineTo(-.05,-.27);g.closePath()},NAVY,h,27);
+      ink(RED);g.beginPath();g.moveTo(0,-.27);g.lineTo(.04,-.3);g.lineTo(.04,-.24);g.closePath();g.moveTo(0,-.27);g.lineTo(-.04,-.3);g.lineTo(-.04,-.24);g.closePath();g.fill();
+      piece(pseg(SA,J.eB,.037,29),SKIN,h,29);piece(pseg(J.eB,J.hB,.033,31),SKIN,h,31);brad(J.eB,h);
+      piece(pseg(SF,J.eF,.037,33),SKIN,h,33);piece(pseg(J.eF,J.hF,.033,35),SKIN,h,35);brad(J.eF,h);
+      piece(pseg(SA,sl(SA,J.eB),.054,37),BLOUSE,h,37);piece(pseg(SF,sl(SF,J.eF),.054,39),BLOUSE,h,39);brad(SA,h);brad(SF,h);
+      ink(SKIN);g.fillRect(-.018,-.4,.036,.06);piece(()=>{g.beginPath();g.arc(0,-.47,.075,0,TAU)},SKIN,h,41);
+      const pw=Math.sin(t*3)*.03;piece(()=>{g.beginPath();g.moveTo(-.06,-.52);g.bezierCurveTo(-.16,-.58,-.24+pw,-.5,-.27+pw,-.36);g.bezierCurveTo(-.2,-.42,-.14,-.45,-.07,-.46);g.closePath()},HAIR,h,43);
+      piece(()=>{g.beginPath();g.arc(0,-.48,.082,PI*.95,PI*2.05);g.lineTo(.07,-.47);g.quadraticCurveTo(.03,-.5,0,-.47);g.quadraticCurveTo(-.03,-.5,-.07,-.46);g.closePath()},HAIR,h,45);
+      brad([-.07,-.5],h);ink(RED);g.beginPath();g.arc(-.07,-.5,.016,0,TAU);g.fill();
+      if(false){
       ink(SKIN);limb([.03,0],J.kA,J.fA,.048);limb([-.03,0],J.kB,J.fB,.048);ink(NAVY);g.beginPath();g.ellipse(J.fA[0]+.02,J.fA[1]+.01,.038,.022,.2,0,TAU);g.ellipse(J.fB[0]-.02,J.fB[1]+.01,.038,.022,-.3,0,TAU);g.fill();
       ink(CORAL);const fl=.025*Math.sin(t*5);g.beginPath();g.moveTo(-.07,-.07);g.lineTo(.07,-.07);g.lineTo(.15+fl,.1);g.quadraticCurveTo(0,.14,-.15+fl,.09);g.closePath();g.fill();
       ink(BLOUSE);g.beginPath();g.moveTo(-.065,-.05);g.lineTo(.065,-.05);g.lineTo(.08,-.33);g.lineTo(-.08,-.33);g.closePath();g.fill();
@@ -7565,7 +7597,7 @@ const Sky=(()=>{
       ink(SKIN);g.fillRect(-.018,-.4,.036,.06);g.beginPath();g.arc(0,-.47,.075,0,TAU);g.fill();
       ink(HAIR);const pw=Math.sin(t*3)*.03;g.beginPath();g.moveTo(-.06,-.52);g.bezierCurveTo(-.16,-.58,-.24+pw,-.5,-.27+pw,-.36);g.bezierCurveTo(-.2,-.42,-.14,-.45,-.07,-.46);g.closePath();g.fill();
       g.beginPath();g.arc(0,-.48,.082,PI*.95,PI*2.05);g.lineTo(.07,-.47);g.quadraticCurveTo(.03,-.5,0,-.47);g.quadraticCurveTo(-.03,-.5,-.07,-.46);g.closePath();g.fill();
-      ink(RED);g.beginPath();g.arc(-.07,-.5,.016,0,TAU);g.fill();
+      ink(RED);g.beginPath();g.arc(-.07,-.5,.016,0,TAU);g.fill();}
       if(!SHP){g.strokeStyle=rgba(HAIR);g.lineWidth=.008;g.beginPath();g.arc(.03,-.455,.014,PI*1.1,PI*1.9);g.stroke();g.beginPath();g.arc(-.025,-.455,.014,PI*1.1,PI*1.9);g.stroke();
         ink(ROSE,.5);g.beginPath();g.arc(.045,-.435,.012,0,TAU);g.arc(-.04,-.435,.012,0,TAU);g.fill();g.strokeStyle=rgba(HAIR);g.lineWidth=.008;g.beginPath();g.arc(0,-.43,.018,PI*.2,PI*.8);g.stroke()}
       g.restore()}
@@ -7583,8 +7615,9 @@ const Sky=(()=>{
     function cat(x,y,h){g.save();g.translate(x,y);g.scale(h,h);ink([16,18,42]);g.beginPath();g.ellipse(0,-.3,.32,.3,0,0,TAU);g.arc(.18,-.72,.2,0,TAU);g.moveTo(.04,-.8);g.lineTo(.08,-1.02);g.lineTo(.18,-.9);g.moveTo(.22,-.9);g.lineTo(.34,-1.02);g.lineTo(.36,-.8);g.fill();
       g.lineWidth=.08;g.lineCap="round";g.beginPath();g.moveTo(-.28,-.1);g.quadraticCurveTo(-.6,0,-.55,.3);g.stroke();g.restore()}
     /* ---------- 昼 her afternoon and 夜 his night, as stacks of paper cards. pop (0..1) stands the cards up off the page ---------- */
-    function lay(z,i,pop,fn,sh=1){card(z,()=>{const q=eo(pop*1.8-i*.13);if(q<=.001)return;if(q<1){g.translate(0,H*.96);g.scale(1,q);g.translate(0,-H*.96)}fn()},sh)}
-    function herWorld(t,pop=1,live=false){vg([[0,[124,170,230]],[.5,[246,204,186]],[.8,[255,226,196]],[1,[255,236,210]]]);
+    let LAYF=null;
+    function lay(z,i,pop,fn,sh=1){const F=LAYF;card(z,()=>{const q=eo(pop*1.8-i*.13);if(q<=.001)return;if(q<1){g.translate(0,H*.96);g.scale(1,q);g.translate(0,-H*.96)}if(F&&!F(i))return;fn()},sh)}
+    function herWorld(t,pop=1,live=false,o={}){if(o.bg!==false)vg([[0,[124,170,230]],[.5,[246,204,186]],[.8,[255,226,196]],[1,[255,236,210]]]);LAYF=o.F||null;
       lay(70,0,pop,()=>{const cx=W*.72,cy=H*.28,r=s*.09*(1+.05*beat());g.save();g.translate(cx,cy);g.rotate(t*.12);for(let i=0;i<14;i++){const a=i/14*TAU,R=r*(i%2?1.9:1.6);ink(i%2?GOLD:PEACH);g.beginPath();g.moveTo(Math.cos(a-.12)*r*1.2,Math.sin(a-.12)*r*1.2);g.lineTo(Math.cos(a)*R,Math.sin(a)*R);g.lineTo(Math.cos(a+.12)*r*1.2,Math.sin(a+.12)*r*1.2);g.fill()}g.restore();
         ink(CORAL);g.beginPath();g.arc(cx,cy,r,0,TAU);g.fill();if(!SHP){ink([250,150,104]);g.beginPath();g.arc(cx-r*.12,cy-r*.12,r*.72,0,TAU);g.fill()}},.6);
       lay(46,1,pop,()=>{for(let i=0;i<4;i++)pcloud(((hs(i)*1.3*W+t*s*.01)%(W*1.5))-W*.2,H*(.2+.22*hs(i*3)),s*(.3+.2*hs(i*5)),i*7,[246,214,204],[255,246,238])},.8);
@@ -7592,13 +7625,13 @@ const Sky=(()=>{
       lay(18,3,pop,()=>houses(H*.8,H*.2,3,[[242,176,156],[236,156,146],[248,200,174]],[204,100,100],[[255,248,234],1,.45]));
       lay(12,4,pop,()=>{houses(H*.92,H*.24,9,[[228,124,110],[216,108,100],[240,144,124]],[148,58,70],[[255,238,206],1,.4]);ink([196,88,82]);g.fillRect(-W,H*.92,W*3,H);
         ink([110,50,58]);g.fillRect(W*.14,H*.28,s*.012,H);g.fillRect(W*.14-s*.05,H*.32,s*.1,s*.01);g.lineWidth=Math.max(1,s*.0025);g.beginPath();for(let k=0;k<3;k++){g.moveTo(-W*.2,H*(.36+k*.025));g.quadraticCurveTo(W*.4,H*(.44+k*.025),W*1.2,H*(.3+k*.025))}g.stroke()});
-      lay(9,5,pop,()=>girl(W*.48,H*.68-(live?s*.04*Math.abs(Math.sin(PI*(t-.13)/BP)):0),s*.36,t));
+      if(o.girl)card(9,o.girl);else lay(9,5,pop,()=>girl(W*.48,H*.68-(live?s*.04*Math.abs(Math.sin(PI*(t-.13)/BP)):0),s*.36,t));
       lay(6.5,6,pop,()=>{for(let i=0;i<18;i++){const x=(i+.5)/18*W*1.3-W*.15,y=H*(.98-.04*hs(i))-(live?s*.012*beat()*hs(i*3):0);ink([110,150,104]);g.beginPath();g.ellipse(x,y+s*.03,s*.016,s*.04,.3*(hs(i)-.5),0,TAU);g.fill();
         ink([GOLD,CORAL,CREAM][i%3]);g.beginPath();for(let p=0;p<5;p++){const a=p/5*TAU+t*.2,px=x+Math.cos(a)*s*.024,py=y+Math.sin(a)*s*.024;g.moveTo(px+s*.012,py);g.arc(px,py,s*.012,0,TAU)}g.fill();if(!SHP){ink([250,236,200]);g.beginPath();g.arc(x,y,s*.01,0,TAU);g.fill()}}});
       if(live)card(8,()=>{for(let i=0;i<28;i++){const x=(hs(i)*1.2-.1)*W+Math.sin(t*.8+i)*s*.03,y=((hs(i*3)+t*.06*(1+hs(i*5)))%1)*H*1.1-H*.05,fl=Math.cos(t*3+i),c=[CORAL,GOLD,TEAL,ROSE,CREAM][i%5];
-        g.save();g.translate(x,y);g.rotate(t*(1+hs(i))+i);g.scale(1,Math.abs(fl)+.1);ink(fl>0?c:mix(c,[0,0,0],.2));g.fillRect(-s*.008,-s*.005,s*.016,s*.01);g.restore()}},.5)}
-    function hisWorld(t,pop=1,live=false){vg([[0,[10,14,40]],[.55,[34,40,94]],[1,[90,82,140]]]);
-      for(let i=0;i<80;i++){const tw=.5+.5*Math.sin(t*2+i*1.7);g.fillStyle=`rgba(236,238,255,${.25+.6*hs(i*3)*tw})`;const z=hs(i*7)<.12?2:1;g.fillRect(hs(i)*W,hs(i*5)*H*.6,z,z)}
+        g.save();g.translate(x,y);g.rotate(t*(1+hs(i))+i);g.scale(1,Math.abs(fl)+.1);ink(fl>0?c:mix(c,[0,0,0],.2));g.fillRect(-s*.008,-s*.005,s*.016,s*.01);g.restore()}},.5);LAYF=null}
+    function hisWorld(t,pop=1,live=false,o={}){if(o.bg!==false){vg([[0,[10,14,40]],[.55,[34,40,94]],[1,[90,82,140]]]);
+      for(let i=0;i<80;i++){const tw=.5+.5*Math.sin(t*2+i*1.7);g.fillStyle=`rgba(236,238,255,${.25+.6*hs(i*3)*tw})`;const z=hs(i*7)<.12?2:1;g.fillRect(hs(i)*W,hs(i*5)*H*.6,z,z)}}LAYF=o.F||null;
       lay(70,0,pop,()=>{const cx=W*.26,cy=H*.24,r=s*.075;if(!SHP)glow(cx,cy,r*4,[230,230,255],.25);ink([250,240,214]);g.beginPath();g.arc(cx,cy,r,0,TAU);g.fill();
         if(!SHP){g.save();g.beginPath();g.arc(cx,cy,r+.5,0,TAU);g.clip();ink([22,27,66]);g.beginPath();g.arc(cx+r*.42,cy-r*.18,r*.86,0,TAU);g.fill();g.restore()}},.5);
       lay(48,1,pop,()=>{for(let i=0;i<3;i++)pcloud(((hs(i+20)*1.3*W+t*s*.006)%(W*1.5))-W*.2,H*(.3+.2*hs(i*6)),s*(.5+.2*hs(i)),i*5+40,[52,58,116],[74,82,142])},.6);
@@ -7608,7 +7641,7 @@ const Sky=(()=>{
         ink([30,34,72]);g.fillRect(W*.86,H*.44,s*.12,s*.1);g.beginPath();g.ellipse(W*.86+s*.06,H*.44,s*.06,s*.018,0,0,TAU);g.fill();g.fillRect(W*.87,H*.44+s*.1,s*.008,H*.2);g.fillRect(W*.86+s*.1,H*.44+s*.1,s*.008,H*.2);
         boy(W*.44,H*.72,s*.34,t);cat(W*.72,H*.62,s*.05)});
       lay(7,4,pop,()=>{ink([8,10,26]);g.fillRect(W*.06,-H,s*.016,H*3);g.lineWidth=Math.max(1,s*.003);g.beginPath();for(let k=0;k<2;k++){g.moveTo(-W*.2,H*(.1+k*.03));g.quadraticCurveTo(W*.5,H*(.22+k*.03),W*1.3,H*(.08+k*.03))}g.stroke()});
-      if(live){g.save();g.globalCompositeOperation="lighter";for(let i=0;i<22;i++){const x=hs(i*13)*W+Math.sin(t*.4+i)*s*.06,y=H*(.45+.4*hs(i*17))+Math.cos(t*.5+i*2)*s*.04;glow(x,y,s*.02,[255,226,150],(.4+.4*Math.sin(t*2+i*3))*.6)}g.restore()}}
+      LAYF=null;if(live){g.save();g.globalCompositeOperation="lighter";for(let i=0;i<22;i++){const x=hs(i*13)*W+Math.sin(t*.4+i)*s*.06,y=H*(.45+.4*hs(i*17))+Math.cos(t*.5+i*2)*s*.04;glow(x,y,s*.02,[255,226,150],(.4+.4*Math.sin(t*2+i*3))*.6)}g.restore()}}
     /* ---------- the book: pages hinged at the spine, drawn as textured strips that bend as they turn ---------- */
     const BK={pw:5.8,ph:8,z:14};
     function bpt(u,v,a){return [u*Math.cos(a),v*BK.ph,BK.z-u*Math.sin(a)]}
@@ -7634,11 +7667,28 @@ const Sky=(()=>{
       if(ang<PI/2)sheet(TX.cover,0,TX.pw,ang,false,.5);else sheet(TX.sp0,0,TX.pw,ang,true,ang<PI-.01?.5:0);
       if(ta>0&&ang>PI-.05){g.globalAlpha=ta;thread3D(bpt(TA[0],TA[1],PI),bpt(TB[0],TB[1],0),lift,-BK.ph*.04*(lift>0?1:0),ga);g.globalAlpha=1}}
     function herLive(T){const k=(T-bar(1.2))/(bar(4)-bar(1.2));C.x=L(-.4,.5,k);C.y=L(.1,-.1,k);C.z=2.2*io(k);C.roll=.015*Math.sin(T*.5);herWorld(T,sm(bar(1.3),bar(2.4),T),true)}
-    function hisLive(T){const k=(T-bar(3.8))/(bar(7.4)-bar(3.8));C.x=L(.4,-.3,k);C.y=L(.3,-.2,k);C.z=1.8*io(k);C.roll=-.01*Math.sin(T*.4);hisWorld(T,1,true)}
-    function whip(T){const u=io((T-bar(4)+.22)/.44);g.save();g.beginPath();g.rect(0,0,W*(1-u),H);g.clip();g.translate(-W*u,0);herLive(T);g.restore();
-      g.save();g.beginPath();g.rect(W*(1-u),0,W*u+1,H);g.clip();g.translate(W*(1-u),0);hisLive(T);g.restore();
-      const gr=g.createLinearGradient(W*(1-u)-s*.05,0,W*(1-u)+s*.05,0);gr.addColorStop(0,"rgba(20,10,20,0)");gr.addColorStop(.5,"rgba(20,10,20,.45)");gr.addColorStop(1,"rgba(20,10,20,0)");g.fillStyle=gr;g.fillRect(W*(1-u)-s*.05,0,s*.1,H);
-      g.fillStyle="rgba(255,240,220,.12)";for(let i=0;i<14;i++)g.fillRect(0,hs(i)*H,W,1+2*hs(i*3))}
+    function hisLive(T){const k=cl((T-TS1)/(bar(7.4)-TS1));C.x=L(C0[0],-.3,k);C.y=L(C0[1],-.2,k);C.z=L(C0[2],2.5,io(k));C.roll=-.01*Math.sin(T*.4)*sm(0,.2,k);hisWorld(T,1,true)}
+    /* 昼 to 夜 as a paper theatre filmed in stop motion, twelve frames a second and the camera locked off: her set folds flat card by card,
+       she waves and is lowered away on her rod, the painted day sky is hauled up out of frame, the sun card turns over on its wire to show
+       the moon and is carried across, and his set stands up. The cards shiver a little from frame to frame, as hand-moved pieces do */
+    const TS0=bar(3.5),TS1=bar(4.6),K0=(TS0-bar(1.2))/(bar(4)-bar(1.2)),C0=[L(-.4,.5,K0),L(.1,-.1,K0),2.2*io(K0)];
+    function stage(T){const fr=Math.floor(T*12),Tq=fr/12,u=cl((Tq-TS0)/(TS1-TS0));C.x=C0[0];C.y=C0[1];C.z=C0[2];C.roll=0;
+      const jx=i=>(hs(fr*7.3+i)-.5)*s*.004,jy=i=>(hs(fr*5.1+i*3)-.5)*s*.004,F=i=>{g.translate(jx(i),jy(i));return i!==0};
+      hisWorld(Tq,0,false);
+      const fu=eo(cl((u-.26)/.3)),fy=-H*1.1*fu+jy(9);
+      if(fu<1){g.save();g.translate(jx(9),fy);const edge=()=>{g.beginPath();g.moveTo(-W,-H*2);g.lineTo(W*2,-H*2);for(let i=0;i<=48;i++)g.lineTo(W*2-i/48*W*3,H*(1.02+.014*hs(i*3.7)))};
+        g.save();g.translate(0,s*.012);edge();g.fillStyle="rgba(10,8,24,.35)";g.fill();g.restore();edge();g.clip();vg([[0,[124,170,230]],[.5,[246,204,186]],[.8,[255,226,196]],[1,[255,236,210]]]);g.restore()}
+      card(70,()=>{const fl=cl((u-.06)/.3),mv=eo(cl((u-.14)/.5)),cx=L(W*.72,W*.26,mv)+jx(1),cy=L(H*.28,H*.24,mv)-Math.sin(mv*PI)*H*.07+jy(1),r=L(s*.09,s*.075,mv),c=Math.cos(fl*PI);
+        if(!SHP){g.strokeStyle="rgba(40,30,40,.55)";g.lineWidth=Math.max(1,s*.0015);g.beginPath();g.moveTo(cx,cy-r);g.lineTo(cx,-H);g.stroke()}
+        g.save();g.translate(cx,cy);g.scale(Math.max(.05,Math.abs(c)),1);
+        if(c>0){for(let i=0;i<14;i++){const a=i/14*TAU,R=r*(i%2?1.9:1.6);ink(i%2?GOLD:PEACH);g.beginPath();g.moveTo(Math.cos(a-.12)*r*1.2,Math.sin(a-.12)*r*1.2);g.lineTo(Math.cos(a)*R,Math.sin(a)*R);g.lineTo(Math.cos(a+.12)*r*1.2,Math.sin(a+.12)*r*1.2);g.fill()}
+          ink(CORAL);g.beginPath();g.arc(0,0,r,0,TAU);g.fill();if(!SHP){ink([250,150,104]);g.beginPath();g.arc(-r*.12,-r*.12,r*.72,0,TAU);g.fill()}}
+        else{if(!SHP)glow(0,0,r*4,[230,230,255],.25*-c);ink([250,240,214]);g.beginPath();g.arc(0,0,r,0,TAU);g.fill();
+          if(!SHP){g.save();g.beginPath();g.arc(0,0,r+.5,0,TAU);g.clip();ink([22,27,66]);g.beginPath();g.arc(r*.42,-r*.18,r*.86,0,TAU);g.fill();g.restore()}}
+        g.restore();if(Math.abs(c)<.35&&!SHP){ink([168,136,98]);g.fillRect(cx-s*.0035,cy-r,s*.007,r*2)}},.6);
+      const gd=Math.pow(cl((u-.24)/.26),3);
+      herWorld(Tq,1-cl(u/.48),false,{bg:false,F,girl:gd<1?()=>{g.translate(jx(5),jy(5)+gd*H*.9);girl(W*.48,H*.68,s*.36,Tq,{wave:u<.26?.5+Math.sin(fr*1.4)*.7:null,rod:true})}:null});
+      hisWorld(Tq,cl((u-.42)/.5),false,{bg:false,F})}
     /* ---------- 引 two poles and the field between them ---------- */
     function traceField(){const out=[],q=[[-1,0,1],[1,0,-1]];for(let j=0;j<10;j++){const th=(j+.5)/10*PI;let x=-1+Math.cos(th)*.08,r=Math.sin(th)*.08;const pts=[[x,r]];
         for(let k=0;k<900;k++){let ex=0,er=0;for(const [cx,cr,qq] of q){const dx=x-cx,dr=r-cr,d=Math.hypot(dx,dr);ex+=qq*dx/(d*d*d);er+=qq*dr/(d*d*d)}const m=Math.hypot(ex,er)||1;x+=ex/m*.025;r=Math.max(0,r+er/m*.025);pts.push([x,r]);if(Math.hypot(x-1,r)<.07||Math.hypot(x,r)>7)break}out.push(pts)}return out}
@@ -8708,8 +8758,8 @@ const Sky=(()=>{
       if(T<bar(0)){intro(T);return}
       if(T<bar(1.2)){bookScene(T);mark("開",bar(0),bar(1.2));return}
       if(T<bar(1.6)){bookScene(T);layer(sm(bar(1.2),bar(1.55),T),()=>herLive(T));return}
-      if(T<bar(4)-.22){herLive(T);mark("昼",bar(1.6),bar(4));return}
-      if(T<bar(4)+.22){whip(T);return}
+      if(T<TS0){herLive(T);mark("昼",bar(1.6),bar(4));return}
+      if(T<TS1){stage(T);mark("昼",bar(1.6),bar(4));return}
       if(T<bar(7)){hisLive(T);mark("夜",bar(4),bar(7));return}
       if(T<bar(8)){bookScene(T);layer(1-sm(bar(7),bar(7.35),T),()=>hisLive(T));return}
       if(T<bar(12)){magnets(T);mark("引",bar(8),bar(12));return}
