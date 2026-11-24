@@ -1462,7 +1462,7 @@ const Search=(()=>{
     }
   }
   const ALIAS={reap:"reapasoul",reapsoul:"reapasoul",ghost:"reapasoul",shinigami:"reapasoul","死神":"reapasoul","魂を刈る":"reapasoul",train:"nighttrain",nighttrain:"nighttrain",ticket:"nighttrain",densha:"nighttrain","電車":"nighttrain","乗車券":"nighttrain",kisha:"nighttrain","汽車":"nighttrain",weatheringwithyounight:"weatheringnight",tenkinokonight:"weatheringnight",nightweathering:"weatheringnight",weatheringatnight:"weatheringnight",weatheringwithyouday:"weatheringday",tenkinokoday:"weatheringday",suzumenotojimarinight:"suzumenight",nightsuzume:"suzumenight",suzumeatnight:"suzumenight",suzumenotojimariday:"suzumeday",sunnyfrieren:"frierenday",frierensunny:"frierenday",dayfrieren:"frierenday",frierenbyday:"frierenday",nightfrieren:"frierennight",frierenatnight:"frierennight",frierenmeteor:"frierennight",frierenmeteors:"frierennight",pixelate:"pixelated",pixel:"pixelated",pixels:"pixelated","8bit":"pixelated",gojosatoru:"gojo",satorugojo:"gojo","五条":"gojo","五条悟":"gojo",unlimitedvoid:"gojo",muryokusho:"gojo","無量空処":"gojo",ryomensukuna:"sukuna","宿儺":"sukuna","両面宿儺":"sukuna",malevolentshrine:"sukuna","伏魔御廚子":"sukuna",easymode:"easy",babymode:"easy",hardmode:"hard",normalmode:"hard","フリーレン":"frieren","葬送のフリーレン":"frieren",sousounofrieren:"frieren","晴る":"frieren",haru:"frieren",
-    kiminonawa:"yourname","kiminonawa.":"yourname","君の名は":"yourname","君の名は。":"yourname",zenzenzense:"zenzenzense",zenzenzen:"zenzenzense","前前前世":"zenzenzense",tojimari:"tojimari",mimizu:"tojimari","ミミズ":"tojimari",theworm:"tojimari",worm:"tojimari",toaka:"tojimari","十明":"tojimari",shelter:"shelter","シェルター":"shelter",porterrobinson:"shelter",onevoice:"onevoice","ただ声一つ":"onevoice",tadakoehitotsu:"onevoice",tadakoehitotu:"onevoice",rokudenashi:"onevoice","ロクデナシ":"onevoice",
+    kiminonawa:"yourname","kiminonawa.":"yourname","君の名は":"yourname","君の名は。":"yourname",zenzenzense:"zenzenzense",zenzenzen:"zenzenzense","前前前世":"zenzenzense",tojimari:"tojimari",mimizu:"tojimari","ミミズ":"tojimari",theworm:"tojimari",worm:"tojimari",toaka:"tojimari","十明":"tojimari",shelter:"shelter","シェルター":"shelter",porterrobinson:"shelter",onevoice:"onevoice","ただ声一つ":"onevoice",unmeinokimi:"unmeinokimi",unmei:"unmeinokimi","運命の君":"unmeinokimi","うんめいのきみ":"unmeinokimi",seihantai:"unmeinokimi",seihantainakimitoboku:"unmeinokimi","正反対な君と僕":"unmeinokimi",polaropposites:"unmeinokimi",youandiarepolaropposites:"unmeinokimi",tadakoehitotsu:"onevoice",tadakoehitotu:"onevoice",rokudenashi:"onevoice","ロクデナシ":"onevoice",
     tenkinoko:"weatheringwithyou","天気の子":"weatheringwithyou",
     suzumenotojimari:"suzume","すずめの戸締まり":"suzume",
     senchihironokamikakushi:"spiritedaway","千と千尋の神隠し":"spiritedaway",
@@ -1695,6 +1695,7 @@ const Search=(()=>{
     tojimari(){ if(!(window.SuzuFilm&&SuzuFilm.start())) say("🚪 Suzume: the film is switched off while reduced motion is on."); },
     shelter(){ if(!(window.ShelterFilm&&ShelterFilm.start())) say("▣ Shelter: the film is switched off while reduced motion is on."); },
     onevoice(){ if(!(window.OneVoice&&OneVoice.start())) say("🐋 One Voice: the film is switched off while reduced motion is on."); },
+    unmeinokimi(){ if(!(window.UnmeiFilm&&UnmeiFilm.start())) say("🧶 Unmei no Kimi: the film is switched off while reduced motion is on."); },
     zenzenzense(){ if(!(window.ZenFilm&&ZenFilm.start())) say("🎬 Zenzenzense: the film is switched off while reduced motion is on."); },
     weatheringwithyou(){ const ok=Sky.tenki(); card("weathering",Sky.nightOf("tk")?"Night rain over the city, until the clouds open onto the Milky Way.":null); fx(ok); },
     weatheringnight(){ const ok=Sky.tenki("night"); card("weathering","Night rain over the city, until the clouds open onto the Milky Way."); fx(ok); },
@@ -1843,7 +1844,7 @@ window.SFX=(()=>{let X=null,out=null,noise=null,vol=(()=>{try{const v=JSON.parse
     bp.type="bandpass";bp.frequency.setValueAtTime(900,t);bp.frequency.linearRampToValueAtTime(1500,t+.18);bp.frequency.linearRampToValueAtTime(800,t+.5);bp.Q.value=4;bp2.type="bandpass";bp2.frequency.value=2600;bp2.Q.value=6;
     g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.5,t+.05);g.gain.linearRampToValueAtTime(.35,t+.3);g.gain.exponentialRampToValueAtTime(.0001,t+.55);o.connect(bp);o.connect(bp2);bp.connect(g);bp2.connect(g);g.connect(out);o.start(t);o.stop(t+.6)}
   return {ding,train,rain,plop,chime,boom,engine,meow,stop,vol:setVol}})();
-const DEFAULT_SOUNDS={"egg_tojimari": {"file": "suzume-film.m4a", "loop": false, "vol": 0.8, "start": 0, "name": "Suzume: the film"}, "egg_shelter": {"file": "shelter.m4a", "loop": false, "vol": 0.8, "start": 0, "name": "Shelter"}, "egg_onevoice": {"file": "onevoice.m4a", "loop": false, "vol": 0.8, "start": 0, "name": "One Voice (Rokudenashi)"}, "egg_zenzen": {"file": "zenzenzense.m4a", "loop": false, "vol": 0.8, "start": 0, "name": "Zenzenzense (RADWIMPS)"}, "day_frieren": {"file": "haru.m4a", "loop": false, "vol": 0.8, "name": "Haru", "sync": "haru"}, "day_howl": {"file": "howl.m4a", "loop": true, "vol": 0.8, "name": "howl.m4a"}, "day_k13@en": {"file": "sparkle.m4a", "loop": true, "vol": 0.8, "name": "sparkle.m4a"}, "day_koe": {"file": "lvs.m4a", "loop": true, "vol": 0.8, "name": "lvs.m4a"}, "day_spirited": {"file": "spirited.m4a", "loop": true, "vol": 0.8, "name": "spirited.m4a"}, "day_suzume": {"file": "suzume.m4a", "loop": true, "vol": 0.8, "name": "suzume.m4a"}, "day_totoro": {"file": "path-of-the-wind.m4a", "loop": true, "vol": 0.8, "name": "path-of-the-wind.m4a"}, "day_violet": {"file": "across-the-violet-sky.m4a", "loop": true, "vol": 0.8, "name": "across-the-violet-sky.m4a"}, "day_weathering": {"file": "sky-clearing-up.m4a", "loop": true, "vol": 0.8, "name": "sky-clearing-up.m4a"}, "day_weathering@en": {"file": "sky-clearing-up.m4a", "loop": true, "vol": 0.8, "name": "sky-clearing-up.m4a"}, "day_yourname": {"file": "sparkle.m4a", "loop": true, "vol": 0.8, "name": "sparkle.m4a"}, "day_yourname@en": {"file": "sparkle-en.m4a", "loop": true, "vol": 0.8, "name": "sparkle-en.m4a"}, "egg_byosoku": {"file": "haru-dorobou.m4a", "loop": false, "vol": 0.65, "start": 208.5, "name": "haru-dorobou.m4a"}, "egg_frieren@en": {"file": "haru-en.m4a", "loop": false, "vol": 0.8, "start": 181.5, "name": "haru-en.m4a"}, "egg_frieren@ja": {"file": "haru.m4a", "loop": false, "vol": 0.8, "start": 199.5, "name": "haru.m4a"}, "egg_frieren@vi": {"file": "haru-vi.m4a", "loop": false, "vol": 0.8, "name": "haru-vi.m4a", "start": 181}, "egg_howl": {"file": "howl.m4a", "loop": false, "vol": 0.8, "name": "howl.m4a"}, "egg_koe": {"file": "lvs.m4a", "loop": false, "vol": 0.8, "start": 0.5, "name": "lvs.m4a"}, "egg_spirited": {"file": "spirited.m4a", "loop": false, "vol": 0.8, "name": "spirited.m4a"}, "egg_suzume@en": {"file": "suzume-en.m4a", "loop": false, "vol": 0.8, "start": 155.5, "name": "suzume-en.m4a"}, "egg_suzume@ja": {"file": "suzume.m4a", "loop": false, "vol": 0.8, "start": 153.5, "name": "suzume.m4a"}, "egg_suzume@vi": {"file": "suzume-vi.m4a", "loop": false, "vol": 0.8, "start": 157.5, "name": "suzume-vi.m4a"}, "egg_totoro": {"file": "path-of-the-wind.m4a", "loop": false, "vol": 0.8, "name": "path-of-the-wind.m4a"}, "egg_totoro@en": {"file": "path-of-the-wind.m4a", "loop": false, "vol": 0.8, "name": "path-of-the-wind.m4a"}, "egg_violet": {"file": "michishirube.m4a", "loop": false, "vol": 0.55, "start": 174, "name": "michishirube.m4a"}, "egg_weathering": {"file": "grand-escape.m4a", "loop": false, "vol": 0.8, "start": 281.5, "name": "grand-escape.m4a"}, "egg_yourname@en": {"file": "sparkle-en.m4a", "loop": false, "vol": 0.8, "name": "sparkle-en.m4a", "start": 289.5}, "egg_yourname@ja": {"file": "sparkle.m4a", "loop": false, "vol": 0.8, "start": 440, "name": "sparkle.m4a"}, "egg_yourname@vi": {"file": "sparkle-vi.m4a", "loop": false, "vol": 0.8, "start": 20, "name": "sparkle-vi.m4a"}, "egg_neko": {"file": "liar.m4a", "loop": false, "vol": 0.8, "start": 174, "sync": "liar", "name": "Liar (Yorushika)"}};
+const DEFAULT_SOUNDS={"egg_tojimari": {"file": "suzume-film.m4a", "loop": false, "vol": 0.8, "start": 0, "name": "Suzume: the film"}, "egg_shelter": {"file": "shelter.m4a", "loop": false, "vol": 0.8, "start": 0, "name": "Shelter"}, "egg_onevoice": {"file": "onevoice.m4a", "loop": false, "vol": 0.8, "start": 0, "name": "One Voice (Rokudenashi)"}, "egg_unmei": {"file": "unmei-no-kimi.m4a", "loop": false, "vol": 0.8, "start": 0, "name": "Unmei no Kimi"}, "egg_zenzen": {"file": "zenzenzense.m4a", "loop": false, "vol": 0.8, "start": 0, "name": "Zenzenzense (RADWIMPS)"}, "day_frieren": {"file": "haru.m4a", "loop": false, "vol": 0.8, "name": "Haru", "sync": "haru"}, "day_howl": {"file": "howl.m4a", "loop": true, "vol": 0.8, "name": "howl.m4a"}, "day_k13@en": {"file": "sparkle.m4a", "loop": true, "vol": 0.8, "name": "sparkle.m4a"}, "day_koe": {"file": "lvs.m4a", "loop": true, "vol": 0.8, "name": "lvs.m4a"}, "day_spirited": {"file": "spirited.m4a", "loop": true, "vol": 0.8, "name": "spirited.m4a"}, "day_suzume": {"file": "suzume.m4a", "loop": true, "vol": 0.8, "name": "suzume.m4a"}, "day_totoro": {"file": "path-of-the-wind.m4a", "loop": true, "vol": 0.8, "name": "path-of-the-wind.m4a"}, "day_violet": {"file": "across-the-violet-sky.m4a", "loop": true, "vol": 0.8, "name": "across-the-violet-sky.m4a"}, "day_weathering": {"file": "sky-clearing-up.m4a", "loop": true, "vol": 0.8, "name": "sky-clearing-up.m4a"}, "day_weathering@en": {"file": "sky-clearing-up.m4a", "loop": true, "vol": 0.8, "name": "sky-clearing-up.m4a"}, "day_yourname": {"file": "sparkle.m4a", "loop": true, "vol": 0.8, "name": "sparkle.m4a"}, "day_yourname@en": {"file": "sparkle-en.m4a", "loop": true, "vol": 0.8, "name": "sparkle-en.m4a"}, "egg_byosoku": {"file": "haru-dorobou.m4a", "loop": false, "vol": 0.65, "start": 208.5, "name": "haru-dorobou.m4a"}, "egg_frieren@en": {"file": "haru-en.m4a", "loop": false, "vol": 0.8, "start": 181.5, "name": "haru-en.m4a"}, "egg_frieren@ja": {"file": "haru.m4a", "loop": false, "vol": 0.8, "start": 199.5, "name": "haru.m4a"}, "egg_frieren@vi": {"file": "haru-vi.m4a", "loop": false, "vol": 0.8, "name": "haru-vi.m4a", "start": 181}, "egg_howl": {"file": "howl.m4a", "loop": false, "vol": 0.8, "name": "howl.m4a"}, "egg_koe": {"file": "lvs.m4a", "loop": false, "vol": 0.8, "start": 0.5, "name": "lvs.m4a"}, "egg_spirited": {"file": "spirited.m4a", "loop": false, "vol": 0.8, "name": "spirited.m4a"}, "egg_suzume@en": {"file": "suzume-en.m4a", "loop": false, "vol": 0.8, "start": 155.5, "name": "suzume-en.m4a"}, "egg_suzume@ja": {"file": "suzume.m4a", "loop": false, "vol": 0.8, "start": 153.5, "name": "suzume.m4a"}, "egg_suzume@vi": {"file": "suzume-vi.m4a", "loop": false, "vol": 0.8, "start": 157.5, "name": "suzume-vi.m4a"}, "egg_totoro": {"file": "path-of-the-wind.m4a", "loop": false, "vol": 0.8, "name": "path-of-the-wind.m4a"}, "egg_totoro@en": {"file": "path-of-the-wind.m4a", "loop": false, "vol": 0.8, "name": "path-of-the-wind.m4a"}, "egg_violet": {"file": "michishirube.m4a", "loop": false, "vol": 0.55, "start": 174, "name": "michishirube.m4a"}, "egg_weathering": {"file": "grand-escape.m4a", "loop": false, "vol": 0.8, "start": 281.5, "name": "grand-escape.m4a"}, "egg_yourname@en": {"file": "sparkle-en.m4a", "loop": false, "vol": 0.8, "name": "sparkle-en.m4a", "start": 289.5}, "egg_yourname@ja": {"file": "sparkle.m4a", "loop": false, "vol": 0.8, "start": 440, "name": "sparkle.m4a"}, "egg_yourname@vi": {"file": "sparkle-vi.m4a", "loop": false, "vol": 0.8, "start": 20, "name": "sparkle-vi.m4a"}, "egg_neko": {"file": "liar.m4a", "loop": false, "vol": 0.8, "start": 174, "sync": "liar", "name": "Liar (Yorushika)"}};
 window.addEventListener("DOMContentLoaded",()=>{const L=document.getElementById("boot");if(!L||typeof EggSound==="undefined"||!EggSound.preload){if(L)L.remove();return}
   try{L.focus()}catch(e){}const bar=L.querySelector(".bt-fill"),tx=L.querySelector(".bt-txt"),nn=L.querySelector(".bt-n"),MB=b=>(b/1048576).toFixed(1);
   const W={en:["Loading the songs so they play right on time…","songs"],vi:["Đang tải nhạc để phát đúng lúc…","bài"],ja:["曲を読み込んでいます…ぴったりのタイミングで流れるように","曲"]}[typeof LANG==="string"?LANG:"en"]||["Loading the songs so they play right on time…","songs"];tx.textContent=W[0];
@@ -1855,7 +1856,7 @@ window.addEventListener("DOMContentLoaded",()=>{const L=document.getElementById(
   EggSound.preload((d,n,g,f)=>{bar.style.width=(100*f).toFixed(1)+"%";nn.textContent=`${d} / ${n} ${W[1]}`+(g?` · ${MB(g)} MB`:"")}).then(r=>{
     if(r&&r.failed){console.warn(`[sounds] ${r.failed} of ${r.total} songs could not be loaded`);tx.textContent=M;nn.textContent=`${r.total-r.failed} / ${r.total} ${W[1]}`;bar.style.background="#e0a24a";bar.style.width=(100*(r.total-r.failed)/r.total).toFixed(1)+"%";if(sk)sk.hidden=false;setTimeout(fin,7000)}else fin()},fin)});
 const EggSound=(()=>{
-  const SLOTS=[["egg","frieren","Sousou no Frieren"],["egg","yourname","Kimi No Na Wa"],["egg","zenzen","Kimi No Na Wa: the film (Zenzenzense)"],["egg","onevoice","One Voice (Rokudenashi)"],["egg","shelter","Shelter (Porter Robinson & Madeon)"],["egg","tojimari","Suzume: the film (RADWIMPS feat. Toaka)"],["egg","weathering","Tenki No Ko"],["egg","suzume","Suzume No Tojimari"],["egg","spirited","Sen To Chihiro No Kamikakushi"],["egg","violet","Violet Evergarden"],
+  const SLOTS=[["egg","frieren","Sousou no Frieren"],["egg","yourname","Kimi No Na Wa"],["egg","zenzen","Kimi No Na Wa: the film (Zenzenzense)"],["egg","onevoice","One Voice (Rokudenashi)"],["egg","unmei","Unmei no Kimi (Seihantai na Kimi to Boku)"],["egg","shelter","Shelter (Porter Robinson & Madeon)"],["egg","tojimari","Suzume: the film (RADWIMPS feat. Toaka)"],["egg","weathering","Tenki No Ko"],["egg","suzume","Suzume No Tojimari"],["egg","spirited","Sen To Chihiro No Kamikakushi"],["egg","violet","Violet Evergarden"],
     ["egg","byosoku","Byousoku 5 Centimeter"],["egg","koe","Koe no Katachi"],["egg","totoro","Tonari no Totoro"],["egg","howl","Hauru no Ugoku Shiro"],["egg","glt","Shoujo Shuumatsu Ryokou"],["egg","neko","Nakitai Watashi wa Neko o Kaburu"],["egg","anohana","Ano Hana"],
     ["day","k13","4 Oct 2013 · Kimi No Na Wa"],["day","totoro","16 Apr 1988 · Tonari no Totoro"],["day","spirited","20 Jul 2001 · Sen To Chihiro No Kamikakushi"],["day","howl","20 Nov 2004 · Hauru no Ugoku Shiro"],["day","byosoku","3 Mar 2007 · Byousoku 5 Centimeter"],["day","glt","6 Oct 2017 · Shoujo Shuumatsu Ryokou"],
     ["day","yourname","26 Aug 2016 · Kimi No Na Wa"],["day","koe","17 Sep 2016 · Koe no Katachi"],["day","violet","11 Jan 2018 · Violet Evergarden"],["day","weathering","19 Jul 2019 · Tenki No Ko"],["day","suzume","11 Nov 2022 · Suzume No Tojimari"],["day","frieren","29 Sep 2023 · Sousou no Frieren"],["day","nye","31 Dec · New Year's Eve"],["day","neko","18 Jun 2020 · Nakitai Watashi wa Neko o Kaburu"]];
@@ -4416,7 +4417,7 @@ const Sky=(()=>{
   addEventListener("keydown",e=>{if(!inView()||!CAM.ok)return;const m={ArrowLeft:[60,0],ArrowRight:[-60,0],ArrowUp:[0,60],ArrowDown:[0,-60]}[e.key];if(!m)return;e.preventDefault();CAM.tx+=m[0];CAM.ty+=m[1];if(reduced)frame(performance.now())});
   document.addEventListener("click",e=>{if(e.target.closest&&e.target.closest("#sk-center")){e.stopPropagation();CAM.tx=0;CAM.ty=0;if(reduced)frame(performance.now())}},true);
   function frame(now){
-    if((window.Byo3D&&Byo3D.on)||(window.ZenFilm&&ZenFilm.on)||(window.OneVoice&&OneVoice.on)||(window.ShelterFilm&&ShelterFilm.on)||(window.SuzuFilm&&SuzuFilm.on)||(window.NightTrain&&NightTrain.on)||(window.Reaper&&Reaper.on)){if(!reduced)requestAnimationFrame(frame);return}
+    if((window.Byo3D&&Byo3D.on)||(window.ZenFilm&&ZenFilm.on)||(window.OneVoice&&OneVoice.on)||(window.UnmeiFilm&&UnmeiFilm.on)||(window.ShelterFilm&&ShelterFilm.on)||(window.SuzuFilm&&SuzuFilm.on)||(window.NightTrain&&NightTrain.on)||(window.Reaper&&Reaper.on)){if(!reduced)requestAnimationFrame(frame);return}
     if(!reduced){const fps=busy()?PC.egg:PC.amb;const iv=1000/fps;if(now-lastDraw<iv-1.5){requestAnimationFrame(frame);return}lastDraw=now-lastDraw>iv*2?now:lastDraw+iv}
     ambR=0;ambW=0;
     const dt=Math.min(Math.max(.05,1.6/(busy()?PC.egg:PC.amb)),(now-last)/1000);last=now;
@@ -7440,6 +7441,229 @@ const Sky=(()=>{
       setTimeout(()=>{if(e)e.remove();el=cv=g=hud=null;SKY=STARPAT=null;parts=[];rings=[];motes=[];on=X.on=false;leaving=false;dbg=null;const s0=document.getElementById("gsearch");if(s0)s0.focus({preventScroll:true})},1250)}
     const X={on:false,start,stop,at:t=>{if(!on)start();dbg=t;swA={}},clock:()=>on?E:null};return X})();
   window.OneVoice=OVF;
+  /* ===== 運命の君 (Unmei no Kimi): a film for the second-season ending of Seihantai na Kimi to Boku, opened by typing
+     "unmei no kimi" (or "seihantai", "polar opposites") in the search bar. Every drawing is original, not the anime's: two
+     opposites, a bright girl of the afternoon and a quiet boy of the evening, float over one city tied by a red thread.
+     Its clock is the song (Sounds → Unmei no Kimi); with no song it runs silently on its own clock.
+     105 bpm, beats at 0.13 + n * 0.5714, downbeats at 1.844 + n * 2.2857. The cut, in bars (seconds):
+       -1  (0)      a light leak and the title
+        0  (1.84)   昼  golden afternoon: she rises over roofs and wires; bar 4 her face against the sun
+        8  (20.13)  反  split screen, afternoon and evening, the thread crossing between them
+       12  (29.27)  夜  him alone over the lit city at dusk
+       17  (40.70)  駆  the build: a train's passing windows, a cut on every bar, then on every beat
+       22  (52.13)  空  chorus: above a sea of clouds the two drift toward each other
+       30  (70.42)  君  climax: their hands meet, the thread lights, the sky blooms on every beat
+       33  (77.27)  日  the everyday, a cut on every two beats: lockers, a window, a crossing, a rooftop, shadows, pinkies
+       36  (84.13)  青  blue sky, a contrail, the title
+     Touch the screen for a spray of light. ===== */
+  const UMF=(()=>{
+    const LEN=88,TAIL=2,BP=60/105,B0=1.844,BAR=BP*4,TAU=Math.PI*2,MIN='"Shippori Mincho B1","Hiragino Mincho ProN","Yu Mincho",serif',SANS='"Zen Kaku Gothic New",system-ui,sans-serif';
+    const bar=k=>B0+k*BAR;
+    let el=null,cv=null,g=null,hud=null,W=0,H=0,s=0,raf=0,on=false,E=0,last=0,hold=0,noSong=false,dt=.016,dbg=null,leaving=false,idleT=0,songReq=false,parts=[];
+    const cl=x=>Math.max(0,Math.min(1,x)),io=x=>{x=cl(x);return x*x*(3-2*x)},eo=x=>1-Math.pow(1-cl(x),3),L=(a,b,k)=>a+(b-a)*k,sm=(a,b,x)=>io((x-a)/(b-a)),
+      hs=i=>{const v=Math.sin(i*12.9898+4.1)*43758.5453;return v-Math.floor(v)},rgba=(c,a)=>`rgba(${c[0]|0},${c[1]|0},${c[2]|0},${a})`,mix=(a,b,k)=>[L(a[0],b[0],k),L(a[1],b[1],k),L(a[2],b[2],k)];
+    /* 1 on the beat, falling off over the next fraction of a second */
+    const beat=(per=BP,ph=.13)=>{const u=((E-ph)/per%1+1)%1;return Math.exp(-u*per*7)};
+    /* the cuts, each with its flash */
+    const CUTS=[[bar(0),.9],[bar(4),.5],[bar(8),.7],[bar(12),.6],[bar(17),.6],[bar(18),.4],[bar(19),.4],[bar(20),.4],[bar(21),.5],[bar(21)+BP,.4],[bar(21)+2*BP,.4],[bar(21)+3*BP,.5],[bar(22),1],[bar(26),.5],[bar(30),1],[bar(33),.7],[bar(36),.8]];
+    for(let i=1;i<6;i++)CUTS.push([bar(33)+i*2*BP,.35]);
+    function glow(cx,cy,r,c,a){if(a<=0||r<=0)return;const gr=g.createRadialGradient(cx,cy,0,cx,cy,r);gr.addColorStop(0,rgba(c,a));gr.addColorStop(.3,rgba(c,a*.35));gr.addColorStop(1,rgba(c,0));g.fillStyle=gr;g.fillRect(cx-r,cy-r,r*2,r*2)}
+    function vgrad(st,y0=0,y1=H){const gr=g.createLinearGradient(0,y0,0,y1);st.forEach(([o,c])=>gr.addColorStop(o,rgba(c,1)));g.fillStyle=gr;g.fillRect(-W*.5,-H*.5,W*2,H*2)}
+    function text(t,x,y,sz,a,o){if(a<=0)return;const {w=400,al="center",c=[255,255,255],f=MIN}=o||{};g.font=`${w} ${sz}px ${f}`;g.textAlign=al;g.textBaseline="middle";g.fillStyle=rgba(c,a);g.fillText(t,x,y)}
+    function cam(z,r,cx=W/2,cy=H/2){g.translate(cx,cy);g.rotate(r);g.scale(z,z);g.translate(-cx,-cy)}
+    /* a cumulus: a row of puffs on a flat base, then the same puffs again, smaller and lifted, in the lit colour */
+    function cloud(x,y,w,seed,base,lit,a=1,up=1){const n=6+(hs(seed)*5|0),P=[];
+      for(let i=0;i<n;i++){const u=i/(n-1),r=w*(.1+.15*Math.sin(u*Math.PI))*(.75+.5*hs(seed+i*7));P.push([x+(u-.5)*w*.85,y-r*.55*Math.sin(u*Math.PI)*1.3,r])}
+      g.globalAlpha=a;g.fillStyle=rgba(base,1);g.beginPath();P.forEach(([cx,cy,r])=>{g.moveTo(cx+r,cy);g.arc(cx,cy,r,0,TAU)});g.rect(x-w*.43,y-w*.03,w*.86,w*.05);g.fill();
+      g.fillStyle=rgba(lit,1);g.beginPath();P.forEach(([cx,cy,r])=>{const r2=r*.8,y2=cy-up*r*.24;g.moveTo(cx-r*.1+r2,y2);g.arc(cx-r*.1,y2,r2,0,TAU)});g.fill();g.globalAlpha=1}
+    /* a row of buildings on a scrolling strip; win > 0 lights some windows */
+    function city(base,h,col,seed,scroll,win=0,wcol=[255,214,140]){const sw=s*.075,i0=Math.floor(scroll/sw)-1,n=Math.ceil(W/sw)+3;g.fillStyle=rgba(col,1);g.fillRect(-W*.5,base,W*2,H);
+      for(let j=i0;j<i0+n;j++){const x=j*sw-scroll,bw=sw*(.75+.45*hs(seed+j)),bh=h*Math.pow(.3+.7*hs(seed+j*3),1.4);g.fillStyle=rgba(col,1);g.fillRect(x,base-bh,bw,bh+1);
+        if(hs(seed+j*5)>.7)g.fillRect(x+bw*.6,base-bh-s*.02,bw*.1,s*.02);
+        if(win>0){const cw=s*.008,rows=Math.floor(bh/(cw*2.4)),cols=Math.floor(bw/(cw*2.2));for(let r=1;r<rows;r++)for(let c=0;c<cols;c++){const q=hs(seed+j*31+r*7+c*13);if(q>.62){g.fillStyle=rgba(wcol,win*(.4+.6*hs(q*99)));g.fillRect(x+cw*.6+c*cw*2.2,base-bh+r*cw*2.4,cw,cw*1.2)}}}}}
+    /* utility poles and sagging wires, with a signal box on the first pole */
+    function wires(x0,col,top=H*.12){g.fillStyle=g.strokeStyle=rgba(col,1);const X=[x0,x0+W*.62];X.forEach((x,i)=>{g.fillRect(x-s*.007,top,s*.014,H*1.2);g.fillRect(x-s*.05,top+s*.04,s*.1,s*.008);if(!i){g.fillRect(x+s*.012,top+s*.16,s*.05,s*.11)}});
+      g.lineWidth=1.2;for(let k=0;k<4;k++){const y=top+s*(.044+k*.012);g.beginPath();g.moveTo(-W*.2,y+s*.05);g.quadraticCurveTo((X[0]-W*.2)/2,y+s*.1,X[0],y);g.quadraticCurveTo((X[0]+X[1])/2,y+s*.07,X[1],y);g.quadraticCurveTo(X[1]+W*.3,y+s*.07,W*1.3,y+s*.03);g.stroke()}}
+    /* a person in silhouette, sc px tall from head to feet, hip at (x,y); f = 1 faces right, -1 left; k = 0 her, 1 him.
+       reach (0..1) lifts the front arm toward the other one. Returns the front hand on screen. */
+    function person(x,y,sc,rot,f,k,t,o){const {fill=[40,24,40],rim=[255,210,150],ra=1,reach=0,rdx=-.012,rdy=-.01,sit=0}=o||{};
+      const sw=Math.sin(t*1.3+k*2),sw2=Math.sin(t*.9+1+k);
+      const J={neck:[.04,-.37],head:[.06,-.47],eB:[-.13+.03*sw,-.22],hB:[-.2+.03*sw2,-.08],eF:[L(.16,.22,reach),L(-.2,-.34,reach)],hF:[L(.22,.38,reach),L(-.08,-.38,reach)+.02*sw],
+        kA:[.13+sit*.12,L(.2+.02*sw,.02,sit)],fA:[.03+sit*.2,L(.42+.02*sw,.25,sit)],kB:[-.04+sit*.14,L(.24-.02*sw2,.04,sit)],fB:[-.16+sit*.3,L(.4,.27,sit)]};
+      const shape=c=>{g.fillStyle=g.strokeStyle=rgba(c,1);g.lineCap="round";g.lineJoin="round";
+        const limb=(a,b,e,w)=>{g.lineWidth=w;g.beginPath();g.moveTo(a[0],a[1]);g.quadraticCurveTo(b[0],b[1],e[0],e[1]);g.stroke()};
+        const lw=k?.072:.058;limb([.02,0],J.kA,J.fA,lw);limb([-.03,0],J.kB,J.fB,lw);
+        const sh=k?.085:.07;g.beginPath();g.moveTo(-.07,.03);g.lineTo(.07,.03);g.lineTo(J.neck[0]+sh,J.neck[1]+.05);g.lineTo(J.neck[0]-sh,J.neck[1]+.05);g.closePath();g.fill();
+        g.lineWidth=k?.09:.075;g.beginPath();g.moveTo(J.neck[0]-sh*.7,J.neck[1]+.05);g.lineTo(J.neck[0]+sh*.7,J.neck[1]+.05);g.stroke();
+        if(!k){const fl=.025*Math.sin(t*2.2);g.beginPath();g.moveTo(-.075,-.03);g.lineTo(.075,-.03);g.lineTo(.14+fl,.15);g.quadraticCurveTo(0,.19+fl,-.14+fl,.14);g.closePath();g.fill()}
+        limb(J.neck,[J.neck[0]+.01,J.neck[1]-.04],[J.head[0],J.head[1]+.03],.045);
+        const hx=J.head[0],hy=J.head[1];g.beginPath();g.ellipse(hx,hy,.066,.076,.1,0,TAU);g.fill();
+        if(!k){const wv=Math.sin(t*1.7)*.035;g.beginPath();g.moveTo(hx+.06,hy-.06);g.quadraticCurveTo(hx-.01,hy-.14,hx-.08,hy-.05);g.bezierCurveTo(hx-.15,hy+.04+wv,hx-.2,hy+.14-wv,hx-.3,hy+.2+wv);
+          g.bezierCurveTo(hx-.18,hy+.16,hx-.11,hy+.1,hx-.04,hy+.08);g.closePath();g.fill();g.beginPath();g.arc(hx-.005,hy-.005,.04,0,TAU);g.fill()}
+        else{g.beginPath();g.ellipse(hx-.012,hy-.022,.078,.068,.25,Math.PI*.85,Math.PI*2.2);g.fill()}
+        const aw=k?.048:.04;limb([J.neck[0]-.05,J.neck[1]+.06],J.eB,J.hB,aw);limb([J.neck[0]+.05,J.neck[1]+.06],J.eF,J.hF,aw)};
+      const c=Math.cos(rot),sn=Math.sin(rot);
+      if(ra>0){g.save();g.globalAlpha=ra;g.translate(x+rdx*sc,y+rdy*sc);g.rotate(rot);g.scale(sc*f,sc);shape(rim);g.restore()}
+      g.save();g.translate(x,y);g.rotate(rot);g.scale(sc*f,sc);shape(fill);
+      const hx=J.head[0],hy=J.head[1];
+      if(!k){g.fillStyle="#c8323c";g.beginPath();g.moveTo(J.neck[0],J.neck[1]+.06);g.lineTo(J.neck[0]+.05,J.neck[1]+.04);g.lineTo(J.neck[0]+.05,J.neck[1]+.09);g.lineTo(J.neck[0]-.05,J.neck[1]+.04);g.lineTo(J.neck[0]-.05,J.neck[1]+.09);g.closePath();g.fill();
+        g.strokeStyle=rgba(fill,1);g.lineWidth=.016;g.beginPath();g.arc(hx,hy,.082,Math.PI*1.05,Math.PI*1.95);g.stroke();g.fillStyle=rgba(fill,1);g.beginPath();g.ellipse(hx-.01,hy+.005,.03,.038,0,0,TAU);g.fill()}
+      else{g.strokeStyle=rgba(rim,.75*ra);g.lineWidth=.008;g.beginPath();g.moveTo(hx+.03,hy-.008);g.lineTo(hx+.068,hy-.012);g.stroke()}
+      g.restore();const hp=J.hF;return [x+(hp[0]*f*c-hp[1]*sn)*sc,y+(hp[0]*f*sn+hp[1]*c)*sc]}
+    /* a face close up, in profile against the light, facing right (f = -1 left) */
+    function portrait(k,cx,cy,r,t,fill,rim,f=1){const shape=(c,dx,dy)=>{g.save();g.translate(cx+dx,cy+dy);g.scale(f,1);g.fillStyle=g.strokeStyle=rgba(c,1);
+        g.beginPath();g.ellipse(-r*.2,r*2.1,r*1.7,r*.95,0,0,TAU);g.fill();g.fillRect(-r*.42,r*.3,r*.62,r*1.3);
+        g.beginPath();g.ellipse(0,0,r*.82,r,0,0,TAU);g.fill();
+        g.beginPath();g.moveTo(r*.7,-r*.25);g.quadraticCurveTo(r*.98,r*.05,r*.92,r*.12);g.lineTo(r*.78,r*.2);g.quadraticCurveTo(r*.86,r*.36,r*.76,r*.48);g.quadraticCurveTo(r*.7,r*.7,r*.4,r*.85);g.lineTo(r*.3,r*.5);g.closePath();g.fill();
+        const wv=Math.sin(t*1.4)*r*.12;
+        if(!k){g.beginPath();g.moveTo(r*.55,-r*.7);g.quadraticCurveTo(-r*.2,-r*1.35,-r*.85,-r*.4);g.bezierCurveTo(-r*1.3,r*.3+wv,-r*1.7,r*.9-wv,-r*2.4,r*1.2+wv);g.bezierCurveTo(-r*1.5,r*1.3,-r*1,r*1.2,-r*.4,r*1.1);g.lineTo(-r*.2,0);g.closePath();g.fill();
+          g.beginPath();g.moveTo(r*.68,-r*.55);g.quadraticCurveTo(r*.85,-r*.25,r*.62,-r*.12);g.lineTo(r*.35,-r*.6);g.fill()}
+        else{g.beginPath();g.ellipse(-r*.1,-r*.25,r*.95,r*.82,.2,Math.PI*.8,Math.PI*2.15);g.fill();for(let i=0;i<4;i++){g.beginPath();g.moveTo(r*(.2+.13*i),-r*.75);g.lineTo(r*(.42+.12*i),-r*(.22+.04*Math.sin(t*2+i)));g.lineTo(r*(.1+.13*i),-r*.6);g.fill()}}
+        g.restore()};
+      shape(rim,-r*.035*f,-r*.03);shape(fill,0,0);
+      g.save();g.translate(cx,cy);g.scale(f,1);
+      const gr=g.createRadialGradient(r*.5,0,0,r*.5,0,r*.9);gr.addColorStop(0,rgba(rim,.22));gr.addColorStop(1,rgba(rim,0));g.fillStyle=gr;g.beginPath();g.ellipse(0,0,r*.82,r,0,0,TAU);g.fill();
+      g.strokeStyle=rgba(mix(fill,rim,.35),.9);g.lineWidth=r*.025;g.lineCap="round";g.beginPath();g.arc(r*.5,-r*.05,r*.1,Math.PI*.15,Math.PI*.85);g.stroke();
+      if(!k){g.fillStyle=rgba(mix(fill,[255,255,255],.12),1);g.lineWidth=r*.12;g.strokeStyle=g.fillStyle;g.beginPath();g.arc(-r*.05,0,r*1.02,Math.PI*1.12,Math.PI*1.9);g.stroke();
+        g.beginPath();g.ellipse(-r*.08,r*.05,r*.3,r*.36,0,0,TAU);g.fill();glow(-r*.12,0,r*.4,rim,.25)}
+      else{g.strokeStyle=rgba(rim,.8);g.lineWidth=r*.03;g.beginPath();g.ellipse(r*.55,-r*.08,r*.2,r*.15,0,0,TAU);g.stroke();g.beginPath();g.moveTo(r*.36,-r*.1);g.lineTo(-r*.05,-r*.05);g.stroke();
+        g.fillStyle=rgba(mix(fill,[255,255,255],.15),1);g.beginPath();g.arc(-r*.08,r*.08,r*.09,0,TAU);g.fill()}
+      g.restore()}
+    /* the red thread between two points: slack sags it, lit makes it glow */
+    function thread(a,b,slack,lit){const mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2+slack;g.save();g.lineCap="round";
+      if(lit>0){g.globalCompositeOperation="lighter";for(const [w,al] of [[s*.03,.08],[s*.012,.25]]){g.strokeStyle=`rgba(255,70,80,${al*lit})`;g.lineWidth=w;g.beginPath();g.moveTo(a[0],a[1]);g.quadraticCurveTo(mx,my,b[0],b[1]);g.stroke()}g.globalCompositeOperation="source-over"}
+      g.strokeStyle="#e0303c";g.lineWidth=Math.max(1.2,s*.003);g.beginPath();g.moveTo(a[0],a[1]);g.quadraticCurveTo(mx,my,b[0],b[1]);g.stroke();g.restore()}
+    /* light motes drifting up; petals when asked */
+    function motes(n,c,a,petal){g.save();g.globalCompositeOperation=petal?"source-over":"lighter";for(let i=0;i<n;i++){const x=((hs(i)*W*1.2+Math.sin(E*.4+i)*s*.05+E*s*.02*(petal?1:.2))%(W*1.2))-W*.1,y=((hs(i*3)-E*(.02+.03*hs(i*5)))%1+1)%1*H*1.1-H*.05;
+        if(petal){g.save();g.translate(x,y);g.rotate(E*(1+hs(i*7))+i);g.fillStyle=rgba(c,a*(.5+.5*hs(i*9)));g.beginPath();g.ellipse(0,0,s*.009,s*.004,0,0,TAU);g.fill();g.restore()}
+        else{const r=s*(.002+.004*hs(i*11));g.fillStyle=rgba(c,a*(.3+.7*Math.abs(Math.sin(E*1.5+i))));g.fillRect(x-r,y-r,r*2,r*2)}}g.restore()}
+    const GOLD=[[0,[96,118,178]],[.42,[232,166,150]],[.7,[255,196,136]],[1,[255,228,176]]],
+      DUSK=[[0,[14,20,56]],[.45,[44,50,112]],[.78,[170,100,128]],[1,[250,160,120]]],
+      DAY=[[0,[52,120,220]],[.6,[140,196,246]],[1,[220,238,255]]];
+    /* ---- 昼: the golden afternoon, with her ---- */
+    function afternoon(T,o){const {fx=W*.42,rise=0,zoom=1,her=true}=o||{};vgrad(GOLD);const sx=W*.72,sy=H*.66;glow(sx,sy,s*.9,[255,214,150],.55);glow(sx,sy,s*.12,[255,250,225],1);
+      for(let i=0;i<7;i++)cloud(((hs(i)*W*1.4+T*s*.008*(1+i%3))%(W*1.6))-W*.3,H*(.18+.34*hs(i*3)),s*(.35+.35*hs(i*5)),i*17,[222,140,140],[255,212,170],.95,-1);
+      city(H*.9,H*.28,[200,128,118],3,T*s*.01);city(H*1.0,H*.2,[128,62,72],9,T*s*.025);wires(W*.12-T*s*.004,[70,34,46]);
+      if(her)return person(fx,L(H*1.05,H*.34,rise),s*.36*zoom,-.25+.06*Math.sin(T*.7),1,0,T,{fill:[70,36,52],rim:[255,226,170],reach:.3})}
+    /* ---- 夜: the evening, with him ---- */
+    function evening(T,o){const {fx=W*.58,rise=0,him=true}=o||{};vgrad(DUSK);
+      for(let i=0;i<90;i++){g.fillStyle=`rgba(230,235,255,${(.2+.6*hs(i*3))*(1-hs(i*7)*.5)*(.6+.4*Math.sin(T*2+i))})`;g.fillRect(hs(i)*W,hs(i*5)*H*.55,1.4,1.4)}
+      glow(W*.2,H*.22,s*.12,[220,230,255],.5);g.fillStyle="#eef2ff";g.beginPath();g.arc(W*.2,H*.22,s*.03,0,TAU);g.fill();g.fillStyle=rgba(DUSK[1][1],1);g.beginPath();g.arc(W*.2+s*.013,H*.22-s*.008,s*.028,0,TAU);g.fill();
+      for(let i=0;i<4;i++)cloud(((hs(i+40)*W*1.4+T*s*.006)%(W*1.6))-W*.3,H*(.3+.2*hs(i*9)),s*(.3+.3*hs(i*4)),i*23+5,[60,58,112],[150,110,150],.8,-1);
+      city(H*.88,H*.3,[34,34,74],5,T*s*.01,.8);city(H*1.0,H*.22,[16,14,40],11,T*s*.022,1);
+      const lx=W*.8;g.fillStyle="#0b0a20";g.fillRect(lx,H*.4,s*.012,H*.7);g.fillRect(lx-s*.06,H*.4,s*.07,s*.01);glow(lx-s*.055,H*.415,s*.25,[255,226,160],.35);
+      if(him)return person(fx,L(H*1.05,H*.42,rise),s*.38,.3+.05*Math.sin(T*.6),-1,1,T,{fill:[22,22,48],rim:[150,170,255],reach:.3,rdx:.012})}
+    /* ---- 駆: inside a train, its windows racing past ---- */
+    function train(T){g.fillStyle="#2a1714";g.fillRect(-W,-H,W*3,H*3);const ww=s*.5,gap=s*.14,per=ww+gap,off=(T*s*1.6)%per,top=H*.18,wh=H*.42;
+      for(let x=-off-per;x<W+per;x+=per){g.save();g.beginPath();g.rect(x,top,ww,wh);g.clip();
+        const gr=g.createLinearGradient(0,top,0,top+wh);gr.addColorStop(0,"#f2b48c");gr.addColorStop(1,"#ffe3b0");g.fillStyle=gr;g.fillRect(x,top,ww,wh);
+        g.fillStyle="rgba(150,80,80,.55)";for(let j=0;j<8;j++){const bx=x+((hs(j+1)*ww+T*s*3)%ww),bh=wh*(.2+.4*hs(j*3));g.fillRect(bx,top+wh-bh,s*.05,bh)}g.restore();
+        g.fillStyle="#1a0d0c";g.fillRect(x-s*.012,top-s*.012,ww+s*.024,s*.024);g.fillRect(x-s*.012,top+wh,ww+s*.024,s*.03);
+        g.save();g.globalCompositeOperation="lighter";g.fillStyle="rgba(255,190,120,.22)";g.beginPath();g.moveTo(x,top+wh+s*.03);g.lineTo(x+ww,top+wh+s*.03);g.lineTo(x+ww+s*.35,H);g.lineTo(x+s*.35,H);g.fill();g.restore()}
+      g.fillStyle="#140a09";g.fillRect(-W,H*.86,W*3,H);g.strokeStyle="#140a09";g.lineWidth=s*.008;g.beginPath();g.moveTo(-W,H*.1);g.lineTo(W*2,H*.1);g.stroke();
+      for(let i=0;i<6;i++){const x=((i*s*.32-T*s*.05)%(W+s*.4)+W+s*.4)%(W+s*.4)-s*.2,sw=Math.sin(T*3+i)*.08;g.save();g.translate(x,H*.1);g.rotate(sw);g.fillRect(-1,0,2,s*.06);g.beginPath();g.ellipse(0,s*.075,s*.018,s*.024,0,0,TAU);g.lineWidth=s*.005;g.stroke();g.restore()}}
+    /* ---- 空: above a sea of clouds; warmth goes from 0 (gold) to 1 (rose) ---- */
+    function cloudsea(T,warm,bloom){const top=mix([110,140,205],[150,120,200],warm),mid=mix([250,186,160],[255,160,180],warm),low=mix([255,222,168],[255,214,190],warm);
+      vgrad([[0,top],[.55,mid],[.8,low],[1,low]]);const sx=W*.5,sy=H*.7;glow(sx,sy,s*(1.1+.4*bloom),[255,220,170],.55+.3*bloom);glow(sx,sy,s*.1,[255,252,235],1);
+      for(let r=0;r<3;r++){const y=H*(.66+r*.12),w=s*(.55+r*.25),sp=s*(.004+r*.01),n=Math.ceil(W/(w*.55))+3,lit=mix([255,226,196],[255,210,220],warm),base=mix(mix(mix([236,168,170],[214,150,186],warm),lit,.65),[255,230,200],.12*r);
+        for(let i=-1;i<n;i++){const x=((i*w*.55-T*sp)%(w*.55*n)+w*.55*n)%(w*.55*n)-w*.5;cloud(x,y+hs(i+r*9)*s*.03,w*(.8+.4*hs(i*3+r)),i*5+r*31,base,lit,1,1)}}}
+    /* ---- 日: the everyday, one picture per two beats ---- */
+    function everyday(i,u,T){g.save();cam(1+.06*u,0);
+      if(i===0){g.fillStyle="#6b4a3a";g.fillRect(-W,-H,W*3,H*3);const cw=W/7;for(let c=0;c<8;c++)for(let r=0;r<2;r++){const x=c*cw-cw*.3,y=H*.08+r*H*.43;g.fillStyle=r?"#8d6c58":"#9a7a64";g.fillRect(x+3,y,cw-6,H*.41);g.fillStyle="#5a3d30";for(let v=0;v<4;v++)g.fillRect(x+cw*.25,y+H*.05+v*s*.016,cw*.5,s*.006);g.fillRect(x+cw*.75,y+H*.2,s*.012,s*.04)}
+        g.save();g.globalCompositeOperation="lighter";g.fillStyle="rgba(255,196,120,.42)";g.beginPath();g.moveTo(W*.35,-H*.1);g.lineTo(W*.62,-H*.1);g.lineTo(W*.95,H*1.1);g.lineTo(W*.58,H*1.1);g.fill();g.restore();motes(30,[255,226,170],.8)}
+      else if(i===1){g.fillStyle="#2b1a1f";g.fillRect(-W,-H,W*3,H*3);const x0=W*.3,y0=H*.15,ww=W*.5,wh=H*.5;g.save();g.beginPath();g.rect(x0,y0,ww,wh);g.clip();vgrad(GOLD,y0,y0+wh*1.6);city(y0+wh,wh*.35,[150,80,90],7,T*s*.004);g.restore();
+        g.fillStyle="#1b0f12";g.fillRect(x0+ww/2-3,y0,6,wh);g.fillRect(x0,y0+wh*.5-3,ww,6);g.fillRect(-W,y0+wh,W*3,s*.02);
+        g.fillStyle="rgba(255,236,214,.85)";g.beginPath();g.moveTo(x0-s*.02,y0-s*.02);for(let k=0;k<=10;k++){const yy=y0-s*.02+k*(wh+s*.2)/10;g.lineTo(x0+s*.06+Math.sin(T*2.4+k*.7)*s*.05*(k/10)+(k/10)*s*.1,yy)}g.lineTo(x0-s*.04,y0+wh+s*.18);g.fill();
+        g.save();g.globalCompositeOperation="lighter";g.fillStyle="rgba(255,180,120,.25)";g.beginPath();g.moveTo(x0,y0+wh);g.lineTo(x0+ww,y0+wh);g.lineTo(x0+ww+W*.2,H);g.lineTo(x0+W*.05,H);g.fill();g.restore()}
+      else if(i===2){vgrad(GOLD);glow(W*.2,H*.75,s*.7,[255,214,150],.5);wires(W*.62,[60,30,40],H*.05);const bx=W*.4,by=H*.3,bw=s*.12,bh=s*.26;g.fillStyle="#2a1a22";g.fillRect(bx-bw/2,by,bw,bh);g.fillRect(bx-s*.007,by+bh,s*.014,H);
+        const red=1-sm(.25,.4,u),grn=sm(.4,.5,u);g.fillStyle=red>.05?`rgba(255,70,60,${.2+.8*red})`:"#3a2020";g.beginPath();g.arc(bx,by+bh*.28,bw*.32,0,TAU);g.fill();glow(bx,by+bh*.28,bw*1.4,[255,80,60],.45*red);
+        g.fillStyle=grn>.05?`rgba(80,255,190,${.2+.8*grn})`:"#203a30";g.beginPath();g.arc(bx,by+bh*.72,bw*.32,0,TAU);g.fill();glow(bx,by+bh*.72,bw*1.6,[80,255,190],.5*grn)}
+      else if(i===3){vgrad([[0,[150,120,200]],[.6,[255,170,170]],[1,[255,214,170]]]);glow(W*.5,H*.78,s*.8,[255,214,170],.6);city(H*.8,H*.18,[170,110,140],13,0);g.fillStyle="#2c1828";g.fillRect(-W,H*.8,W*3,H);
+        for(let k=0;k<3;k++)g.fillRect(-W,H*(.62+k*.06),W*3,s*.008);for(let x=0;x<W;x+=s*.09)g.fillRect(x,H*.62,s*.008,H*.2);
+        person(W*.42,H*.68,s*.32,-.05,1,0,T,{fill:[44,24,40],rim:[255,214,170],reach:.6+.4*Math.sin(T*8)*.5});person(W*.58,H*.68,s*.34,.03,-1,1,T,{fill:[36,22,40],rim:[255,214,170],reach:0,rdx:.012})}
+      else if(i===4){vgrad([[0,[120,96,170]],[.5,[255,160,150]],[.62,[255,206,150]],[1,[120,70,90]]]);glow(W*.5,H*.6,s*.7,[255,214,160],.6);city(H*.6,H*.12,[150,96,128],17,T*s*.003);
+        g.fillStyle="#7a4a5c";g.fillRect(-W,H*.6,W*3,H);g.save();g.globalCompositeOperation="lighter";for(let k=0;k<26;k++){const y=H*(.62+k*.014),w=s*(.05+.3*(1-k/26))*(.6+.4*Math.sin(T*3+k));g.fillStyle=`rgba(255,200,150,${.35*(1-k/30)})`;g.fillRect(W*.5-w/2+Math.sin(T*2+k)*s*.01,y,w,s*.004)}g.restore();
+        g.fillStyle="#2a1624";g.fillRect(-W,H*.7,W*3,s*.03);for(let x=-s*.04;x<W+s*.1;x+=s*.12)g.fillRect(x,H*.7,s*.012,H*.12);g.fillRect(-W,H*.8,W*3,H);
+        person(W*.45,H*.69,s*.2,0,1,0,T,{fill:[42,22,36],rim:[255,214,170],sit:1,reach:.2});person(W*.53,H*.69,s*.21,0,-1,1,T,{fill:[36,20,36],rim:[255,214,170],sit:1,rdx:.012})}
+      else{g.fillStyle="#3a1f28";g.fillRect(-W,-H,W*3,H*3);for(let k=0;k<14;k++)glow(hs(k)*W,hs(k*3)*H,s*(.06+.1*hs(k*5)),[255,200,150],.25);
+        const hand=(x,y,f)=>{g.save();g.translate(x,y);g.scale(f,1);g.fillStyle=f>0?"#f2c6ad":"#e4b398";g.beginPath();g.roundRect(-W*.6,-s*.06,W*.6,s*.12,s*.06);g.fill();g.beginPath();g.ellipse(s*.02,0,s*.085,s*.07,0,0,TAU);g.fill();
+          g.lineCap="round";g.strokeStyle=g.fillStyle;g.lineWidth=s*.028;g.beginPath();g.moveTo(s*.07,s*.04);g.quadraticCurveTo(s*.13,s*.04,s*.15,s*.0);g.stroke();g.restore()};
+        const gp=L(s*.2,s*.05,eo(u));hand(W/2-gp-s*.15,H*.52,1);hand(W/2+gp+s*.15,H*.48,-1);thread([W/2-gp,H*.52],[W/2+gp,H*.48],s*.03*(1-u),.6+.4*u)}
+      g.restore()}
+    /* ---- the film ---- */
+    function film(){const T=E;
+      if(T<bar(0)){g.fillStyle="#000";g.fillRect(0,0,W,H);const k=sm(0,bar(0),T);g.save();g.globalCompositeOperation="lighter";glow(L(-W*.2,W*.7,k),H*.4,s*L(.2,1.2,k),[255,190,120],.7*k);g.restore();
+        text("運命の君",W/2,H*.46,Math.min(s*.11,64),sm(.2,1,T),{w:700});text("Unmei no Kimi",W/2,H*.46+Math.min(s*.1,58),Math.min(s*.035,18),sm(.5,1.3,T)*.8,{f:SANS});return}
+      if(T<bar(8)){if(T<bar(4)){g.save();cam(1.05-.05*sm(bar(0),bar(4),T),0);afternoon(T,{rise:eo((T-bar(0))/(bar(4)-bar(0)))*.9,fx:W*.44});g.restore()}
+        else{g.save();vgrad(GOLD);const sx=W*.66,sy=H*.36;glow(sx,sy,s*1.1,[255,210,150],.6);glow(sx,sy,s*.16,[255,252,232],1);for(let i=0;i<4;i++)cloud(((hs(i)*W*1.4+T*s*.012)%(W*1.6))-W*.3,H*(.7+.15*hs(i*3)),s*.6,i*3,[222,140,140],[255,212,170],.9,-1);
+          const k=sm(bar(4),bar(8),T);portrait(0,L(W*.36,W*.4,k),H*.5,s*.24,T,[66,34,48],[255,226,170]);motes(40,[255,236,190],.8);g.restore()}
+        mark("昼",bar(0),bar(8));return}
+      if(T<bar(12)){const sp=W*(.5+.08*Math.sin((T-bar(8))*BP*1.2)),tilt=s*.25;let ha,hb;
+        g.save();g.beginPath();g.moveTo(-W,-H);g.lineTo(sp+tilt,-H);g.lineTo(sp-tilt,H*2);g.lineTo(-W,H*2);g.clip();ha=afternoon(T,{rise:.75+.05*Math.sin(T),fx:W*.26});g.restore();
+        g.save();g.beginPath();g.moveTo(sp+tilt,-H);g.lineTo(W*2,-H);g.lineTo(W*2,H*2);g.lineTo(sp-tilt,H*2);g.clip();hb=evening(T,{rise:.8+.05*Math.sin(T*1.1),fx:W*.74});g.restore();
+        g.strokeStyle="rgba(255,255,255,.85)";g.lineWidth=2;g.beginPath();g.moveTo(sp+tilt,-H*.1);g.lineTo(sp-tilt,H*1.1);g.stroke();
+        thread(ha,hb,s*.12*(1-.3*beat(BAR,B0)),.3);mark("反",bar(8),bar(12));return}
+      if(T<bar(17)){g.save();cam(1+.04*sm(bar(12),bar(17),T),.02*Math.sin(T*.3));const hb=evening(T,{rise:eo((T-bar(12))/(bar(17)-bar(12)))*.85,fx:W*.55});g.restore();
+        thread(hb,[-W*.1,H*.2],s*.2,.25+.3*beat());mark("夜",bar(12),bar(17));return}
+      if(T<bar(22)){train(T);const b=Math.floor((T-bar(17))/BAR),q=Math.floor((T-bar(21))/BP);
+        if(b===0)person(W*.5,H*.55,s*.4,-.2+.1*Math.sin(T),1,0,T,{fill:[40,20,24],rim:[255,200,140],reach:.5});
+        else if(b===1)portrait(0,W*.42,H*.5,s*.25,T,[48,24,28],[255,206,150]);
+        else if(b===2)person(W*.5,H*.55,s*.42,.25+.1*Math.sin(T),-1,1,T,{fill:[30,18,24],rim:[255,200,140],reach:.5,rdx:.012});
+        else if(b===3)portrait(1,W*.58,H*.5,s*.25,T,[36,20,26],[255,206,150],-1);
+        else{if(q===0)portrait(0,W*.42,H*.5,s*.3,T,[48,24,28],[255,206,150]);else if(q===1)portrait(1,W*.58,H*.5,s*.3,T,[36,20,26],[255,206,150],-1);
+          else if(q===2){portrait(0,W*.3,H*.55,s*.22,T,[48,24,28],[255,206,150]);portrait(1,W*.7,H*.55,s*.22,T,[36,20,26],[255,206,150],-1)}
+          else{g.fillStyle=`rgba(255,240,220,${sm(bar(21)+3*BP,bar(22),T)})`;g.fillRect(0,0,W,H)}}
+        g.fillStyle=`rgba(255,220,180,${.12*beat()})`;g.fillRect(0,0,W,H);mark("駆",bar(17),bar(22));return}
+      if(T<bar(33)){const cx=(T-bar(22))/(bar(30)-bar(22)),climax=T>=bar(30),bl=climax?Math.exp(-(T-bar(30))*1.4):0,warm=sm(bar(26),bar(31),T);
+        const z=(T<bar(26)?1:1.25)+.015*beat(BAR,B0)+(climax?.1*sm(bar(30),bar(33),T):0),rot=climax?.06*Math.sin((T-bar(30))*.8):.015*Math.sin(T*.4);
+        g.save();cam(z,rot,W/2,H*.55);cloudsea(T,warm,climax?.6+.4*beat():0);
+        const gap=climax?0:L(W*.36,s*.06,eo(cx)),meet=climax?1:0,yb=H*.45+Math.sin(T*.8)*s*.015,sp=climax?(T-bar(30))*.25*sm(bar(32),bar(33),T)*4:0;
+        const pa=person(W/2-gap-s*.11-meet*s*.0,yb+Math.sin(T*.9)*s*.02,s*.34,-.18+.08*Math.sin(T*.7)+sp,1,0,T,{fill:[86,44,64],rim:[255,236,200],reach:L(.3,1,cl(cx*1.3))});
+        const pb=person(W/2+gap+s*.11,yb+Math.sin(T*.9+1)*s*.02,s*.36,.18+.08*Math.sin(T*.6)-sp,-1,1,T,{fill:[52,40,78],rim:[255,236,200],reach:L(.3,1,cl(cx*1.3)),rdx:.012});
+        const touch=[(pa[0]+pb[0])/2,(pa[1]+pb[1])/2];thread(pa,pb,climax?s*.005:s*(.12-.1*cx),climax?1:.3+.4*cx);
+        if(climax){g.save();g.globalCompositeOperation="lighter";glow(touch[0],touch[1],s*(.25+.5*beat()),[255,230,200],.7*beat()+.3);
+          for(let k=0;k<3;k++){const age=((T-bar(30)-k*BP)%(BP*3)+BP*3)%(BP*3),rr=age*s*.9;g.strokeStyle=`rgba(255,226,210,${.5*Math.max(0,1-age/(BP*3))})`;g.lineWidth=2+4*(1-age/(BP*3));g.beginPath();g.arc(touch[0],touch[1],rr,0,TAU);g.stroke()}
+          for(let k=0;k<14;k++){const a=k/14*TAU+T*.4,r1=s*.08,r2=s*(.9+.3*Math.sin(T*2+k));g.strokeStyle=`rgba(255,220,180,${.12+.1*beat()})`;g.lineWidth=s*.012;g.beginPath();g.moveTo(touch[0]+Math.cos(a)*r1,touch[1]+Math.sin(a)*r1);g.lineTo(touch[0]+Math.cos(a)*r2,touch[1]+Math.sin(a)*r2);g.stroke()}g.restore()}
+        g.restore();motes(climax?80:50,[255,240,210],.9);motes(climax?70:T>bar(26)?35:15,[255,186,204],.85,true);
+        if(bl>0){g.fillStyle=`rgba(255,246,232,${bl*.9})`;g.fillRect(0,0,W,H)}
+        mark(climax?"君":"空",climax?bar(30):bar(22),climax?bar(33):bar(30));return}
+      if(T<bar(36)){const i=Math.min(5,Math.floor((T-bar(33))/(2*BP))),u=(T-bar(33)-i*2*BP)/(2*BP);everyday(i,u,T);mark("日",bar(33),bar(36));return}
+      vgrad(DAY);glow(W*.85,H*.12,s*.5,[255,255,240],.6);const k=sm(bar(36),LEN-1,T);
+      cloud(W*.72,H*.92,s*1.1,7,[196,212,236],[255,255,255]);cloud(W*.2,H*1.0,s*.9,21,[196,212,236],[255,255,255]);
+      const px=L(W*.05,W*.95,k),py=L(H*.7,H*.12,k);g.lineCap="round";for(let j=0;j<40;j++){const kk=k-j*.012;if(kk<0)break;g.strokeStyle=`rgba(255,255,255,${.7*(1-j/40)})`;g.lineWidth=s*(.004+j*.0004);g.beginPath();g.moveTo(L(W*.05,W*.95,kk),L(H*.7,H*.12,kk));g.lineTo(L(W*.05,W*.95,kk+.012),L(H*.7,H*.12,kk+.012));g.stroke()}
+      g.fillStyle="#fff";g.beginPath();g.arc(px,py,s*.006,0,TAU);g.fill();
+      const ta=sm(bar(36)+.5,bar(36)+2,T)*(1-sm(LEN-.5,LEN+1,T));text("運命の君",W/2,H*.42,Math.min(s*.1,60),ta,{w:700,c:[255,255,255]});text("Unmei no Kimi · 正反対な君と僕",W/2,H*.42+Math.min(s*.09,54),Math.min(s*.032,16),ta*.85,{f:SANS});
+      const fo=sm(LEN-1,LEN+TAIL-.3,T);if(fo>0){g.fillStyle=`rgba(0,0,0,${fo})`;g.fillRect(0,0,W,H)}}
+    function mark(ch,a,b){text(ch,W*.06,H*.9,Math.min(s*.06,30),sm(a+.3,a+1.3,E)*(1-sm(b-1.2,b-.2,E))*.75,{w:700,al:"left"})}
+    function tick(now){if(!on)return;raf=requestAnimationFrame(tick);dt=Math.min(.05,(now-last)/1000);last=now;const A=typeof EggSound!=="undefined"?EggSound:null;
+      /* the song starts on the first frame: the search bar clears the egg sound right after it opens the film */
+      if(songReq&&A){songReq=false;A.egg("unmei",0)}
+      if(dbg!==null){E=dbg;dbg+=dt}else{const a=A&&A.eggAudio(),sl=A&&A.eggSlot(),mine=!!sl&&sl.indexOf("egg_unmei")===0;if(mine&&a&&!a.paused&&a.currentTime>.05)E=a.currentTime;else if(mine&&hold<4&&E<1){hold+=dt;if(hold>=4)noSong=true}else{E+=dt;if(!mine&&E<1)noSong=true}}
+      if(E>=LEN+TAIL){stop();return}
+      g.setTransform(1,0,0,1,0,0);const d=cv.width/W;g.setTransform(d,0,0,d,0,0);
+      try{film()}catch(e){console.error(e);stop();return}
+      let fl=0;for(const [c,a] of CUTS)if(E>=c&&E-c<.6)fl=Math.max(fl,a*Math.exp(-(E-c)*7));if(fl>.01){g.fillStyle=`rgba(255,240,220,${fl})`;g.fillRect(0,0,W,H)}
+      g.save();g.globalCompositeOperation="lighter";parts=parts.filter(p=>{p.l+=dt;if(p.l>p.m)return false;p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=s*.2*dt;g.fillStyle=rgba(p.c,1-p.l/p.m);g.fillRect(p.x-p.r,p.y-p.r,p.r*2,p.r*2);return true});g.restore();
+      const vg=g.createRadialGradient(W/2,H/2,Math.max(W,H)*.35,W/2,H/2,Math.max(W,H)*.8);vg.addColorStop(0,"rgba(20,0,10,0)");vg.addColorStop(1,"rgba(20,0,10,.35)");g.fillStyle=vg;g.fillRect(0,0,W,H);
+      const ha=cl(1.4-(E-idleT)/2.2)*(E<LEN-2?1:0);if(ha>0){const p=cl(E/LEN),y=H-7;g.fillStyle=`rgba(255,255,255,${.18*ha})`;g.fillRect(W*.04,y,W*.92,1.5);g.fillStyle=`rgba(255,180,190,${.9*ha})`;g.fillRect(W*.04,y-.5,W*.92*p,2.5);g.beginPath();g.arc(W*.04+W*.92*p,y+.7,4,0,TAU);g.fill()}
+      if(noSong&&E<9)text("♪ No song file found: playing silently. Add one under Sounds → Unmei no Kimi.",W/2,H*.06,Math.max(11,Math.min(14,W*.028)),sm(0,1,E)*(1-sm(7.5,9,E))*.9,{w:500,f:SANS});
+      if(hud){hud.box.style.opacity=ha>0||E>=LEN-2?"1":"0";hud.re.hidden=E<20&&E<LEN-2}}
+    function size(){const d=Math.min(devicePixelRatio||1,1.5);W=innerWidth;H=innerHeight;s=Math.min(W,H);cv.width=Math.round(W*d);cv.height=Math.round(H*d);g=cv.getContext("2d")}
+    const onMove=()=>{idleT=E},onDown=e=>{idleT=E;if(e.target!==cv)return;for(let i=0;i<18;i++){const a=i/18*TAU;parts.push({x:e.clientX,y:e.clientY,vx:Math.cos(a)*s*.25,vy:Math.sin(a)*s*.25,l:0,m:1.1,c:i%3?[255,214,170]:[255,90,110],r:1.6})}},
+      onKey=e=>{if(e.key==="Escape"){e.preventDefault();stop()}idleT=E},onSize=()=>{if(on)size()};
+    function begin(){E=0;hold=0;noSong=false;parts=[];idleT=0;last=performance.now();songReq=true}
+    function start(){if(on||reduced)return false;on=X.on=true;leaving=false;el=document.createElement("div");el.id="umfilm";el.setAttribute("role","dialog");el.setAttribute("aria-label","Unmei no Kimi");
+      el.style.cssText="position:fixed;inset:0;z-index:300;background:#000;opacity:0;transition:opacity 1.2s ease;overflow:hidden;touch-action:none";
+      cv=document.createElement("canvas");cv.style.cssText="position:absolute;inset:0;width:100%;height:100%;display:block";cv.setAttribute("aria-hidden","true");el.appendChild(cv);
+      const box=document.createElement("div");box.style.cssText="position:absolute;inset:0;pointer-events:none;transition:opacity .5s;font-family:var(--body)";const mkb=(txt,css,fn,lab)=>{const b=document.createElement("button");b.type="button";b.className="ghost";b.textContent=txt;b.setAttribute("aria-label",lab||txt);b.style.cssText="position:absolute;pointer-events:auto;cursor:pointer;background:rgba(40,12,24,.5);color:#fff;border-color:rgba(255,255,255,.3);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);"+css;b.onclick=e=>{e.stopPropagation();fn()};box.appendChild(b);return b};
+      hud={box,sk:mkb("✕ Skip","top:calc(14px + env(safe-area-inset-top,0px));right:14px",()=>stop(),"Skip and go back"),re:mkb("↺ Replay","top:calc(14px + env(safe-area-inset-top,0px));right:98px",()=>begin(),"Replay from the start")};el.appendChild(box);
+      document.body.appendChild(el);size();el.addEventListener("pointermove",onMove);el.addEventListener("pointerdown",onDown);addEventListener("keydown",onKey,true);addEventListener("resize",onSize);
+      requestAnimationFrame(()=>{if(el)el.style.opacity="1"});begin();raf=requestAnimationFrame(tick);setTimeout(()=>{if(hud)hud.sk.focus({preventScroll:true})},60);return true}
+    function stop(){if(!on||leaving)return;leaving=true;cancelAnimationFrame(raf);if(typeof EggSound!=="undefined"){const sl=EggSound.eggSlot();if(sl&&sl.indexOf("egg_unmei")===0)EggSound.egg(null)}
+      removeEventListener("keydown",onKey,true);removeEventListener("resize",onSize);const e=el;if(e){e.removeEventListener("pointermove",onMove);e.removeEventListener("pointerdown",onDown);e.style.opacity="0"}
+      setTimeout(()=>{if(e)e.remove();el=cv=g=hud=null;parts=[];on=X.on=false;leaving=false;dbg=null;const s0=document.getElementById("gsearch");if(s0)s0.focus({preventScroll:true})},1250)}
+    const X={on:false,start,stop,at:t=>{if(!on)start();dbg=t},clock:()=>on?E:null};return X})();
+  window.UnmeiFilm=UMF;
   /* ===== SHELTER (Porter Robinson & Madeon): typing "shelter" opens a pixel-art film cut to the song. The scene is drawn
      on a small buffer (about 240 px on the short side): the worlds in 2 x 2 blocks, the people as 64 x 64 outlined sprites.
      Rin wakes on day 2539 with no new messages, and draws worlds on her tablet. The tablet is real: open it and pick a
@@ -10230,7 +10454,7 @@ const locN={};function nxtL(k,a){const i=locN[k]||0;locN[k]=i+1;const e=a[i%a.le
     TRN.onClose=()=>{if(resume){resume.play().catch(()=>{});resume=null}setTimeout(show,600)};
     /* the ticket steps aside while an easter egg plays, while the sky is being viewed, or while any film is open */
     const busy=()=>{try{return !!((window.__eggActive&&__eggActive())||(window.Ano&&Ano.on&&Ano.on())||
-      ["Byo3D","ZenFilm","OneVoice","ShelterFilm","SuzuFilm","NightTrain","Reaper"].some(k=>window[k]&&window[k].on)||document.querySelector(".vlet,.egg"))}catch(_){return false}};
+      ["Byo3D","ZenFilm","OneVoice","UnmeiFilm","ShelterFilm","SuzuFilm","NightTrain","Reaper"].some(k=>window[k]&&window[k].on)||document.querySelector(".vlet,.egg"))}catch(_){return false}};
     setInterval(()=>{if(el){el.classList.toggle("hid",busy());upd()}},400);
     setTimeout(show,reduced?0:2600);
     return {board,show,dispense}})();
