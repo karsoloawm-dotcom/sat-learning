@@ -136,28 +136,51 @@ export function playHollowerFeed(T, site, o){
   // Everything inside the head lives in bind space under the head bone.
   const inside=new T.Group();inside.matrixAutoUpdate=false;inside.matrix.copy(bindToBone);bone.add(inside);
   const at=(x,y,z)=>V(rest.x+x,rest.y+y,rest.z+z);
-  const brainMat=new T.MeshLambertMaterial({color:0xc98e93,emissive:0x2a0c10,flatShading:true});
-  const brainGeo=new T.IcosahedronGeometry(1,2);
-  {
-    const p=brainGeo.attributes.position;
-    for(let i=0;i<p.count;i++){
-      const x=p.getX(i),y=p.getY(i),z=p.getZ(i),fold=1+.09*Math.sin(x*19+z*7)*Math.sin(y*15+x*5)+.05*Math.sin(z*23);
-      p.setXYZ(i,x*fold,y*fold,z*fold);
-    }
-    brainGeo.computeVertexNormals();
-  }
+  // The brain: two hemispheres with folded gyri and dark sulci, wet and glossy, cut into chunks it eats one by one.
+  const brainMat=new T.MeshPhysicalMaterial({vertexColors:true,roughness:.3,clearcoat:1,clearcoatRoughness:.06,
+    sheen:.4,sheenColor:new T.Color(0xffd0d0),emissive:0x1c0508,side:T.DoubleSide});
+  const dirs=[[.8,.3,.5],[-.2,.9,.4],[.5,-.4,.8],[.1,.6,-.8],[-.7,-.1,.7]].map(v=>new T.Vector3(...v).normalize());
+  const folds=p=>{ // a maze of thin grooves where the wave sum crosses zero
+    let n=0;dirs.forEach((d,k)=>n+=Math.sin(d.dot(p)*(26+k*5)+k*1.7)+.25*Math.sin(d.dot(p)*(47+k*5)+k));
+    return smooth(Math.abs(n)/1.4);
+  };
+  const pink=new T.Color(0xe2aeae),groove=new T.Color(0x7c2a35),vessel=new T.Color(0xb24855),blood=new T.Color(0x7a1220);
   const lobes=[];
-  for(let i=0;i<12;i++){
-    const side=i%2?1:-1,row=Math.floor(i/2);
-    const lobe=new T.Mesh(brainGeo,brainMat);
-    lobe.position.copy(at(side*.040,.150-.010*(row%3)-.012*Math.floor(row/3),.085-.034*row));
-    lobe.scale.set(.044,.036,.042);
-    lobe.userData.size=lobe.scale.clone();
-    // Front to back, a bite at a time.
-    lobe.userData.eaten=8.05+i*.36+.08*(i%3);
-    inside.add(lobe);lobes.push(lobe);
+  for(const side of [-1,1]){
+    const g=new T.SphereGeometry(1,72,48),pos=g.attributes.position,col=[],v=new T.Vector3();
+    const center=at(side*.042,.140,-.020),radius=V(.052,.060,.108);
+    for(let i=0;i<pos.count;i++){
+      v.fromBufferAttribute(pos,i);
+      if(v.x*side<0)v.x*=.82;                      // flat inner face along the midline fissure
+      v.y*=v.y<0?.8:1;v.z*=1+.08*v.y;             // flatter underneath, wider at the back top
+      const f=folds(v.clone().multiplyScalar(.36));
+      v.multiplyScalar(1+.075*f-.04).multiply(radius).add(center);
+      pos.setXYZ(i,v.x,v.y,v.z);
+      const c=groove.clone().lerp(pink,f);
+      const vein=Math.max(0,Math.sin(v.z*190+v.x*90)*Math.sin(v.y*160))**12;
+      c.lerp(vessel,.5*vein);
+      if(Math.sin(i*.37)*Math.sin(i*.013)>.72)c.lerp(blood,.55);
+      col.push(c.r,c.g,c.b);
+    }
+    g.setAttribute('color',new T.Float32BufferAttribute(col,3));
+    // Slice the hemisphere front to back into six chunks.
+    const idx=g.index.array,chunks=Array.from({length:6},()=>[]);
+    for(let i=0;i<idx.length;i+=3){
+      const z=(pos.getZ(idx[i])+pos.getZ(idx[i+1])+pos.getZ(idx[i+2]))/3-center.z;
+      chunks[Math.max(0,Math.min(5,Math.floor((.108-z)/.036)))].push(idx[i],idx[i+1],idx[i+2]);
+    }
+    chunks.forEach((tri,row)=>{
+      const piece=g.clone();piece.setIndex(tri);piece.computeVertexNormals();
+      piece.computeBoundingBox();const mid=piece.boundingBox.getCenter(new T.Vector3());
+      piece.translate(-mid.x,-mid.y,-mid.z);
+      const lobe=new T.Mesh(piece,brainMat);lobe.position.copy(mid);
+      lobe.userData.size=new T.Vector3(1,1,1);lobe.userData.order=row*2+(side>0?1:0);
+      inside.add(lobe);lobes.push(lobe);
+    });
+    g.dispose();
   }
-  const fissure=new T.Mesh(new T.BoxGeometry(.004,.03,.20),wet);fissure.position.copy(at(0,.165,-.02));inside.add(fissure);
+  lobes.sort((a,b)=>a.userData.order-b.userData.order);
+  lobes.forEach((lobe,i)=>lobe.userData.eaten=8.05+i*.36+.08*(i%3));   // front to back, a bite at a time
   const pit=new T.Mesh(new T.SphereGeometry(1,12,8,0,Math.PI*2,Math.PI/2,Math.PI/2),
     new T.MeshLambertMaterial({color:0x3a0710,emissive:0x120104,side:T.DoubleSide}));
   pit.position.copy(at(0,.155,-.010));pit.scale.set(.105,.11,.125);inside.add(pit);
@@ -352,7 +375,6 @@ export function playHollowerFeed(T, site, o){
       const k=ease(t,lobe.userData.eaten,lobe.userData.eaten+.32);
       lobe.scale.copy(lobe.userData.size).multiplyScalar(1-k);lobe.visible=k<1;
     }
-    fissure.visible=t<10.2;
     pit.visible=inside.visible;
     const bleed=ease(t,8.2,12.8);
     streams.forEach(m=>{m.visible=on&&bleed>0;m.geometry.setDrawRange(0,Math.ceil(16*bleed)*5*6)});
@@ -364,8 +386,8 @@ export function playHollowerFeed(T, site, o){
   const flatLook=V(0,0,0),point=V(0,0,0),target=V(0,0,0);
   const cameraKeys=[ // camera offset from the crown mark, then the look offset
     [0,1.0,1.5,3.3,0,.9,.6],[1.54,.95,1.4,2.9,0,.6,.9],[2.71,.85,1.2,1.9,0,.15,.8],
-    [4.3,-.14,.50,.34,0,-.02,0],[6.4,-.10,.46,.32,0,-.02,0],[7.4,.08,.55,.32,0,-.02,-.03],
-    [8.4,.06,.50,.30,0,-.02,-.03],[11.6,.12,.46,.34,0,-.02,0],[12.6,.10,.48,.36,0,-.03,.04],[14.6,.16,.46,.34,0,-.03,.04],
+    [4.3,-.14,.50,.34,0,-.02,0],[6.4,-.10,.46,.32,0,-.02,0],[7.4,.06,.52,.14,0,-.03,-.04],
+    [8.4,.05,.48,.12,0,-.03,-.04],[11.6,.10,.46,.22,0,-.02,0],[12.6,.10,.48,.36,0,-.03,.04],[14.6,.16,.46,.34,0,-.03,.04],
     [15.3,.06,.42,-.02,0,-.02,-.03],[16.0,.10,.48,.04,0,-.02,-.03],[16.9,.4,1.3,1.6,.2,.9,0],[20,.4,1.3,1.6,.2,.9,0]
   ];
 
@@ -405,8 +427,8 @@ export function playHollowerFeed(T, site, o){
     cleanup(){
       skin.geometry=original;skin.material=worn;
       inside.removeFromParent();stage.removeFromParent();
-      geometry.dispose();capGeometry.dispose();brainGeo.dispose();brainMat.dispose();
-      pit.geometry.dispose();pit.material.dispose();fissure.geometry.dispose();lip.geometry.dispose();
+      geometry.dispose();capGeometry.dispose();lobes.forEach(l=>l.geometry.dispose());brainMat.dispose();
+      pit.geometry.dispose();pit.material.dispose();lip.geometry.dispose();
       streams.forEach(m=>m.geometry.dispose());[...cut,...lid].forEach(m=>m.dispose());
       materials.forEach(m=>m.dispose());geometries.forEach(g=>g.dispose());o.disposeActors();
     }
