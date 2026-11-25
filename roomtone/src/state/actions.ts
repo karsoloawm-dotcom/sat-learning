@@ -1,6 +1,6 @@
 import type { Draft } from 'immer';
 import type { Effect, EffectType, InstrumentType, MusicianLook, Project } from './types';
-import { makeEffect, newPattern, newTrack, STATION_COUNT } from './defaults';
+import { makeEffect, newPattern, newTrack, randomLook, STATION_COUNT } from './defaults';
 import { type ProjectStore, uid } from './store';
 import { EFFECTS, INSTRUMENTS } from './specs';
 
@@ -40,7 +40,8 @@ export const actions = (store: ProjectStore) => ({
     const p = store.get();
     const station = freeStation(p, inst);
     if (station === null) return null;
-    const t = newTrack(inst, station, look);
+    const taken = new Set(p.tracks.map((x) => x.musician.name));
+    const t = newTrack(inst, station, look ?? randomLook(undefined, taken));
     const sameKind = p.tracks.filter((x) => x.instrument === inst).length;
     if (sameKind) t.name = `${INSTRUMENTS[inst].label} ${sameKind + 1}`;
     if (t.kind === 'midi') {

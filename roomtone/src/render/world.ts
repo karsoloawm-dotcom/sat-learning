@@ -593,7 +593,7 @@ export class World {
         look = new THREE.Vector3(0, 1.1, -2);
         break;
       case 4: // overhead crane
-        pos.set(Math.cos(t * 0.1) * 3, 4.2, -1.5 + Math.sin(t * 0.1) * 3);
+        pos.set(Math.cos(t * 0.1) * 2.6, 2.75, -1.0 + Math.sin(t * 0.1) * 1.4);
         look = new THREE.Vector3(0, 0, -1.6);
         break;
       default: {
@@ -613,7 +613,7 @@ export class World {
     const master = Math.min(1, this.engine.level() * 1.5);
     L.hemi.intensity = damp(L.hemi.intensity, perform ? 0.18 : 0.55, 3, dt);
     L.sun.intensity = damp(L.sun.intensity, perform ? 0.5 : 2.4, 3, dt);
-    L.key.intensity = damp(L.key.intensity, perform ? 5 + master * 8 : 9, 6, dt);
+    L.key.intensity = damp(L.key.intensity, perform ? 4 + master * 6 : 6, 6, dt);
     const bar = Math.floor(beat / 4);
     const pulse = playing ? Math.pow(1 - (beat % 1), 3) : 0;
     L.spots.forEach((s, i) => {

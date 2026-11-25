@@ -116,6 +116,8 @@ export abstract class Musician {
     const s = this.removing ? this.spawn : 1 + Math.sin(Math.min(1, this.spawn) * Math.PI) * 0.15 * (1 - this.spawn);
     this.group.scale.setScalar(Math.max(0.001, this.spawn * s));
     if (this.removing && this.spawn < 0.01) this.removed = true;
+    // Props (kit, keyboard, mic) are read through their world matrices below; refresh them for this frame.
+    this.group.updateMatrixWorld(true);
 
     this.events = this.events.filter((e) => e.end > f.now - 1.5);
     for (const [o, q] of this.rest) o.quaternion.copy(q);
@@ -312,6 +314,8 @@ interface Hit {
   fired?: boolean;
 }
 
+const STICK = 0.26; // hand-to-tip distance along the hand's +Z; the IK and the stick mesh share it
+
 export class Drummer extends Musician {
   kit: DrumKitProp;
   private hits: Hit[] = [];
@@ -330,7 +334,7 @@ export class Drummer extends Musician {
   protected attachProps() {
     this.sticks = [];
     for (const side of ['Left', 'Right'] as const) {
-      const stick = mesh(new THREE.CylinderGeometry(0.006, 0.008, 0.3, 8), M('#e8c07d', 0.5), this.b[`${side}Hand`], 0, -0.04, 0.11);
+      const stick = mesh(new THREE.CylinderGeometry(0.006, 0.008, 0.3, 8), M('#e8c07d', 0.5), this.b[`${side}Hand`], 0, 0, STICK - 0.15);
       stick.rotation.x = Math.PI / 2;
       this.sticks.push(stick);
     }
@@ -406,12 +410,13 @@ export class Drummer extends Musician {
       if (gesture === 'tap') lift = 0.04 + Math.abs(Math.sin(f.elapsed * 6 + (hand === 'L' ? 0 : 1.5))) * 0.05;
       const shoulder = b[`${side}Arm`].getWorldPosition(V());
       const dir = tip.clone().sub(shoulder.clone().add(V(0, -0.12, 0))).normalize();
-      const L = 0.21;
+      const L = STICK;
       const handPos = tip.clone().addScaledVector(dir, -L).add(V(0, lift * 0.6 + 0.01, 0));
       this.armIK(side, handPos, this.outward(side, -0.4, -0.6));
       // Stick points from the hand towards the strike point, cocked up by the lift.
       const aim = tip.clone().add(V(0, lift * 1.6, 0)).sub(handPos).normalize();
-      orientWorld(b[`${side}Hand`], aim, UP);
+      // Roll hint = the drummer's facing; world-up degenerates when a stick points almost straight down.
+      orientWorld(b[`${side}Hand`], aim, V(0, 0, 1).applyQuaternion(this.group.quaternion));
       if (gesture === 'twirl' && side === 'Right') {
         this.twirl += f.dt * 14;
         b.RightHand.rotateZ(this.twirl);

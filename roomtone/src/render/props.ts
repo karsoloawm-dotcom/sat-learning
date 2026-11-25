@@ -63,7 +63,7 @@ export function buildDrumKit(shellColor = '#c2412f'): DrumKitProp {
   const group = new THREE.Group();
   group.name = 'drumkit';
   const shell = M(shellColor, 0.25, 0.1, { clearcoat: 1, clearcoatRoughness: 0.15 });
-  const head = M('#e6dccb', 0.85);
+  const head = M('#d9cfbd', 0.9);
   const brass = M('#d9a441', 0.28, 0.85);
   const pieces: Record<string, DrumPiece> = {};
 

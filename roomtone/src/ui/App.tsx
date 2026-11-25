@@ -93,8 +93,8 @@ function StageOverlay() {
 function PerformOverlay() {
   return (
     <>
-      <div className="letterbox top" />
-      <div className="letterbox bottom">
+      <div className="letterbox lb-top" />
+      <div className="letterbox lb-bottom">
         <span className="perform-title">{store.get().name}</span>
         <span className="muted">Space to play · Esc to leave the show</span>
       </div>

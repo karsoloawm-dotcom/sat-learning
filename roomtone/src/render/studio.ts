@@ -422,7 +422,7 @@ export function buildLights(scene: THREE.Scene) {
   sun.shadow.normalBias = 0.02;
   sun.shadow.radius = 6;
   scene.add(sun, sun.target);
-  const key = new THREE.SpotLight('#fff1dc', 9, 10, 0.95, 0.8, 1.2);
+  const key = new THREE.SpotLight('#fff1dc', 6, 10, 0.95, 0.8, 1.2);
   key.position.set(0.4, 3.0, 1.6);
   key.target.position.set(0, 0, -1.9);
   key.castShadow = true;

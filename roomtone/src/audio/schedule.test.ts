@@ -57,10 +57,11 @@ describe('ProjectStore', () => {
     expect(s.get().bpm).toBe(v0);
     s.redo();
     expect(s.get().bpm).toBe(100);
+    const vol0 = s.get().tracks[0].volume;
     s.update('drag', (d) => void (d.tracks[0].volume = -20), { history: 'none' });
     s.update('drag', (d) => void (d.tracks[0].volume = -10), { history: 'none' });
     s.commitGesture('drag');
     s.undo();
-    expect(s.get().tracks[0].volume).toBe(-5);
+    expect(s.get().tracks[0].volume).toBe(vol0);
   });
 });

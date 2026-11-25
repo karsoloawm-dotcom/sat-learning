@@ -13,9 +13,10 @@ export function makeEffect(type: EffectType, params: Record<string, number> = {}
 const NAMES = ['Juno', 'Bo', 'Pip', 'Mika', 'Toto', 'Ren', 'Lulu', 'Ziggy', 'Noor', 'Kip', 'Suki', 'Otis', 'Bea', 'Momo', 'Ivy', 'Dash'];
 const pick = <T,>(a: T[]) => a[Math.floor(Math.random() * a.length)];
 
-export function randomLook(name?: string): MusicianLook {
+export function randomLook(name?: string, taken: Set<string> = new Set()): MusicianLook {
+  const free = NAMES.filter((n) => !taken.has(n));
   return {
-    name: name ?? pick(NAMES),
+    name: name ?? pick(free.length ? free : NAMES),
     skin: pick(SKIN_TONES),
     hair: pick(['bob', 'spiky', 'ponytail', 'bun', 'afro', 'buzz', 'long', 'mohawk'] as const),
     hairColor: pick(HAIR_COLORS),
