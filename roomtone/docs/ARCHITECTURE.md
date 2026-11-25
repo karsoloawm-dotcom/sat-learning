@@ -33,7 +33,10 @@ src/
     assets.ts     Decoded AudioBuffers by asset id
   render/       Three.js                                                              — reads state, never writes audio
     world.ts      Renderer, post-processing, cameras for all views, picking, per-frame sync
-    studio.ts     The room, furniture, stations, lights, dollhouse cutaways
+    rooms.ts      Room interface (geometry, lights, stations, walk heights, cameras, atmosphere) + studio room
+    studio.ts     The rehearsal studio: furniture, stations, lights, dollhouse cutaways
+    hall.ts       The concert hall: loads the Blender glTF, instancing, lights, haze, light shafts, dust
+    quality.ts    Graphics presets (Phone → Ultra 4K)
     props.ts      Instruments and gear meshes with the anchor points animation needs
     gear.ts       Effects as physical equipment, the console, interactive controls
     character/    Mii-style character on a shared Mixamo-named skeleton

@@ -25,6 +25,7 @@ const PREFERRED_STATION: Record<InstrumentType, number[]> = {
   keys: [3, 4, 5, 6, 1, 2, 0],
   synth: [4, 3, 6, 5, 2, 1, 0],
   sampler: [5, 6, 4, 3, 2, 1, 0],
+  strings: [5, 6, 3, 4, 1, 2, 0],
   vocal: [7, 6, 5, 4, 3, 2, 1, 0],
 };
 

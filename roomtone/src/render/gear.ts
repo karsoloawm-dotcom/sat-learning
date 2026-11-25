@@ -3,7 +3,8 @@ import type { Effect, Project, Track } from '../state/types';
 import { EFFECTS, toNorm, volumeToNorm } from '../state/specs';
 import { automationValue } from '../audio/schedule';
 import { buildAmp, buildPedal, buildRackUnit, type GearProp, label, M, mesh } from './props';
-import { CONSOLE_POS, MASTER_RACK_POS, STATIONS } from './studio';
+import type { Room } from './rooms';
+import type { Station } from './studio';
 
 // Effects become objects: pedals on a pedalboard, rack units in a tower, an amp behind the player.
 // Knobs read the same project values as the mixer every frame, and carry `userData.control` so the
@@ -46,14 +47,22 @@ export class GearManager {
   private consoleKey = '';
   private strips = new Map<string, { fader: THREE.Object3D; pan: THREE.Object3D; mute: THREE.Mesh; solo: THREE.Mesh; leds: THREE.Mesh[] }>();
 
+  private stationList: Station[] = [];
+
   constructor() {
     this.root.name = 'gear';
-    this.master.position.copy(MASTER_RACK_POS);
-    this.master.rotation.y = Math.PI - 0.35;
-    this.root.add(this.master);
-    this.console.position.copy(CONSOLE_POS);
-    this.console.rotation.y = Math.PI;
-    this.root.add(this.console);
+    this.root.add(this.master, this.console);
+  }
+
+  // Move the console and master rack, and rebuild every station's gear, for a room.
+  setRoom(room: Room) {
+    this.stationList = room.stations;
+    this.master.position.copy(room.rack.pos);
+    this.master.rotation.y = room.rack.rotY;
+    this.console.position.copy(room.console.pos);
+    this.console.rotation.y = room.console.rotY;
+    for (const sg of this.stations.values()) this.root.remove(sg.group);
+    this.stations.clear();
   }
 
   sync(p: Project) {
@@ -106,7 +115,7 @@ export class GearManager {
   }
 
   private buildStation(t: Track, key: string): StationGear {
-    const st = STATIONS[t.station] ?? STATIONS[0];
+    const st = this.stationList[t.station] ?? this.stationList[0];
     const group = new THREE.Group();
     group.position.copy(st.pos);
     group.rotation.y = st.rotY;

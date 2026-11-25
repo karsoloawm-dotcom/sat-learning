@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
-import { engine, setView, store, toast, ui, replaceProject } from '../app';
+import { engine, setView, store, toast, ui, replaceProject, world } from '../app';
+import { QUALITY, QUALITY_ORDER, saveQuality, type QualityId } from '../render/quality';
 import { useProject, useRaf, useUi } from './hooks';
 import { formatPosition } from '../audio/schedule';
 import { demoProject, emptyProject } from '../state/defaults';
@@ -24,6 +25,8 @@ export function TopBar() {
   const metro = useProject((p) => p.metronome);
   const typing = useUi((s) => s.typing);
   const busy = useUi((s) => s.busy);
+  const quality = useUi((s) => s.quality);
+  const room = useProject((p) => p.room ?? 'studio');
   const [playing, setPlaying] = useState(engine.playing);
   const pos = useRef<HTMLSpanElement>(null);
   const fileOpen = useUi((s) => s.fileOpen);
@@ -79,6 +82,18 @@ export function TopBar() {
         ))}
       </nav>
       <div className="right">
+        <select className="room-pick" aria-label="Room" title="Where the band plays" value={room} onChange={(e) => store.update('Change room', (d) => void (d.room = e.target.value as 'studio' | 'hall'))}>
+          <option value="studio">🏠 Studio</option>
+          <option value="hall">🏛️ Concert hall</option>
+        </select>
+        <select aria-label="Graphics quality" title="Graphics quality (Phone → Ultra 4K)" value={quality} onChange={(e) => {
+          const q = e.target.value as QualityId;
+          saveQuality(q);
+          ui.set({ quality: q });
+          world.current?.setQuality(q);
+        }}>
+          {QUALITY_ORDER.map((q) => <option key={q} value={q}>🖥 {QUALITY[q].label}</option>)}
+        </select>
         <button className="tbtn" title={`Undo ${store.undoLabel() ?? ''} (Ctrl+Z)`} disabled={!store.canUndo()} onClick={store.undo}>↶</button>
         <button className="tbtn" title={`Redo ${store.redoLabel() ?? ''} (Ctrl+Shift+Z)`} disabled={!store.canRedo()} onClick={store.redo}>↷</button>
         <div className="menu">

@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import type { Track } from '../../state/types';
 import type { NoteEvent } from '../../audio/graph';
 import { buildCharacter, type CharacterRig, type BoneName } from '../character/character';
-import { buildDrumKit, buildKeyboard, buildMic, buildPads, buildStringed, fingering, fretX, type DrumKitProp, type KeyboardProp, type PadsProp, type StringedProp, M, mesh } from '../props';
+import { buildBowed, type BowedProp, buildDrumKit, buildKeyboard, buildMic, buildPads, buildStringed, fingering, fretX, type DrumKitProp, type KeyboardProp, type PadsProp, type StringedProp, M, mesh } from '../props';
 import { aimBone, damp, orientWorld, smoothstep, solveTwoBone } from './ik';
 
 // Musicians perform the notes the audio engine schedules. Each NoteEvent carries the AudioContext time of
@@ -92,6 +92,12 @@ export abstract class Musician {
   }
 
   protected attachProps() {}
+
+  // Called after the musician is moved to a new station: re-plant the feet there.
+  replant() {
+    this.feet.L.set(0, 0, 0);
+    this.feet.R.set(0, 0, 0);
+  }
 
   push(e: NoteEvent) {
     this.events.push(e);
@@ -661,6 +667,150 @@ export class Beatmaker extends Musician {
   }
 }
 
+// ---------------------------------------------------------------- String player (violin / cello)
+
+interface Stroke {
+  start: number;
+  end: number;
+  dir: 1 | -1; // +1 down-bow (frog -> tip), -1 up-bow
+  string: number;
+}
+
+export class BowedPlayer extends Musician {
+  inst!: BowedProp;
+  private strokes: Stroke[] = [];
+  private fing = new Map<NoteEvent, { string: number; fret: number }>();
+  private fret = 2;
+  private fx = 0;
+  private bowS = 0.1; // current hand distance from the contact point, along the bow
+  private chair: THREE.Object3D | null = null;
+  constructor(track: Track, private kind: 'violin' | 'cello') {
+    super(track);
+    this.init();
+    this.attachProps();
+  }
+  protected seated() {
+    return this.kind === 'cello';
+  }
+  protected attachProps() {
+    this.inst = buildBowed(this.kind, '#a0522d');
+    const g = this.inst.group;
+    if (this.kind === 'violin') {
+      // Under the chin on the left shoulder: neck forward-left and a little down, top facing up and right.
+      this.b.Spine1.add(g);
+      g.position.set(0.075, 0.075, 0.1);
+      const X = V(0.45, -0.12, 0.88).normalize();
+      const Z = V(-0.4, 0.92, 0.05);
+      Z.addScaledVector(X, -Z.dot(X)).normalize();
+      g.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(X, V().crossVectors(Z, X), Z));
+    } else {
+      // Cello stands on its end pin in front of the seated player, neck leaning back to the left shoulder.
+      this.group.add(g);
+      g.position.set(0.02, 0.32, 0.3);
+      const X = V(0.06, 0.96, -0.28).normalize();
+      const Z = V(0, 0.28, 1);
+      Z.addScaledVector(X, -Z.dot(X)).normalize();
+      g.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(X, V().crossVectors(Z, X), Z));
+      if (!this.chair) {
+        this.chair = new THREE.Group();
+        mesh(new THREE.CylinderGeometry(0.13, 0.12, 0.05, 20), M('#3b2a20', 0.7), this.chair, 0, 0.3, -0.03);
+        for (const [x, z] of [[-0.09, -0.1], [0.09, -0.1], [-0.09, 0.05], [0.09, 0.05]]) mesh(new THREE.CylinderGeometry(0.01, 0.01, 0.3, 6), M('#3b2a20', 0.6), this.chair, x, 0.15, z);
+        this.group.add(this.chair);
+      }
+      this.b.Hips.position.y = 0.37 / this.track.musician.height;
+      this.restPos.set(this.b.Hips, this.b.Hips.position.clone());
+    }
+    this.b.RightHand.add(this.inst.bow);
+    this.inst.bow.position.set(0, 0, 0); // frog at the wrist joint the IK solves for, so the hair lands on the string
+    g.traverse((o) => (o.userData.trackId = this.track.id));
+  }
+  protected onNote(e: NoteEvent) {
+    const fg = fingering(this.inst, e.pitch, this.fret);
+    this.fing.set(e, fg);
+    const last = this.strokes[this.strokes.length - 1];
+    if (last && Math.abs(last.start - e.time) < 0.03) return; // chord: same stroke
+    // Legato notes (no gap) share one bow stroke unless the bow would run out; otherwise change direction.
+    if (last && e.time - last.end < 0.06 && e.end - last.start < 2.2) {
+      last.end = e.end;
+      last.string = fg.string;
+      return;
+    }
+    this.strokes.push({ start: e.time, end: e.end, dir: last ? (-last.dir as 1 | -1) : 1, string: fg.string });
+  }
+  clearFuture(now: number) {
+    super.clearFuture(now);
+    this.strokes = this.strokes.filter((s) => s.start <= now);
+  }
+  protected idleOptions() {
+    return ['look', 'wave'];
+  }
+  protected instrumentFocus() {
+    return this.inst.group.localToWorld(V(this.fx, 0, 0));
+  }
+  protected perform(f: FrameCtx) {
+    const inst = this.inst;
+    const b = this.b;
+    this.strokes = this.strokes.filter((s) => s.end > f.now - 2);
+    for (const e of [...this.fing.keys()]) if (e.end < f.now - 1) this.fing.delete(e);
+    if (this.kind === 'cello') {
+      // Seated: feet planted wide in front of the chair.
+      const knee = V(0, 0.5, 1).applyQuaternion(this.group.quaternion);
+      for (const [side, x] of [['Left', 0.2], ['Right', -0.2]] as const) {
+        solveTwoBone(b[`${side}UpLeg`], b[`${side}Leg`], b[`${side}Foot`], this.world(this.group, x, 0.045, 0.24), knee);
+        this.flatFoot(b[`${side}Foot`]);
+      }
+    } else {
+      // Chin on the rest.
+      b.Head.rotation.z -= 0.22;
+      b.Head.rotation.x += 0.12;
+    }
+    const act = this.active(f.now);
+    const next = this.upcoming(f.now, 0.25)[0];
+    const target = [...act, ...(next ? [next] : [])].map((e) => this.fing.get(e)).find(Boolean);
+    if (target) this.fret = target.fret;
+    this.fx = damp(this.fx, fretX(inst, this.fret), act.length ? 22 : 10, f.dt);
+    const ringing = new Set(act.map((e) => this.fing.get(e)?.string));
+    inst.strings.forEach((s, i) => (s.scale.x = 1 + (ringing.has(i) ? Math.sin(f.elapsed * 80 + i) * 2 : 0)));
+
+    // Left hand: on the fingerboard at the fingered position.
+    const stringIdx = target?.string ?? 1;
+    this.armIK('Left', inst.group.localToWorld(V(this.fx, inst.stringY(stringIdx), inst.topZ + 0.035)), this.outward('Left', -0.9, this.kind === 'cello' ? -0.2 : -0.1));
+
+    // Right hand: the bow. Where along the bow the strings are depends on stroke progress and direction.
+    let stroke: Stroke | undefined;
+    for (const s of this.strokes) if (s.start <= f.now) stroke = s;
+    const min = 0.05 * (inst.bowLen / 0.4);
+    const max = inst.bowLen * 0.88;
+    const playing = stroke && f.now < stroke.end + 0.05;
+    if (stroke && playing) {
+      // Long strokes use more bow; short ones stay near the middle.
+      const span = Math.min(1, (stroke.end - stroke.start) / 1.2) * (max - min);
+      const mid = (min + max) / 2;
+      const k = smoothstep(Math.min(1, (f.now - stroke.start) / Math.max(0.05, stroke.end - stroke.start)) * 0.9 + 0.05);
+      const s0 = mid - (stroke.dir * span) / 2;
+      this.bowS = s0 + stroke.dir * span * k;
+    }
+    const gesture = this.idle(f, !!playing || f.now - this.lastNoteTime < 1.2);
+    const str = stroke?.string ?? 1;
+    const contact = inst.group.localToWorld(V(inst.contactX, inst.stringY(str), inst.topZ + 0.008));
+    // Bow axis: across the strings, tilted for string crossings.
+    const tilt = (str - 1.5) * 0.14;
+    const dirLocal = this.kind === 'violin' ? V(0, -Math.cos(tilt), Math.sin(tilt)) : V(0, -Math.cos(tilt), Math.sin(tilt));
+    const dir = dirLocal.transformDirection(inst.group.matrixWorld);
+    const rest = !playing && f.now - this.lastNoteTime > 1.2;
+    if (gesture === 'wave') this.wave(f);
+    else if (rest) {
+      // Bow lowered at the side between phrases.
+      this.armIK('Right', this.rig.root.localToWorld(V(-0.2, 0.42, 0.12)), this.outward('Right', -0.6, -0.4));
+      orientWorld(b.RightHand, V(0.2, -1, 0.5).applyQuaternion(this.group.quaternion), V(0, 0, 1).applyQuaternion(this.group.quaternion));
+    } else {
+      const handPos = contact.clone().addScaledVector(dir, this.bowS);
+      this.armIK('Right', handPos, this.outward('Right', -0.5, -0.5));
+      orientWorld(b.RightHand, dir.clone().negate(), V(0, 0, 1).transformDirection(inst.group.matrixWorld));
+    }
+  }
+}
+
 // ---------------------------------------------------------------- Vocalist (audio tracks)
 
 export class Vocalist extends Musician {
@@ -712,6 +862,8 @@ export function createMusician(track: Track): Musician {
       return new Keyboardist(track, 'piano');
     case 'synth':
       return new Keyboardist(track, 'synth');
+    case 'strings':
+      return new BowedPlayer(track, track.inst.preset === 'Cello' ? 'cello' : 'violin');
     case 'guitar':
       return new StringPlayer(track, 'guitar');
     case 'bass':

@@ -96,7 +96,7 @@ export class Channel {
 }
 
 // Per-instrument headroom trims, measured so each part sits in a similar range at 0 dB (see docs/DEVELOPMENT.md).
-const TRIM: Record<Track['instrument'], number> = { drums: 1.1, bass: 1.2, guitar: 1.6, keys: 0.17, synth: 0.3, sampler: 0.8, vocal: 1 };
+const TRIM: Record<Track['instrument'], number> = { drums: 1.1, bass: 1.2, guitar: 1.6, keys: 0.17, synth: 0.3, sampler: 0.8, vocal: 1, strings: 1.0 };
 
 const instKey = (t: Track) => `${t.instrument}|${t.inst.preset === 'Synth Bass' ? 'sb' : ''}`;
 

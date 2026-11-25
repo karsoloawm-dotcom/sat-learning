@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
-import { engine, selectTrack, store, ui, world } from '../app';
+import { act, engine, selectTrack, store, toast as showToast, ui, world } from '../app';
+import { QUALITY } from '../render/quality';
 import { World } from '../render/world';
 import { useUi } from './hooks';
 import { TopBar } from './TopBar';
@@ -23,8 +24,12 @@ export function App() {
     w.onSelect = (id) => selectTrack(id);
     w.onHover = (h) => ui.set({ hover: h });
     w.onLock = (locked) => ui.set({ locked });
+    w.onQuality = (quality, auto) => {
+      ui.set({ quality });
+      if (auto) showToast(`Graphics lowered to ${QUALITY[quality].label} to keep things smooth`);
+    };
     installKeyboard();
-    (window as unknown as { roomtone: unknown }).roomtone = { store, engine, world: w, ui, renderProject };
+    (window as unknown as { roomtone: unknown }).roomtone = { store, engine, world: w, ui, renderProject, act };
   }, []);
 
   // In Producer view the live studio shrinks into a preview window; the canvas element is moved, never rebuilt.

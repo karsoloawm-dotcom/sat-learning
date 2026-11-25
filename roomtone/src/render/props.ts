@@ -464,3 +464,73 @@ export function buildRackUnit(color: string, name: string, params: string[], met
   const led = mesh(new THREE.SphereGeometry(0.004, 8, 6), new THREE.MeshStandardMaterial({ color: '#58d68d', emissive: '#58d68d', emissiveIntensity: 2 }), group, -0.2, -0.02, 0.012, false);
   return { group, knobs, led, meter: needle, cableIn: new THREE.Vector3(0.2, 0, -0.24), cableOut: new THREE.Vector3(-0.2, 0, -0.24) };
 }
+
+// ---------------- Bowed strings (violin; cello is the same model scaled and stood on its end pin) ----------------
+export interface BowedProp extends StringedProp {
+  contactX: number; // where the bow meets the strings (local x, between bridge and fingerboard)
+  bowLen: number;
+  bow: THREE.Group; // attached to the right hand by the performer; stick along +Z
+}
+
+export function buildBowed(kind: 'violin' | 'cello', color: string): BowedProp {
+  const group = new THREE.Group();
+  group.name = kind;
+  const k = kind === 'cello' ? 2.1 : 1;
+  const inner = new THREE.Group();
+  inner.scale.set(k, k, k * (kind === 'cello' ? 1.25 : 1)); // cellos have deeper ribs
+  group.add(inner);
+  const varnish = M(color, 0.25, 0.05, { clearcoat: 1, clearcoatRoughness: 0.12 });
+  const ebony = M('#1c1714', 0.35);
+  // Figure-eight outline with C-bout waist; neck points +X.
+  const sh = new THREE.Shape();
+  sh.moveTo(-0.12, 0);
+  sh.bezierCurveTo(-0.12, 0.07, -0.06, 0.075, -0.035, 0.05);
+  sh.bezierCurveTo(-0.015, 0.035, 0.015, 0.035, 0.03, 0.048);
+  sh.bezierCurveTo(0.05, 0.066, 0.11, 0.06, 0.11, 0.0);
+  sh.bezierCurveTo(0.11, -0.06, 0.05, -0.066, 0.03, -0.048);
+  sh.bezierCurveTo(0.015, -0.035, -0.015, -0.035, -0.035, -0.05);
+  sh.bezierCurveTo(-0.06, -0.075, -0.12, -0.07, -0.12, 0);
+  const body = new THREE.ExtrudeGeometry(sh, { depth: 0.03, bevelEnabled: true, bevelThickness: 0.005, bevelSize: 0.005, bevelSegments: 3, curveSegments: 20 });
+  body.translate(0, 0, -0.015);
+  mesh(body, varnish, inner);
+  for (const s of [-1, 1]) {
+    // f-holes
+    const f = mesh(new THREE.PlaneGeometry(0.004, 0.035), ebony, inner, -0.005, s * 0.025, 0.0205, false);
+    f.rotation.z = s * 0.15;
+  }
+  mesh(new THREE.BoxGeometry(0.14, 0.018, 0.012), varnish, inner, 0.17, 0, 0.012); // neck
+  mesh(new THREE.BoxGeometry(0.27, 0.022, 0.006), ebony, inner, 0.11, 0, 0.026); // fingerboard
+  const scroll = mesh(new THREE.TorusGeometry(0.012, 0.006, 8, 16), varnish, inner, 0.268, 0, 0.012);
+  scroll.rotation.x = Math.PI / 2;
+  mesh(new THREE.BoxGeometry(0.03, 0.016, 0.012), varnish, inner, 0.25, 0, 0.012); // pegbox
+  mesh(new THREE.BoxGeometry(0.004, 0.032, 0.02), M('#e8d2a8', 0.6), inner, -0.03, 0, 0.03); // bridge
+  mesh(new THREE.BoxGeometry(0.05, 0.022, 0.006), ebony, inner, -0.09, 0, 0.022); // tailpiece
+  if (kind === 'violin') mesh(new THREE.BoxGeometry(0.03, 0.03, 0.01), ebony, inner, -0.06, -0.035, 0.022); // chinrest
+  if (kind === 'cello') mesh(new THREE.CylinderGeometry(0.003, 0.002, 0.12, 6), CHROME(), inner, -0.17, 0, 0).rotation.z = Math.PI / 2;
+  const tuning = kind === 'cello' ? [36, 43, 50, 57] : [55, 62, 69, 76];
+  const strings: THREE.Mesh[] = [];
+  const stringY = (i: number) => (-0.009 + i * 0.006) * k;
+  for (let i = 0; i < 4; i++) {
+    const str = mesh(new THREE.CylinderGeometry(0.0006, 0.0006, 0.335, 4), M('#d9d4c8', 0.3, 0.8), inner, 0.077, stringY(i) / k, 0.034, false);
+    str.rotation.z = Math.PI / 2;
+    strings.push(str);
+  }
+  // Bow: stick along +Z from the frog (origin) with a ribbon of hair; scaled with the instrument.
+  const bow = new THREE.Group();
+  const bowLen = 0.4 * (kind === 'cello' ? 1.6 : 1);
+  const stick = mesh(new THREE.CylinderGeometry(0.0025, 0.0035, bowLen, 6), M('#5a2e1a', 0.4), bow, 0, 0.008, bowLen / 2, false);
+  stick.rotation.x = Math.PI / 2;
+  const hair = mesh(new THREE.BoxGeometry(0.006, 0.001, bowLen * 0.95), M('#f4efe6', 0.8), bow, 0, 0, bowLen / 2, false);
+  hair.castShadow = false;
+  mesh(new THREE.BoxGeometry(0.01, 0.014, 0.025), ebony, bow, 0, 0.004, 0.0); // frog
+  return {
+    group, strings, tuning, bow, bowLen,
+    scale: 0.275 * k,
+    nutX: 0.245 * k,
+    stringY,
+    topZ: 0.034 * k,
+    strumX: 0,
+    headX: 0.26 * k,
+    contactX: -0.022 * k,
+  };
+}

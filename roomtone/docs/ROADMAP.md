@@ -28,8 +28,11 @@ Known gaps inside M0, worth doing next:
 
 ## M2 — More rooms
 
-- Orchestral hall (strings, brass, woodwinds, percussion) with bowing / breathing performers: bow position and
-  speed from note duration and dynamics, breath before phrases, section leaders.
+Started: the concert hall (Blender-built, room switching, hall lighting/haze/light shafts, graphics presets) and
+bowed strings (violin, cello, section) with bowing performers. Next in M2:
+
+- Remaining orchestra: brass and woodwinds (breath before phrases, valve/key fingering), timpani, harp;
+  more stations in the hall (it has 8 today, shared numbering with the studio) and section players that share a part.
 - Electronic room: synth rack with patch cables, drum machines, sampler pads, a DJ booth.
 - Room travel: each room is a set of stations; tracks can be moved between rooms; the control room listens to all.
 - Room acoustics: each room's reverb impulse becomes its default bus.

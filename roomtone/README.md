@@ -38,6 +38,30 @@ All views share the same project state and audio engine; switching never interru
 | 🎛️ Producer | `3` | Conventional DAW: arrangement, piano roll, mixer, audio editor, inspector, live studio preview. |
 | ✨ Perform | `4` | Cinematic show: camera cuts on bar lines, follows whoever is loudest, stage lights pulse with the music. |
 
+## Rooms and graphics
+
+![Concert hall at Ultra (4K)](docs/screenshots/hall-ultra.jpg)
+
+![Violinist and cellist](docs/screenshots/strings.jpg)
+
+The top bar switches the band between the **🏠 Studio** and the **🏛️ Concert hall** (saved with the project, undoable),
+and sets **graphics quality** from *Phone* to *Ultra (4K)*:
+
+| Preset | Resolution | Shadows | AO | Bloom | Light shafts & dust | MSAA |
+| --- | --- | --- | --- | --- | --- | --- |
+| Phone | 0.75× | 512 key only | – | – | – | – |
+| Low | 1× | 1024 key only | – | ✓ | – | – |
+| Medium | ≤1.5× | 2048 key | ✓ | ✓ | ✓ | – |
+| High | ≤2× | 2048 key + stage spots | ✓ | ✓ | ✓ | 4× |
+| Ultra (4K) | ≥3840 px wide | 4096 key + stage spots | ✓ | ✓ | ✓ | 4× |
+
+Touch devices with small screens start on *Phone*, everything else on *High*; if frames stay slow for ~3 s the app
+steps down one preset (until you pick one yourself).
+
+The concert hall is modelled in Blender by a script ([scripts/blender/build_hall.py](scripts/blender/build_hall.py)):
+colossal columns, two balcony tiers, a coffered timber ceiling with downlights, tiered orchestra risers, choir
+seats, an organ and arched clerestory windows. ~800 seats render as GPU instances.
+
 ## What works today
 
 | Area | Status |
@@ -45,18 +69,18 @@ All views share the same project state and audio engine; switching never interru
 | Sequencing | Multi-track MIDI clips that reference patterns (linked copies, *Make unique*), clips loop their pattern, loop region, tempo, snap, metronome |
 | Piano roll | Draw, move, resize, box-select, Alt-drag copy, velocity lane, quantize, transpose, duplicate, drum names on drum tracks |
 | Arrangement | Move/trim/resize clips, Alt-drag duplicate, move between tracks, double-click to create, drop audio files, automation lanes |
-| Instruments | Synthesised drum kit, Karplus-Strong guitar and bass, additive piano, FM electric piano, organ, subtractive synth, sampler (load your own sample) |
+| Instruments | Bowed strings (violin, cello, string section) with delayed vibrato and body resonances, synthesised drum kit, Karplus-Strong guitar and bass, additive piano, FM electric piano, organ, subtractive synth, sampler (load your own sample) |
 | Audio | Import (drag & drop), microphone recording onto an armed audio track, waveform editor (normalize, reverse, fades, silence, crop), clip gain |
 | Mixer | Volume, pan, mute, solo, meters with peak hold, sends to Reverb and Echo buses, master chain with limiter |
 | Effects | EQ, compressor, reverb, delay, distortion, chorus, amp simulator — reorderable chains on tracks, buses and master |
 | Automation | Volume, pan and every effect parameter, drawn in the arrangement; physical knobs and faders follow it |
 | Physical studio | Pedals on a pedalboard, rack units in a tower, amps behind players, master rack, a mixing console mirroring every channel; signal cables glow with level |
 | Musicians | Mii-proportioned characters on a shared Mixamo-named skeleton; hair, face, skin, outfit, colours, accessory, build, personality; saveable presets |
-| Animation | Driven by scheduled note events: sticks strike the right drum, pianists press the right keys, guitarists fret and strum, vocalists' mouths follow the real signal level; idle fidgets, blinking, glances, waving at you |
+| Animation | Driven by scheduled note events: sticks strike the right drum, pianists press the right keys, guitarists fret and strum, violinists and cellists bow (direction alternates per note, legato notes share a stroke, long notes use more bow), vocalists' mouths follow the real signal level; idle fidgets, blinking, glances, waving at you |
 | Project | Undo/redo for every edit (gestures are one step), autosave (localStorage + IndexedDB for audio), `.roomtone` project files with embedded audio, WAV export |
 | Live input | Musical typing (Z–M and Q–U rows), Web MIDI controllers, MIDI recording into a new clip |
 
-Not built yet (see [docs/ROADMAP.md](docs/ROADMAP.md)): native VST3 hosting, orchestral and electronic rooms,
+Not built yet (see [docs/ROADMAP.md](docs/ROADMAP.md)): native VST3 hosting, brass/woodwind/timpani players, the electronic room,
 music-video export, MIDI file import/export, tempo automation and time-stretching.
 
 ## Documentation

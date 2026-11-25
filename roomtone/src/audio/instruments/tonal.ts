@@ -283,6 +283,55 @@ export class Synth extends BaseInstrument {
   }
 }
 
+// Bowed strings: detuned saws through a body-resonance filter bank, with a bow-pressure attack, rosin noise
+// and vibrato that blooms after the note settles. Cello sits an octave lower in body resonances.
+export class Bowed extends BaseInstrument {
+  noteOn(time: number, pitch: number, vel: number, dur?: number) {
+    const f = mtof(pitch);
+    const ctx = this.ctx;
+    const ensemble = this.p.preset === 'String Section';
+    const cello = this.p.preset === 'Cello';
+    const det = ensemble ? [-9, -3, 4, 10] : [-2, 2];
+    const srcs: AudioScheduledSourceNode[] = det.map((d) => this.osc("sawtooth", f, time, d));
+    // Delayed vibrato: depth grows ~0.25 s into the note.
+    const lfo = this.osc('sine', 5.2 + Math.random() * 0.6, time);
+    const vib = ctx.createGain();
+    vib.gain.setValueAtTime(0, time);
+    vib.gain.setTargetAtTime(ensemble ? 8 : 14, time + 0.25, 0.25);
+    lfo.connect(vib);
+    for (const o of srcs) vib.connect((o as OscillatorNode).detune);
+    srcs.push(lfo);
+    const lp = this.lowpass(900 + (this.p.tone + vel * 0.6) * (cello ? 2500 : 4500), 0.5);
+    let node: AudioNode = lp;
+    for (const [fr, g, q] of (cello ? [[180, 5, 2], [420, 3, 2.5], [1800, -4, 1]] : [[290, 4, 2.5], [520, 3, 2], [3000, 4, 1.4], [6500, -6, 1]]) as [number, number, number][]) {
+      const b = ctx.createBiquadFilter();
+      b.type = 'peaking';
+      b.frequency.value = fr;
+      b.gain.value = g;
+      b.Q.value = q;
+      node.connect(b);
+      node = b;
+    }
+    const attack = Math.max(this.p.attack, ensemble ? 0.18 : 0.07);
+    const { gain, voice, end } = envelope(ctx, this.output, time, 0.12 + vel * 0.12, attack, Math.max(0.18, this.p.release * 0.6), srcs, dur);
+    node.connect(gain);
+    for (const o of srcs.slice(0, det.length)) o.connect(lp);
+    // Rosin: a little band-passed noise at the bow change.
+    const n = ctx.createBufferSource();
+    n.buffer = noiseBuffer(ctx);
+    const ng = ctx.createGain();
+    ng.gain.setValueAtTime(0.05 * vel, time);
+    ng.gain.setTargetAtTime(0.008 * vel, time + 0.05, 0.1);
+    const bp = ctx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.value = f * 3;
+    n.connect(bp).connect(ng).connect(gain);
+    n.start(time);
+    srcs.push(n);
+    return this.pool.add(voice, end, ctx);
+  }
+}
+
 // Plays a user sample, pitched chromatically from its root note (or unpitched in One-shot mode).
 export class Sampler extends BaseInstrument {
   noteOn(time: number, pitch: number, vel: number, dur?: number) {
@@ -316,6 +365,8 @@ export function createInstrument(ctx: BaseAudioContext, type: InstrumentType, p:
       return new PluckedString(ctx, p);
     case 'keys':
       return new Piano(ctx, p);
+    case 'strings':
+      return new Bowed(ctx, p);
     case 'synth':
       return new Synth(ctx, p);
     case 'sampler':

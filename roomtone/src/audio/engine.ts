@@ -28,7 +28,6 @@ export class AudioEngine {
   private cursorBeat = 0;
   private cursorTime = 0;
   private stoppedBeat = 0;
-  private worker: Worker;
   private listeners = new Set<(e: EngineEvent) => void>();
   private metronomeGain: GainNode;
   private liveVoices = new Map<string, Voice>();
@@ -47,8 +46,16 @@ export class AudioEngine {
       if (p.patterns !== prev.patterns || p.tracks !== prev.tracks) this.prepareSoon(p);
     });
     const src = `setInterval(() => postMessage(0), ${TICK_MS});`;
-    this.worker = new Worker(URL.createObjectURL(new Blob([src], { type: 'text/javascript' })));
-    this.worker.onmessage = () => this.tick();
+    // Hosts whose CSP forbids blob workers fall back to a main-thread timer (still lookahead-scheduled,
+    // but throttled in background tabs). CSP can fail synchronously or via an error event.
+    const fallback = () => setInterval(() => this.tick(), TICK_MS);
+    try {
+      const worker = new Worker(URL.createObjectURL(new Blob([src], { type: 'text/javascript' })));
+      worker.onmessage = () => this.tick();
+      worker.onerror = fallback;
+    } catch {
+      fallback();
+    }
   }
 
   on(fn: (e: EngineEvent) => void) {

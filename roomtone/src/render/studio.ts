@@ -404,14 +404,27 @@ export function buildStudio() {
 }
 
 // ---- Lights ----
-export function buildLights(scene: THREE.Scene) {
-  const hemi = new THREE.HemisphereLight('#ffe9d0', '#6b4f3a', 0.55);
-  scene.add(hemi);
-  const sun = new THREE.DirectionalLight('#ffc78f', 2.4);
+// Every light records `base` (normal intensity) and `perform` (Performance-mode intensity) in userData;
+// World eases between them. `extra` lights are decorative and dropped on low presets.
+export interface RoomLights {
+  all: THREE.Light[];
+  shadowKey: THREE.Light; // main shadow caster (sized by the quality preset)
+  spots: THREE.SpotLight[]; // stage colour spots driven in Performance mode
+  secondaryShadows: THREE.Light[]; // only on presets with spotShadows
+}
+
+export function tagLight<T extends THREE.Light>(l: T, base: number, perform: number, extra = false): T {
+  l.userData = { ...l.userData, base, perform, extra };
+  l.intensity = base;
+  return l;
+}
+
+export function buildLights(parent: THREE.Object3D): RoomLights {
+  const hemi = tagLight(new THREE.HemisphereLight('#ffe9d0', '#6b4f3a', 0.55), 0.55, 0.18);
+  const sun = tagLight(new THREE.DirectionalLight('#ffc78f', 2.4), 2.4, 0.5);
   sun.position.set(-9, 6, -1);
   sun.target.position.set(1, 0, 0);
   sun.castShadow = true;
-  sun.shadow.mapSize.set(2048, 2048);
   sun.shadow.camera.left = -8;
   sun.shadow.camera.right = 8;
   sun.shadow.camera.top = 6;
@@ -421,32 +434,29 @@ export function buildLights(scene: THREE.Scene) {
   sun.shadow.bias = -0.0004;
   sun.shadow.normalBias = 0.02;
   sun.shadow.radius = 6;
-  scene.add(sun, sun.target);
-  const key = new THREE.SpotLight('#fff1dc', 6, 10, 0.95, 0.8, 1.2);
+  const key = tagLight(new THREE.SpotLight('#fff1dc', 6, 10, 0.95, 0.8, 1.2), 6, 5);
   key.position.set(0.4, 3.0, 1.6);
   key.target.position.set(0, 0, -1.9);
   key.castShadow = true;
-  key.shadow.mapSize.set(2048, 2048);
   key.shadow.bias = -0.0003;
   key.shadow.radius = 5;
-  scene.add(key, key.target);
-  const lampLight = new THREE.PointLight('#ffb357', 3.5, 6, 1.5);
+  const lampLight = tagLight(new THREE.PointLight('#ffb357', 3.5, 6, 1.5), 3.5, 2.5, true);
   lampLight.position.set(-5.4, 1.55, 2.2);
-  scene.add(lampLight);
-  const warm = new THREE.PointLight('#ffcf8a', 4, 8, 1.4);
+  const warm = tagLight(new THREE.PointLight('#ffcf8a', 4, 8, 1.4), 4, 1.5);
   warm.position.set(0, 2.5, 2.8);
-  scene.add(warm);
-  const booth = new THREE.PointLight('#ffd6a8', 2.2, 4, 1.5);
+  const booth = tagLight(new THREE.PointLight('#ffd6a8', 2.2, 4, 1.5), 2.2, 1.5, true);
   booth.position.set(4.8, 2.2, 3.0);
-  scene.add(booth);
-  // Coloured stage spots: subtle in the studio, driven harder in Performance mode.
-  const colors = ['#ff6b6b', '#6bc4ff', '#ffd36b'];
-  const spots = colors.map((c, i) => {
-    const s = new THREE.SpotLight(c, 0, 10, 0.45, 0.5, 1.3);
+  // Coloured stage spots: off in the studio, driven in Performance mode.
+  const spots = ['#ff6b6b', '#6bc4ff', '#ffd36b'].map((c, i) => {
+    const s = tagLight(new THREE.SpotLight(c, 0, 10, 0.45, 0.5, 1.3), 0, 30);
     s.position.set(-3 + i * 3, 3.0, 1.5);
     s.target.position.set(STATIONS[i].pos.x, 0, STATIONS[i].pos.z);
-    scene.add(s, s.target);
     return s;
   });
-  return { hemi, sun, key, lampLight, warm, spots };
+  const all: THREE.Light[] = [hemi, sun, key, lampLight, warm, booth, ...spots];
+  for (const l of all) {
+    parent.add(l);
+    if ('target' in l) parent.add((l as THREE.SpotLight).target);
+  }
+  return { all, shadowKey: sun, spots, secondaryShadows: [key] };
 }

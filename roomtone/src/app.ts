@@ -4,6 +4,7 @@ import { actions } from './state/actions';
 import { AudioEngine } from './audio/engine';
 import type { World, ViewMode, Hover } from './render/world';
 import type { Project } from './state/types';
+import { defaultQuality, savedQuality, type QualityId } from './render/quality';
 
 // App-wide singletons. Project state, audio and the 3D world are independent modules wired together here.
 
@@ -23,6 +24,7 @@ export interface UiState {
   toast: string | null;
   busy: string | null;
   autoExpand: Record<string, string | null>; // trackId -> automation target shown in arrangement
+  quality: QualityId;
 }
 
 export const store = new ProjectStore(demoProject());
@@ -42,6 +44,7 @@ export const ui = new UiStore<UiState>({
   toast: null,
   busy: null,
   autoExpand: {},
+  quality: savedQuality() ?? defaultQuality(),
 });
 export const engine = new AudioEngine(store);
 export const act = actions(store);

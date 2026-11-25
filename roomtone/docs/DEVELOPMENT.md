@@ -32,6 +32,8 @@ is not the bar.
 | `check-gear.cjs` | Drags the 3D distortion pedal's Drive knob with the mouse; checks the project value, the live audio unit and undo |
 | `check-pianoroll.cjs` | Draws a note with the mouse in the piano roll, undoes it |
 | `check-autosave.cjs` | Edits, reloads, confirms the edit survived |
+| `check-strings.cjs` | Violin/cello offline levels and bow-hair-to-string distance during a note |
+| `check-quality.cjs` | Applies every graphics preset in the hall, reports pixel ratio / shadows / atmosphere, screenshots Phone and Ultra |
 | `shots.cjs <prefix> <setupJs> <shotJs…>` | Evaluates JS, waits, screenshots, per step (`cam(i)` from `cams.js` frames musician *i*) |
 
 Reference results at the end of M0: mix peak −2 to −3 dBFS / RMS ≈ −18 dBFS; stick tip 3–6 mm from the head on hits.

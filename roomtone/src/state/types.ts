@@ -1,7 +1,7 @@
 // The project document. Plain JSON: everything the app needs to rebuild audio, UI and the 3D studio.
 // Times are in beats (quarter notes) unless a field says otherwise.
 
-export type InstrumentType = 'drums' | 'bass' | 'guitar' | 'keys' | 'synth' | 'sampler' | 'vocal';
+export type InstrumentType = 'drums' | 'bass' | 'guitar' | 'keys' | 'synth' | 'sampler' | 'vocal' | 'strings';
 
 export interface Note {
   id: string;
@@ -132,4 +132,5 @@ export interface Project {
   buses: Bus[];
   master: { volume: number; fx: Effect[] };
   audio: Record<string, AudioAssetMeta>;
+  room?: 'studio' | 'hall'; // where the band plays; missing in older projects = studio
 }

@@ -43,6 +43,7 @@ const FX_BY_INSTRUMENT: Record<InstrumentType, () => Effect[]> = {
   keys: () => [makeEffect('eq', { low: -1, high: 2 }), makeEffect('chorus', { mix: 0.25, depth: 0.35 })],
   synth: () => [makeEffect('chorus'), makeEffect('delay', { mix: 0.2 })],
   sampler: () => [makeEffect('compressor')],
+  strings: () => [makeEffect('eq', { low: -2, mid: 1, high: -1 })],
   vocal: () => [makeEffect('eq', { low: -4, high: 3 }), makeEffect('compressor', { threshold: -22, ratio: 4 })],
 };
 
@@ -63,7 +64,7 @@ export function newTrack(instrument: InstrumentType, station: number, look?: Mus
     solo: false,
     armed: false,
     fx: FX_BY_INSTRUMENT[instrument](),
-    sends: { reverb: instrument === 'drums' ? 0.12 : 0.25, delay: 0 },
+    sends: { reverb: instrument === 'drums' ? 0.12 : instrument === 'strings' ? 0.45 : 0.25, delay: 0 },
     clips: [],
     automation: [],
     musician: look ?? randomLook(),

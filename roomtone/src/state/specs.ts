@@ -125,6 +125,7 @@ export const INSTRUMENTS: Record<InstrumentType, InstrumentInfo> = {
   guitar: { type: 'guitar', label: 'Electric Guitar', role: 'Guitarist', presets: ['Clean Strat', 'Jangle', 'Muted Funk'], color: '#d9a441', defaultOctave: 4 },
   keys: { type: 'keys', label: 'Piano', role: 'Pianist', presets: ['Upright Piano', 'Electric Piano', 'Organ'], color: '#5b8fd9', defaultOctave: 4 },
   synth: { type: 'synth', label: 'Synthesizer', role: 'Synth Wizard', presets: ['Warm Pad', 'Saw Lead', 'Square Pluck'], color: '#c45fd0', defaultOctave: 4 },
+  strings: { type: 'strings', label: 'Strings', role: 'String Player', presets: ['Violin', 'Cello', 'String Section'], color: '#b5651d', defaultOctave: 4 },
   sampler: { type: 'sampler', label: 'Sampler', role: 'Beatmaker', presets: ['One-shot', 'Chromatic'], color: '#d96a9b', defaultOctave: 4 },
   vocal: { type: 'vocal', label: 'Vocals / Audio', role: 'Vocalist', presets: ['Audio'], color: '#f08a5d', defaultOctave: 4 },
 };

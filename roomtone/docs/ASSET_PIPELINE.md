@@ -5,6 +5,21 @@
 Every mesh in the repo is generated in code (`render/character`, `render/props.ts`, `render/studio.ts`), and every
 sound is synthesised (`audio/instruments`). There are **no third-party asset files**, so there is nothing to license.
 
+## The concert hall (Blender)
+
+`scripts/blender/build_hall.py` builds the hall from code and exports `public/models/hall.gltf.json` (~1.6 MB embedded glTF; served as JSON because some static hosts refuse `.glb`).
+Run it with Blender (`blender -b -P scripts/blender/build_hall.py`) or the `bpy` module
+(`pip install bpy==5.3.0` needs Python 3.13; then `python scripts/blender/build_hall.py`).
+
+- Coordinates follow RoomTone (metres, +Y up after export, stage toward −Z). Keep `HALL_STATIONS` and
+  `hallFloorY` in `render/hall.ts` in step with the script's stage/riser numbers (`src/render/hall.test.ts` checks
+  the stations stand on the floor).
+- Material names are the contract with the renderer (`stage_floor`, `emit_window`, `emit_downlight`, `plaster`…);
+  `hall.ts` adjusts emissive strength and shadow casting by name.
+- Seats are linked duplicates of one mesh; Blender 5.3's exporter writes them as separate nodes, so the loader
+  folds every repeated mesh into an `InstancedMesh`.
+- Lights, haze, light shafts and dust are added in three.js so they can scale with the quality preset.
+
 ## Characters
 
 `render/character/character.ts` builds a Mii-proportioned figure (≈1.15 m, big round head, mitten hands) on a
