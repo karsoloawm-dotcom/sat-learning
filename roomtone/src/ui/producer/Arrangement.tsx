@@ -7,6 +7,7 @@ import { audioAssets, peaks, putAsset } from '../../audio/assets';
 import { songEnd } from '../../audio/schedule';
 import { newPattern } from '../../state/defaults';
 import { uid } from '../../state/store';
+import { parseMidi } from '../../state/midi';
 
 const ROW = 58;
 const AUTO_ROW = 46;
@@ -51,6 +52,31 @@ export async function importAudioFile(file: File, trackId: string | null, beat: 
     d.tracks.find((t) => t.id === tid)?.clips.push({ id: uid('clip'), audioId: id, start: beat, length: (buf.duration * d.bpm) / 60, offset: 0, gain: 1 });
   });
   toast(`Imported ${file.name}`);
+}
+
+// A dropped .mid becomes a new clip (all MIDI tracks merged) on the MIDI track under the cursor, bar-aligned.
+async function importMidiClip(file: File, trackId: string | null, beat: number) {
+  const p = store.get();
+  const t = p.tracks.find((x) => x.id === trackId);
+  if (!t || t.kind !== 'midi') return toast('Drop MIDI files onto an instrument track');
+  try {
+    const m = parseMidi(await file.arrayBuffer());
+    if (!m.notes.length) return toast(`${file.name} has no notes`);
+    const bar = p.beatsPerBar;
+    const length = Math.max(bar, Math.ceil(m.lengthBeats / bar) * bar);
+    const start = Math.floor(beat / bar) * bar;
+    const pat = newPattern(file.name.replace(/\.midi?$/i, ''), length, m.notes.map((n) => ({ id: uid('n'), pitch: n.pitch, start: n.start, dur: n.dur, vel: n.vel })));
+    const clipId = uid('clip');
+    store.update(`Import ${file.name}`, (d) => {
+      d.patterns[pat.id] = pat;
+      d.tracks.find((x) => x.id === t.id)!.clips.push({ id: clipId, patternId: pat.id, start, length, offset: 0, gain: 1 });
+    });
+    selectTrack(t.id, false);
+    ui.set({ editPattern: pat.id, editClip: clipId, bottom: 'piano' });
+    toast(`Imported ${m.notes.length} notes onto ${t.name}`);
+  } catch (e) {
+    toast(`Could not import ${file.name}: ${(e as Error).message}`);
+  }
 }
 
 export function Arrangement() {
@@ -389,6 +415,10 @@ export function Arrangement() {
     const row = rowAt(e.clientY - r.top);
     const beat = Math.max(0, Math.round(toBeat(e.clientX - r.left)));
     for (const f of Array.from(e.dataTransfer.files)) {
+      if (/\.midi?$/i.test(f.name)) {
+        await importMidiClip(f, row?.track.id ?? null, beat);
+        continue;
+      }
       try {
         await importAudioFile(f, row?.track.id ?? null, beat);
       } catch {

@@ -20,7 +20,7 @@ Known gaps inside M0, worth doing next:
 ## M1 — Deeper DAW
 
 - Tempo and time-signature tracks; tempo automation in the scheduler (anchor list already supports re-anchoring).
-- MIDI file import/export; stems export (one WAV per track); loop-region export.
+- MIDI file export (import is done; tempo maps and per-MIDI-track splitting into separate tracks are not); stems export (one WAV per track); loop-region export.
 - Sample library browser with one-shot drag-to-pad; slicing for the sampler.
 - Sidechain input on the compressor; more effects (phaser, tremolo, gate, multiband, convolution cabinets).
 - Clip-level fades and crossfades; comping takes on audio tracks.

@@ -67,7 +67,7 @@ seats, an organ and arched clerestory windows. ~800 seats render as GPU instance
 | Area | Status |
 | --- | --- |
 | Sequencing | Multi-track MIDI clips that reference patterns (linked copies, *Make unique*), clips loop their pattern, loop region, tempo, snap, metronome |
-| Piano roll | Draw, move, resize, box-select, Alt-drag copy, velocity lane, quantize, transpose, duplicate, drum names on drum tracks |
+| Piano roll | MIDI import (button or drop a `.mid` on the roll; drop on an arrangement row for a new clip), draw, move, resize, box-select, Alt-drag copy, velocity lane, quantize, transpose, duplicate, drum names on drum tracks |
 | Arrangement | Move/trim/resize clips, Alt-drag duplicate, move between tracks, double-click to create, drop audio files, automation lanes |
 | Instruments | Bowed strings (violin, cello, string section) with delayed vibrato and body resonances, synthesised drum kit, Karplus-Strong guitar and bass, additive piano, FM electric piano, organ, subtractive synth, sampler (load your own sample) |
 | Audio | Import (drag & drop), microphone recording onto an armed audio track, waveform editor (normalize, reverse, fades, silence, crop), clip gain |
@@ -81,7 +81,7 @@ seats, an organ and arched clerestory windows. ~800 seats render as GPU instance
 | Live input | Musical typing (Z–M and Q–U rows), Web MIDI controllers, MIDI recording into a new clip |
 
 Not built yet (see [docs/ROADMAP.md](docs/ROADMAP.md)): native VST3 hosting, brass/woodwind/timpani players, the electronic room,
-music-video export, MIDI file import/export, tempo automation and time-stretching.
+music-video export, MIDI file export, tempo automation and time-stretching.
 
 ## Documentation
 

@@ -32,6 +32,7 @@ is not the bar.
 | `check-gear.cjs` | Drags the 3D distortion pedal's Drive knob with the mouse; checks the project value, the live audio unit and undo |
 | `check-pianoroll.cjs` | Draws a note with the mouse in the piano roll, undoes it |
 | `check-autosave.cjs` | Edits, reloads, confirms the edit survived |
+| `check-midi.cjs` | Imports a generated 2-track .mid via the piano roll button and by dropping it on the arrangement; checks notes, lengths, undo |
 | `check-strings.cjs` | Violin/cello offline levels and bow-hair-to-string distance during a note |
 | `check-quality.cjs` | Applies every graphics preset in the hall, reports pixel ratio / shadows / atmosphere, screenshots Phone and Ultra |
 | `shots.cjs <prefix> <setupJs> <shotJs…>` | Evaluates JS, waits, screenshots, per step (`cam(i)` from `cams.js` frames musician *i*) |

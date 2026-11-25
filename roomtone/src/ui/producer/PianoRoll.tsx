@@ -4,6 +4,8 @@ import { engine, store, ui } from '../../app';
 import { useProject, useRaf, useUi } from '../hooks';
 import { DRUM_NAMES } from '../../state/specs';
 import { uid } from '../../state/store';
+import { parseMidi } from '../../state/midi';
+import { toast } from '../../app';
 
 const KEYS_W = 64;
 const RULER_H = 20;
@@ -419,6 +421,38 @@ export function PianoRoll({ trackId, patternId, compact = false }: { trackId: st
     }));
   };
 
+  // Replace this pattern's notes with a MIDI file's (all tracks merged); grow the pattern and its clips to fit.
+  const midiInput = useRef<HTMLInputElement>(null);
+  const importMidi = async (file: File) => {
+    try {
+      const m = parseMidi(await file.arrayBuffer());
+      if (!m.notes.length) return toast(`${file.name} has no notes`);
+      const bar = store.get().beatsPerBar;
+      const length = Math.max(bar, Math.ceil(m.lengthBeats / bar) * bar);
+      store.update(`Import ${file.name}`, (d) => {
+        const pat = d.patterns[patternId];
+        if (!pat) return;
+        pat.notes = m.notes.map((n) => ({ id: uid('n'), pitch: n.pitch, start: n.start, dur: n.dur, vel: n.vel }));
+        pat.length = length;
+        if (pat.name.endsWith("'s part") || !pat.name) pat.name = file.name.replace(/\.midi?$/i, '');
+        for (const t of d.tracks) for (const c of t.clips) if (c.patternId === patternId && c.length < length) c.length = length;
+      });
+      setSel(new Set());
+      dirty.current = true;
+      const tracks = new Set(m.notes.map((n) => n.track)).size;
+      toast(`Imported ${m.notes.length} notes${tracks > 1 ? ` from ${tracks} MIDI tracks` : ''} (Ctrl+Z to undo)`);
+    } catch (e) {
+      toast(`Could not import ${file.name}: ${(e as Error).message}`);
+    }
+  };
+  const onDropFile = (e: React.DragEvent) => {
+    const f = [...e.dataTransfer.files].find((x) => /\.midi?$/i.test(x.name));
+    if (!f) return;
+    e.preventDefault();
+    e.stopPropagation(); // keep the arrangement's audio-drop handler out of it
+    importMidi(f);
+  };
+
   const makeUnique = () => {
     const ec = ui.get().editClip;
     if (!pattern || !ec) return;
@@ -440,7 +474,7 @@ export function PianoRoll({ trackId, patternId, compact = false }: { trackId: st
           <label>
             Length
             <select value={pattern.length} onChange={(e) => updatePattern(patternId, 'Pattern length', (p) => void (p.length = Number(e.target.value)))}>
-              {[4, 8, 16, 32, 64].map((b) => <option key={b} value={b}>{b / 4} bar{b > 4 ? 's' : ''}</option>)}
+              {[...new Set([4, 8, 16, 32, 64, pattern.length])].sort((x, y) => x - y).map((b) => <option key={b} value={b}>{+(b / 4).toFixed(2)} bar{b > 4 ? 's' : ''}</option>)}
             </select>
           </label>
           <label>
@@ -455,11 +489,17 @@ export function PianoRoll({ trackId, patternId, compact = false }: { trackId: st
             </select>
           </label>
           <button onClick={quantize} title="Snap note starts and lengths to the grid (Q)">Quantize{sel.size ? ' selected' : ''}</button>
+          <button onClick={() => midiInput.current?.click()} title="Replace this pattern's notes with a .mid file (or drop one onto the roll)">Import MIDI…</button>
+          <input ref={midiInput} type="file" accept=".mid,.midi,audio/midi" hidden onChange={(e) => {
+            const f = e.target.files?.[0];
+            if (f) importMidi(f);
+            e.target.value = '';
+          }} />
           {linked > 1 && <button onClick={makeUnique} title="This pattern is used by several clips; edits change all of them">Make unique ({linked} linked)</button>}
           <span className="muted small grow">Click to draw · drag to move · edge to resize · Shift-drag to select · right-click deletes · Alt-drag copies</span>
         </div>
       )}
-      <div className="pr-canvas" ref={wrap}>
+      <div className="pr-canvas" ref={wrap} onDragOver={(e) => e.preventDefault()} onDrop={onDropFile}>
         <canvas
           ref={canvas}
           tabIndex={0}
