@@ -34,7 +34,7 @@ SHOTS = [
     (43.302, "rooms.desk", "cut", "mix", "memory", "Low angle across a desk: books, an open notebook, blue shadow; an amber sun band sweeps on the bar."),
     (44.698, "rooms.fusuma", "cut", "mix", "doors", "Three layers of sliding doors shut toward camera, one per beat: waking up."),
     (46.791, "rooms.clock:close", "cut", "mix", "handless clock", "Close on the handless clock; numerals fall, one stays."),
-    (48.187, "pages.notebook", "cut", "2D", "memory", "Overhead: notebook pages flip on the beat while ink handwriting writes itself."),
+    (48.187, "pages.notebook", "ink", "2D", "memory", "Overhead: notebook pages flip on the beat while ink handwriting writes itself."),
     (49.583, "split:rooms.desk:warm|rooms.desk:cool", "match", "split", "two skies", "The same desk twice, mirrored: warm morning left, cool evening right."),
     (50.978, "pages.notebook:fill", "cut", "2D", "memory", "The pages fill faster and faster, ink bleeding to the edge into the lift."),
     # ---- hook 52.03-63.16: black and ivory match cuts, saturated blue sky, white and lilac title.
@@ -65,7 +65,7 @@ SHOTS = [
     (73.947, "lake.mist", "cut", "mix", "mirror lake", "Mist-covered lake, cool blue-grey wide, painted leaves in the foreground."),
     (75.295, "lake.mist:tree", "dissolve", "mix", "mirror lake", "Dissolve to a lone tree on an island in turquoise mist."),
     (76.644, "lake.mist:drift", "cut", "mix", "lantern", "A single lantern drifts toward the tree across the still water."),
-    (77.992, "pages.chalk", "cut", "2D", "memory", "Burst. Chalk strokes on green slate, smeared out on the beat."),
+    (77.992, "pages.chalk", "ink", "2D", "memory", "Burst. Chalk strokes on green slate, smeared out on the beat."),
     (78.666, "rail.tracks:dusk", "cut", "3D", "distance", "Orange-lit path along a fence."),
     (79.003, "sky.meteor", "cut", "3D", "comet", "A narrow orange meteor drops into a still field of indigo cloud."),
     (79.34, "rooms.shoji:wide", "cut", "mix", "dawn", "Wide tatami room before a luminous shoji, pale."),
@@ -79,7 +79,7 @@ SHOTS = [
     (87.43, "lake.torii", "cut", "mix", "gate", "Low wide on a vermilion torii among cedars; the sun warms and flares (2D leak)."),
     # ---- final chorus 90.13-114.40: lavender and scarlet, gold and pink dusk, orange fire, blue-black crater.
     (90.127, "city.lookout", "flash", "mix", "distance", "Climax: a railing over a bright city, blue sky, cumulus; the camera surges past the rail."),
-    (93.498, "cord.drift", "cut", "mix", "cord", "Red and blue strands drift in lavender-white space, mint flecks."),
+    (93.498, "cord.drift", "cord", "mix", "cord", "Red and blue strands drift in lavender-white space, mint flecks."),
     (93.835, "cord.drift:tumble", "match", "mix", "cord", "Falling through the cord lines; 2D speed lines."),
     (94.846, "cord.drift:indigo", "cut", "mix", "cord+lantern", "A red loop passes a small suspended lantern in a slow indigo float."),
     (95.52, "sky.meteor:teal", "cut", "3D", "comet", "A blue-white meteor cuts diagonally across a tracking teal sky."),
@@ -104,7 +104,7 @@ SHOTS = [
     (110.689, "lanterns.hero:overhead", "cut", "mix", "lantern", "Straight down: a lantern hangs over a tiny shadow on gold."),
     (111.026, "shadows.crowd", "cut", "2D", "shadows+cord", "A lavender crowd of grey cut-paper figures; one shadow trails a red cord."),
     (111.7, "lake.crater:day", "cut", "3D", "mirror lake", "Aerial sweep over a sunlit green crater basin."),
-    (113.048, "pages.paper:book", "cut", "2D", "memory", "A page turns to a blue lake panorama."),
+    (113.048, "pages.paper:book", "ink", "2D", "memory", "A page turns to a blue lake panorama."),
     # ---- outro 114.40-126.78: cyan sky, pale cream, leaf green, amber, rust-red rails. Waking, daylight.
     (114.396, "city.aerial", "flash", "3D", "dawn", "Hard re-entry: city aerial tilting up into cyan sky, lens flare."),
     (115.745, "stairs.street", "cut", "mix", "dawn", "Shallow focus: leaves in front, a blurred street, sparkles."),
@@ -112,7 +112,7 @@ SHOTS = [
     (118.441, "stairs.wide", "flash", "mix", "stairs", "White flash: a distant stair, long static wide; a shadow at the top, one at the bottom."),
     (121.138, "stairs.flight:climb", "cut", "mix", "stairs", "Side angle along red rails: one shadow climbs, one descends."),
     (122.823, "stairs.flight:pass", "flash", "mix", "stairs+cord", "Flash-match reverse: the shadows pass; a red cord tied to the rail flutters."),
-    (123.835, "cord.knot:rail", "cut", "mix", "cord", "Close on the knot on the rail, blue sky and white cloud."),
+    (123.835, "cord.knot:rail", "cord", "mix", "cord", "Close on the knot on the rail, blue sky and white cloud."),
     (125.183, "stairs.landing", "cut", "mix", "dawn", "End hit: wide landing over sunlit streets; 夢灯籠 end title; fade on the decay."),
 ]
 
