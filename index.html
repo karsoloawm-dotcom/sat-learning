@@ -14290,6 +14290,20 @@ const GIRL_URL=LAB.model==="v3"?(new URLSearchParams(location.search).get("hanak
       return new THREE.QuaternionKeyframeTrack(track.name,braceTimes,keys);
     });
     gClips.brace=new THREE.AnimationClip("brace",1.08,braceTracks);
+    /* Struggle variants layer procedural motion over the Blender struggle clip. */
+    const STRUGGLE_STYLES={
+      claw:(s,c)=>({head:[-.22+.08*s(3),.12*c(1),0],chest:[-.12+.05*s(2),0,0],upperarm_L:[-.55-.22*s(2),0,.18*c(2)],upperarm_R:[-.55-.22*c(2),0,-.18*s(2)],forearm_L:[-.45-.2*c(3),0,0],forearm_R:[-.45-.2*s(3),0,0]}),
+      writhe:(s,c)=>({spine:[0,.28*s(1),.1*c(1)],chest:[0,.22*s(1,.8),.08*s(2)],hips:[0,0,.12*s(1)],head:[.08*s(2),-.2*s(1,.4),.18*c(1)],thigh_L:[.38*s(2),0,0],thigh_R:[-.38*s(2),0,0],shin_L:[.3*Math.max(0,c(2)),0,0],shin_R:[.3*Math.max(0,-c(2)),0,0]}),
+      kick:(s,c)=>({thigh_L:[-.6*Math.max(0,s(2)),0,0],thigh_R:[-.6*Math.max(0,-s(2)),0,0],shin_L:[.7*Math.max(0,s(2,.5)),0,0],shin_R:[.7*Math.max(0,-s(2,.5)),0,0],chest:[.14*s(4),0,0],upperarm_L:[0,0,.32+.12*s(4)],upperarm_R:[0,0,-.32-.12*s(4)],head:[.1*s(4,1),0,0]})
+    };
+    for(const [style,pose] of Object.entries(STRUGGLE_STYLES)){const src=gClips.struggle,w=2*Math.PI/src.duration,qa=new THREE.Quaternion(),ea=new THREE.Euler();
+      gClips["struggle_"+style]=new THREE.AnimationClip("struggle_"+style,src.duration,src.tracks.map(track=>{
+        const bone=track.name.split(".")[0];if(!(track instanceof THREE.QuaternionKeyframeTrack)||!pose(()=>0,()=>0)[bone])return track.clone();
+        const v=track.values.slice();for(let i=0;i<track.times.length;i++){const t=track.times[i],o=pose((k,p=0)=>Math.sin(k*w*t+p),(k,p=0)=>Math.cos(k*w*t+p))[bone];
+          qa.fromArray(v,i*4).multiply(new THREE.Quaternion().setFromEuler(ea.set(o[0],o[1],o[2]))).toArray(v,i*4)}
+        return new THREE.QuaternionKeyframeTrack(track.name,track.times,v)}))}
+    /* Keep one struggle style per death; some deaths use the original clip. */
+    const struggleFor=m=>{if(!m)return "struggle";let h=0;for(const ch of String(m))h=h*31+ch.charCodeAt(0)|0;return ["struggle","struggle_claw","struggle_writhe","struggle_kick"][(h>>>0)%4]};
     const gTex=im=>{const t=new THREE.Texture(im);t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=4;t.needsUpdate=true;return t};
     const bodyTex=gTex(GIRL.img.bodyT||GIRL.img.body);
     const gMat={solid:o=>new THREE.MeshLambertMaterial(Object.assign({emissive:0x1a1626},o)),ghost:o=>new THREE.MeshLambertMaterial(Object.assign({color:0xc6d6ff,emissive:0x23305c,transparent:true,opacity:.84},o))};
@@ -14417,7 +14431,7 @@ const GIRL_URL=LAB.model==="v3"?(new URLSearchParams(location.search).get("hanak
         const socket=new THREE.Object3D();socket.name="socket_"+name;socket.position.fromArray(xyz);B[parent].add(socket);sockets[name]=socket;
       }
       const mixer=new THREE.AnimationMixer(mesh),acts={};let cur=null,cn="";
-      const play=(n,fade,speed)=>{const a=acts[n]||(acts[n]=mixer.clipAction(gClips[n]));a.timeScale=reduced?0:(speed==null?1:speed);if(cn===n)return;
+      const play=(n,fade,speed)=>{if(n==="struggle"&&kind==="solid")n=struggleFor(dth.m);const a=acts[n]||(acts[n]=mixer.clipAction(gClips[n]));a.timeScale=reduced?0:(speed==null?1:speed);if(cn===n)return;
         a.enabled=true;a.reset().setEffectiveWeight(1).play();if(cur&&fade)a.crossFadeFrom(cur,fade,false);else if(cur)cur.stop();cur=a;cn=n};
       function update(dt){
         mixer.update(dt);
@@ -14425,7 +14439,7 @@ const GIRL_URL=LAB.model==="v3"?(new URLSearchParams(location.search).get("hanak
         for(const side of ["L","R"]){
           const sign=side==="L"?1:-1, hand=B["hand_"+side];
           B["twist_"+side].rotation.x=.46*hand.rotation.x;
-          B["fingers_"+side].rotation.z=-sign*(cn==="struggle"?.31:cn==="run"?.19:.075);
+          B["fingers_"+side].rotation.z=-sign*(cn.startsWith("struggle")?.31:cn==="run"?.19:.075);
           B["toe_"+side].rotation.x=cn==="run"?Math.min(.34,Math.max(0,-B["foot_"+side].rotation.x*.55)):0;
         }
       }
