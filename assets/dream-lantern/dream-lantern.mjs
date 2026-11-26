@@ -88,7 +88,7 @@ function buildShots(TM) {
   /* verse 1: a cut every two bars, each a washi wipe; the pre-chorus opens on the cord's release */
   ["wide", "torii", "upward"].forEach((id, k) => add(barsFrom(TM, v1, 2 * k), id, { wipe: true }));
   add(pc, "shore", { wipe: true }); add(barsFrom(TM, pc, 2), "crater", { wipe: true });
-  /* the hook: quick cuts on every fast beat into the lift, then the comet */
+  /* the hook: quick cuts on the beat into the lift, then the comet */
   burst(0, ["comet", "torii", "upward", "wide"]);
   add(bursts[0] ? bursts[0][1] : c1, "comet", { flash: .8 });
   add(v2, "diptych", { wipe: true });
@@ -459,7 +459,7 @@ void main(){ if(vUv.x>uGrow)discard;
       const P = LP[i];
       let vis = i === 0 ? 1 - sm(tLone + 6, tLone + 9, t) * (1 - sm(tOut, tOut + 1, t)) : sm(P.app, P.app + .5, t) * (P.rel === Infinity ? 1 : outroFade);
       let x = P.x + Math.sin(t * .23 + P.ph) * .35, z = P.z + Math.cos(t * .19 + P.ph) * .35, y = .32 + Math.sin(t * 1.3 + P.ph) * .05, sc = P.s;
-      if (i === 0 && t > tOut) y += eo((t - tOut) / 6) * 1.6;
+      if (i === 0 && t > tOut) { y += eo((t - tOut) / 6) * 1.6; x += eo((t - tOut) / 3) * 2.6 } /* drifts aside so the knot stays in view */
       if (t > P.rel) {
         const d = t - P.rel, v = P.v * P.boost;
         y += v * (d - 1.6 * (1 - Math.exp(-d / 1.6)));
@@ -525,7 +525,8 @@ void main(){ if(vUv.x>uGrow)discard;
     if (t > TM.duration + .8 && !clk.audio) { if (!endT) { endT = 1; stop() } return }
     let si = 0; for (let i = 0; i < SH.length; i++) if (SH[i].t <= t) si = i;
     const shot = SH[si], lt = t - shot.t, u = cl(lt / (shot.t1 - shot.t));
-    const fi = lastIdx(TM.fast, t), sid = shot.id === "burst" ? shot.ids[((fi - lastIdx(TM.fast, shot.t + .01)) % shot.ids.length + shot.ids.length) % shot.ids.length] : shot.id;
+    /* bursts cut on every second fast beat (the 89 BPM pulse): every 178 BPM beat reads as strobing */
+    const fi = lastIdx(TM.beats, t), sid = shot.id === "burst" ? shot.ids[((fi - lastIdx(TM.beats, shot.t + .01)) % shot.ids.length + shot.ids.length) % shot.ids.length] : shot.id;
     if (shot !== lastShot) { lastShot = shot }
     /* uniforms */
     skyU.uTime.value = t;
