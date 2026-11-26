@@ -84,6 +84,7 @@ void main(){int o=vUv.x<uSeam?0:7;vec4 a=uL[o],b=uL[o+1],c4=uL[o+2],d=uL[o+3],e=
     LOOK[k + 6].set(L.leakColor[0], L.leakColor[1], L.leakColor[2], L.lift[2]);
   }
   return {
+    target: sceneRT, /* render into this when compiling a module's shaders, so they match what part() renders */
     /* W, H in CSS px; the drawing buffer is R's size */
     resize(w, h) {
       W = w; H = h; const s = R.getPixelRatio() * Q.scale; pw = Math.max(4, Math.round(w * s)); ph = Math.max(4, Math.round(h * s));
@@ -100,9 +101,9 @@ void main(){int o=vUv.x<uSeam?0:7;vec4 a=uL[o],b=uL[o+1],c4=uL[o+2],d=uL[o+3],e=
       SHARED.uViewH.value = vp[3] * k;
       R.setRenderTarget(sceneRT); R.render(scene, camera);
       sceneRT.scissorTest = false; sceneRT.viewport.set(0, 0, pw, ph); sceneRT.scissor.set(0, 0, pw, ph);
-      looks.push({ look, x: (x0 + x1) / 2 / W });
+      looks.push({ look, x0: x0 / W, x1: x1 / W });
     },
-    /* composite the painted back canvas under the 3D, run the post chain to the screen; extra looks without a part (2D-only shots) */
+    /* composite the painted back canvas under the 3D, run the post chain to the screen; extra: looks for 2D-only parts, [{look, x0, x1}] in 0..1 */
     end(backCanvas, t, extra) {
       if (extra) for (const e of extra) looks.push(e);
       if (backCanvas) { if (back.image !== backCanvas) { back.image = backCanvas; back.dispose() } back.needsUpdate = true }
@@ -110,10 +111,10 @@ void main(){int o=vUv.x<uSeam?0:7;vec4 a=uL[o],b=uL[o+1],c4=uL[o+2],d=uL[o+3],e=
       let src = A;
       down.forEach(t => { dn.uniforms.tIn.value = src.texture; dn.uniforms.uT.value.set(.5 / src.width, .5 / src.height); pass(dn, t); src = t });
       for (let i = up.length - 1; i >= 0; i--) { upm.uniforms.tIn.value = src.texture; upm.uniforms.tAdd.value = down[i].texture; upm.uniforms.uT.value.set(.5 / src.width, .5 / src.height); pass(upm, up[i]); src = up[i] }
-      looks.sort((a, b) => a.x - b.x);
+      looks.sort((a, b) => a.x0 - b.x0);
       const L0 = looks[0] ? looks[0].look : lookFor("intro"), L1 = looks.length > 1 ? looks[looks.length - 1].look : L0;
       packLook(L0, 0); packLook(L1, 1);
-      fin.uniforms.uSeam.value = looks.length > 1 ? (looks[0].x + looks[looks.length - 1].x) / 2 : 2;
+      fin.uniforms.uSeam.value = looks.length > 1 ? looks[0].x1 : 2;
       fin.uniforms.tM1.value = down[0].texture; fin.uniforms.tU1.value = (up[0] || down[0]).texture; fin.uniforms.tU2.value = (up[1] || up[0] || down[0]).texture; fin.uniforms.uTime.value = (t || 0) % 7;
       R.setViewport(0, 0, W, H); pass(fin, null);
     },
