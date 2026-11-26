@@ -1,7 +1,7 @@
 import {createStairPerformance,stairFootWeights,STAIR_IMPACT,STAIR_TWITCH_END,STAIR_END} from "./stair-performance.mjs";
 import {playStairCue} from "./stair-sound.mjs";
 import {createKeeperHunt} from "./keeper-hunt.mjs";
-import {furnishInterior} from "./mansion-interior.mjs?v=renovation";
+import {furnishInterior} from "./mansion-interior.mjs?v=blade";
 
 export function buildMansion(THREE, scene, northLimit) {
   const group = new THREE.Group();
@@ -557,7 +557,7 @@ export function buildMansion(THREE, scene, northLimit) {
     return x<-4.9?"keeper3":x>4.9?"keeper2":null;
   }
   const grounds=(_x,z)=>z<-31;
-  return {group,centerZ,northLimit,inside,grounds,rooms,stairs,roomAt,huntLayout,door,toggleServiceDoor,setServiceDoor,bath:interior.bath,
+  return {group,centerZ,northLimit,inside,grounds,rooms,stairs,roomAt,huntLayout,door,toggleServiceDoor,setServiceDoor,bath:interior.bath,blade:interior.blade,
     createHunt:(actor,cue,capture)=>createKeeperHunt(huntLayout,actor,cue,capture),
     gallowsOpen(on){closed.visible=!on},blocked,move,clearCamera,dispose(){maps.forEach(t=>t.dispose());interior.bath.dispose()}};
 }
