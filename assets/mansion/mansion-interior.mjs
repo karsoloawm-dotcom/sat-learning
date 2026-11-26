@@ -635,6 +635,54 @@ export function furnishInterior(THREE, kit) {
   for (const z of [-13.0, -24.6]) sconce("x", 11.86, -1, z, 2.6);
   picture("z", -26.31, 1, 5.0, 3.0, .9, .6, M.landscape);
 
+  // An old katana on a wall rack between the antlers, its empty scabbard on the tier below.
+  // The sword is its own group (local +x toward the tip, +y the cutting edge) so a set piece can lift it.
+  const rackZ = -24.0, rackX = 11.86;
+  box(.04, .62, 1.3, M.walnut, rackX - .02, 1.12, rackZ);
+  for (const z of [rackZ - .4, rackZ + .35]) for (const y of [1.0, 1.26]) {
+    box(.15, .045, .045, M.walnut, rackX - .1, y, z);
+    box(.03, .05, .045, M.walnut, rackX - .17, y + .045, z);
+  }
+  const ofuda = box(.006, .2, .07, mat(0xe9e0c8), rackX - .045, 1.08, rackZ + .04);
+  ofuda.rotation.x = .08;
+  box(.007, .12, .012, mat(0x8a1a1a), rackX - .049, 1.09, rackZ + .04).rotation.x = .08;
+  const saya = box(.03, .035, 1.0, mat(0x15100f, null, 0x020101), rackX - .13, 1.045, rackZ - .05);
+  saya.rotation.x = .02;
+  const rust = paint(256, 32, (c, w, h) => {
+    c.fillStyle = "#9a958e"; c.fillRect(0, 0, w, h);
+    c.fillStyle = "#b9b4aa"; c.fillRect(0, h * .62, w, h * .12);              // the temper line along the edge
+    for (let i = 0; i < 90; i++) {
+      const x = rnd() * w, y = rnd() * h, r = 1 + rnd() * 6;
+      c.fillStyle = rnd() < .6 ? "rgba(112,52,24,.55)" : "rgba(58,30,18,.6)";
+      c.beginPath(); c.ellipse(x, y, r * 1.8, r * .6, 0, 0, Math.PI * 2); c.fill();
+    }
+  }, false);
+  const steel = new THREE.MeshPhongMaterial({color: 0xc8c0b4, map: rust, shininess: 60, specular: 0x6a6258, side: THREE.DoubleSide});
+  const sword = new THREE.Group(); sword.name = "Old katana";
+  {
+    const L = .95, bend = x => .03 * (x / L) ** 2, shape = new THREE.Shape();
+    shape.moveTo(0, -.016);
+    for (let i = 1; i <= 12; i++) { const x = L * .93 * i / 12; shape.lineTo(x, -.016 - bend(x)); }
+    shape.quadraticCurveTo(L * .99, -.016 - bend(L), L, .004 - bend(L));           // the kissaki
+    for (let i = 12; i >= 0; i--) { const x = L * .9 * i / 12; shape.lineTo(x, .016 - bend(x) - .002 * i / 12); }
+    const blade = new THREE.ExtrudeGeometry(shape, {depth: .006, bevelEnabled: true, bevelThickness: .002, bevelSize: .002, bevelSegments: 1});
+    blade.translate(0, 0, -.003);
+    const uv = blade.attributes.uv;
+    for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) / L, (uv.getY(i) + .03) / .055);
+    const bladeMesh = new THREE.Mesh(blade, steel); bladeMesh.name = "blade"; bladeMesh.castShadow = true; sword.add(bladeMesh);
+    const piece = (geometry, material, x, rz = 0) => { const m = new THREE.Mesh(geometry, material); m.position.x = x; m.rotation.z = rz; m.castShadow = true; sword.add(m); return m; };
+    piece(new THREE.BoxGeometry(.03, .036, .012), M.brass, .01);                                          // habaki
+    piece(new THREE.CylinderGeometry(.04, .04, .008, 14), M.iron, -.006, Math.PI / 2).scale.set(1, 1, .8); // tsuba
+    const grip = piece(new THREE.CylinderGeometry(.016, .017, .3, 8), mat(0x241a18), -.16, Math.PI / 2);
+    grip.scale.set(1, 1, .75);
+    piece(new THREE.SphereGeometry(.017, 8, 6), M.iron, -.31).scale.set(.6, 1, .8);                     // kashira
+  }
+  // Edge up, tip toward the room's back wall, resting in the top hooks.
+  sword.position.set(rackX - .145, 1.31, rackZ + .42);
+  sword.rotation.set(0, Math.PI / 2, 0);
+  group.add(sword);
+  sword.traverse(m => { if (m.isMesh) live.add(m); });   // it moves in the blade set piece, so keep it out of the merge
+
   // ---------- the bathroom ----------
   // Built inside the front of the trophy workshop: x 5.31..11.86, z -11.29..-6.63.
   const bx0 = 5.4, bz1 = -11.2, BH = 3.15;
@@ -805,5 +853,9 @@ export function furnishInterior(THREE, kit) {
     steamOn: true,
     dispose() { steamGeo.dispose(); steamMat.dispose(); waterGeo.dispose(); waterMat.dispose(); lampMat.dispose(); }
   };
-  return {live, bath};
+  const blade = {
+    sword, steel, x: rackX - .145, z: rackZ + centerZ, stand: {x: 10.95, z: rackZ + centerZ},
+    near(p) { return Math.abs(p.x - 10.95) < 1.0 && Math.abs(p.z - blade.z) < .9; }
+  };
+  return {live, bath, blade};
 }
