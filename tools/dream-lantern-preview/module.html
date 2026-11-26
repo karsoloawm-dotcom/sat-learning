@@ -60,7 +60,7 @@ async function load() {
   if (M) { try { M.dispose() } catch (e) { fail("dispose", e) } }
   if (KIT) KIT.dispose();
   M = null; KIT = createKit(THREE, $("tier").value); err = ""; $("err").textContent = ""; visible = false; mine = own(mod());
-  pipe.begin(); pipe.end(cvB, 0, [{ look: lookFor("intro"), x: .5 }]); /* upload the pipeline's own resources before the baseline */
+  pipe.begin(); pipe.end(cvB, 0, [{ look: lookFor("intro"), x0: 0, x1: 1 }]); /* upload the pipeline's own resources before the baseline */
   R.renderLists.dispose(); base0 = { g: R.info.memory.geometries, x: R.info.memory.textures };
   scene = new THREE.Scene(); camera = new THREE.PerspectiveCamera(50, W / H, .1, 3000);
   history.replaceState(null, "", `?m=${mod()}&tier=${$("tier").value}&t=${t.toFixed(2)}`);
@@ -68,7 +68,7 @@ async function load() {
     const lib = await import(BASE + "scenes/" + mod() + ".mjs?v=" + Date.now());
     const t0 = performance.now();
     M = await lib.create({ THREE, scene, camera, ctx2d, back2d, renderer: R, kit: KIT, tier: $("tier").value, seed: 1, timing: TM, base: BASE, jsm: JSM });
-    R.compile(scene, camera);
+    R.setRenderTarget(pipe.target); R.compile(scene, camera); R.setRenderTarget(null);
     $("err").textContent = `create ${(performance.now() - t0).toFixed(0)} ms`;
   } catch (e) { fail("create", e) }
   list();
@@ -116,7 +116,7 @@ function frame() {
     back2d.restore(); ctx2d.restore();
     pipe.part(scene, camera, vp, null, KIT.takeLook(base.section)); calls += R.info.render.calls; tris += R.info.render.triangles;
   }
-  pipe.end(cvB, t, on ? null : [{ look: lookFor(base.section), x: .5 }]);
+  pipe.end(cvB, t, on ? null : [{ look: lookFor(base.section), x0: 0, x1: 1 }]);
   ms = ms * .9 + (performance.now() - t0) * .1;
   if (on && $("safe").checked) { ctx2d.strokeStyle = "#ff0a"; ctx2d.lineWidth = 1; const lb = cvF.height * .085; ctx2d.strokeRect(0, lb, cvF.width, cvF.height - 2 * lb) }
   $("stats").textContent = `update+render+post ${ms.toFixed(1)} ms   fps ${(1 / Math.max(dt, 1e-3)).toFixed(0)}\ncalls ${calls}   tris ${tris}\ngeometries ${R.info.memory.geometries}   textures ${R.info.memory.textures}\nprograms ${(R.info.programs || []).length}   canvas ${cvF.width}×${cvF.height}`;
