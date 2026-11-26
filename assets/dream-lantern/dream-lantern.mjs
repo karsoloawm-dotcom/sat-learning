@@ -3,7 +3,8 @@
    a scene module (scenes/<id>.mjs) and a setup in it, or two of them side by side. The core loads each module a few seconds
    before it is needed, renders it through the dream-look pipeline (kit.mjs: the module's painted back canvas and its 3D in one
    HDR image, then one post chain: bloom, glow, tilt-shift, rays, grade), lays the module's crisp front canvas on top, draws the
-   transitions (transitions.mjs), the titles, letterbox and grain, and disposes modules it will not need soon, so memory stays bounded. A module that is missing or throws is replaced by scenes/_template.mjs for the rest of the run.
+   transitions (transitions.mjs), the titles, letterbox and grain, and disposes modules it will not need soon, so memory stays bounded. A module that is missing or throws is replaced for the rest of the run by scenes/_fallback.mjs
+   (v1's lantern lake in the dream look, so a failure never looks worse than v1), or scenes/_template.mjs if that fails too.
    Clock: the song, read from audio.currentTime every frame so it cannot drift. Like the site's other films it comes from the
    Sounds panel (EggSound slot egg_dreamlantern); else assets/local/dream-lantern.* on this machine (gitignored), else a file the
    viewer picks; with none, a silent clock on the same beat map. The opening title is brushed over the site's own Your Name sky
@@ -23,7 +24,8 @@ const eio = x => { x = cl(x); return x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * 
 const hash = i => { const v = Math.sin(i * 12.9898 + 78.233) * 43758.5453; return v - Math.floor(v) };
 const L = a => a[{ vi: 1, ja: 2 }[typeof LANG === "string" ? LANG : "en"]] || a[0];
 const MIN = '"Shippori Mincho B1","Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif', SANS = '"Zen Kaku Gothic New",system-ui,sans-serif';
-const CORE = new Set(["title", "black"]), FALLBACK = "_template";
+const CORE = new Set(["title", "black"]);
+let FALLBACK = "_fallback"; /* v1's lantern lake in the dream look; "_template" if even that fails */
 
 const API = window.DreamLantern = window.DreamLantern || { on: false };
 let S = null;
@@ -52,6 +54,7 @@ function prepShots(SJ, TM) {
 }
 
 async function boot(s) {
+  FALLBACK = "_fallback";
   const [TM, SJ] = await Promise.all([loadTiming(BASE + "timing.json"), fetch(BASE + "shots.json").then(r => r.ok ? r.json() : null).catch(() => null)]);
   if (s.dead) return;
   if (!SJ || !SJ.shots || !SJ.shots.length) throw Error("shots.json is missing");
@@ -235,7 +238,8 @@ async function boot(s) {
   if (ES) try { ES.egg("dreamlantern", 0) } catch (e) { }
   /* a slot without a file stays set but never plays: give it 2.5 s, as the other films do */
   const waitSlot = async () => { for (let k = 0; k < 25 && !s.dead && mine(); k++) { const a = ES.eggAudio(); if (a && !a.paused && a.currentTime > .01) return a; await new Promise(r => setTimeout(r, 100)) } return null };
-  const [, local, shared] = await Promise.all([spawn(FALLBACK), findLocal(), waitSlot()]);
+  const fb = async () => { if ((await spawn(FALLBACK)).st !== "ok") { FALLBACK = "_template"; await spawn(FALLBACK) } };
+  const [, local, shared] = await Promise.all([fb(), findLocal(), waitSlot()]);
   if (s.dead) return;
   if (shared) useShared(shared);
   else {
