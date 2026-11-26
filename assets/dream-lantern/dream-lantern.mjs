@@ -10,8 +10,8 @@
    Debug: DreamLantern.seek(seconds), DreamLantern.state(). ===== */
 const BASE = new URL("./", import.meta.url).href;
 const JSM = "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/";
-/* parallel-built scene modules: set true once the file is in the repo (a missing module would log a 404) */
-const MODS = { tokyo: false, ink: false };
+/* parallel-built scene modules (scene-tokyo.mjs, ink.mjs); the stand-ins below take over if one fails to load */
+const MODS = { tokyo: true, ink: true };
 const TAU = Math.PI * 2, PI = Math.PI;
 const cl = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x)), mix = (a, b, k) => a + (b - a) * k;
 const sm = (a, b, x) => { x = cl((x - a) / (b - a)); return x * x * (3 - 2 * x) };
@@ -383,7 +383,7 @@ void main(){ if(vUv.x>uGrow)discard;
   if (MODS.tokyo) { try { tokyo = (await import("./scene-tokyo.mjs")).create({ THREE, scene: world, tier, seed: 7 }); if (tokyo.group) tokyo.group.position.y += 17 } catch (e) { console.warn("Dream Lantern: Tokyo module failed, using the stand-in", e) } }
   if (!tokyo) tokyo = tokyoStandIn(THREE, world, tier);
   let drawInk = inkStandIn;
-  if (MODS.ink) { try { drawInk = (await import("./ink.mjs")).drawInk } catch (e) { console.warn("Dream Lantern: ink module failed", e) } }
+  if (MODS.ink) { try { const ink = await import("./ink.mjs"); drawInk = ink.drawInk; s.off.push(() => ink.clearCache && ink.clearCache()) } catch (e) { console.warn("Dream Lantern: ink module failed", e) } }
   s.mods = [tokyo];
   if (s.dead) return;
 
