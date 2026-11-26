@@ -44,9 +44,11 @@ const fragmentShader = `
       float floorLight = hash(vec2(cell.y,id));
       float room = hash(vec2(floor(cell.x/3.) + id, cell.y));
       float light = hash(cell + id);
-      float sweep = fract(phase - (vCityX + 80.) / 160.);
-      float wave = 1. - smoothstep(.015,.22,sweep);
-      float lit = step(light, vFacade.w + (floorLight-.5)*.44 + (room-.5)*.46 + .33*wave);
+      float offset = phase - (vCityX + 80.) / 160.;
+      float distanceToCrest = abs(fract(offset + .5) - .5);
+      float wave = 1. - smoothstep(0.,.35,distanceToCrest);
+      float occupancy = vFacade.w + (floorLight-.5)*.44 + (room-.5)*.46;
+      float lit = smoothstep(light-.08,light+.08,occupancy + .25*wave);
       vec2 pane = vec2(.32,.26) - abs(fract(grid)-.5);
       vec2 aa = clamp(fwidth(grid)*.5,vec2(.01),vec2(.45));
       vec2 cover = smoothstep(-aa,aa,pane);
@@ -152,7 +154,8 @@ export function create({ THREE, scene, tier, seed = 1 }) {
   return {
     group,
     update(f) {
-      uniforms.phase.value = f.beatPhase;
+      // Two beats per sweep; derive phase from the song clock so seeks stay in sync.
+      uniforms.phase.value = (f.beat % 2) * .5;
       uniforms.accent.value = f.accent;
       uniforms.seconds.value = f.t;
       const u = f.section === 'chorus2' ? THREE.MathUtils.clamp(f.secT,0,1) : 0;
