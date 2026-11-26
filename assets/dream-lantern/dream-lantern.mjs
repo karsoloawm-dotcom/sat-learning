@@ -1,16 +1,19 @@
 /* ===== 夢灯籠 Dream Lantern: a music-video easter egg, opened by typing "dream lantern" in the search bar.
    v2 is a shot sequencer. shots.json (written by build_shots.py) lists 93 shots on the song's 178 BPM grid; each shot names
    a scene module (scenes/<id>.mjs) and a setup in it, or two of them side by side. The core loads each module a few seconds
-   before it is needed, renders it into three stacked layers (a painted 2D canvas behind, a transparent WebGL canvas, a 2D canvas
-   in front), draws the transitions (transitions.mjs), the titles, letterbox and grain, and disposes modules it will not need
-   soon, so memory stays bounded. A module that is missing or throws is replaced by scenes/_template.mjs for the rest of the run.
-   Clock: the song when there is one (assets/local/dream-lantern.* on this machine, which is gitignored, or a file the viewer
-   picks), read from audio.currentTime every frame so it cannot drift; otherwise a silent clock on the same beat map.
-   Quality follows the site's sky setting: saver/phone, smooth, ultra (bloom). Every image is original.
+   before it is needed, renders it through the dream-look pipeline (kit.mjs: the module's painted back canvas and its 3D in one
+   HDR image, then one post chain: bloom, glow, tilt-shift, rays, grade), lays the module's crisp front canvas on top, draws the
+   transitions (transitions.mjs), the titles, letterbox and grain, and disposes modules it will not need soon, so memory stays bounded. A module that is missing or throws is replaced by scenes/_template.mjs for the rest of the run.
+   Clock: the song, read from audio.currentTime every frame so it cannot drift. Like the site's other films it comes from the
+   Sounds panel (EggSound slot egg_dreamlantern); else assets/local/dream-lantern.* on this machine (gitignored), else a file the
+   viewer picks; with none, a silent clock on the same beat map. The opening title is brushed over the site's own Your Name sky
+   (Sky.yourname(): the starry twilight with the comet), which keeps drawing underneath for that one shot (DreamLantern.skyThrough).
+   Quality follows the site's sky setting: saver/phone, smooth, ultra (richer post). Every image is original.
    Debug: DreamLantern.seek(seconds), DreamLantern.pause(true|false), DreamLantern.state(); DreamLantern.onFrame(layers) runs after
    each rendered frame, while the WebGL layer can still be read (stills). ===== */
 import { loadTiming, frameAt, lastIdx } from "./timing.mjs";
 import * as TR from "./transitions.mjs";
+import { createPipeline, createKit, lookFor } from "./kit.mjs";
 const BASE = new URL("./", import.meta.url).href;
 const JSM = "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/";
 const TAU = Math.PI * 2;
@@ -65,7 +68,7 @@ async function boot(s) {
   el.className = "dl-film"; el.setAttribute("role", "dialog"); el.setAttribute("aria-label", "夢灯籠 · Dream Lantern");
   el.style.cssText = "position:fixed;inset:0;z-index:2147480000;background:#000;opacity:0;transition:opacity .6s;overflow:hidden;touch-action:none";
   const CV = "position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none";
-  el.innerHTML = `<canvas class="dl-back" style="${CV}"></canvas><canvas class="dl-3d" style="${CV}"></canvas><canvas class="dl-2d" style="${CV}"></canvas>
+  el.innerHTML = `<canvas class="dl-3d" style="${CV}"></canvas><canvas class="dl-2d" style="${CV}"></canvas>
 <div class="dl-hud" style="position:absolute;inset:0;pointer-events:none;font:500 13px ${SANS};color:#f6ead8">
  <button class="dl-x" type="button" style="pointer-events:auto;position:absolute;top:14px;right:14px;width:40px;height:40px;border-radius:50%;border:1px solid #fff3;background:#0007;color:#fff;font-size:18px;cursor:pointer">✕</button>
  <div class="dl-song" style="pointer-events:auto;position:absolute;left:14px;bottom:14px;display:flex;gap:8px;align-items:center;opacity:.85">
@@ -77,7 +80,7 @@ async function boot(s) {
 </div>`;
   document.body.appendChild(el);
   s.el = el;
-  const $ = q => el.querySelector(q), cvB = $(".dl-back"), cv3 = $(".dl-3d"), cv2 = $(".dl-2d"), bg = cvB.getContext("2d"), g = cv2.getContext("2d");
+  const $ = q => el.querySelector(q), cvB = document.createElement("canvas"), cv3 = $(".dl-3d"), cv2 = $(".dl-2d"), bg = cvB.getContext("2d"), g = cv2.getContext("2d");
   $(".dl-x").setAttribute("aria-label", L(["Close", "Đóng", "閉じる"]));
   $(".dl-x").onclick = () => stop();
   const st = $(".dl-st"), pick = $(".dl-pick"), file = $(".dl-file"), go = $(".dl-go");
@@ -108,9 +111,16 @@ async function boot(s) {
     if (on && !clk.paused) { clk.heldAt = now(); clk.held = clk.paused = true }
     else if (!on && clk.paused) { clk.paused = clk.held = false; clk.t0 = performance.now() / 1000 - clk.heldAt }
   };
+  const ES = typeof EggSound !== "undefined" ? EggSound : null;
+  const mine = () => { try { const sl = ES && ES.eggSlot(); return !!sl && sl.indexOf("egg_dreamlantern") === 0 } catch (e) { return false } };
+  function useShared(a) { /* the Sounds panel's element: read it, never tear it down (EggSound owns it) */
+    clk.audio = a; clk.shared = true; clk.lastAt = -1; pick.hidden = true;
+    const end = () => { if (clk.audio === a) stop() }; a.addEventListener("ended", end); s.off.push(() => a.removeEventListener("ended", end));
+    st.textContent = "♪ Dream Lantern"; setTimeout(() => { if (st.textContent === "♪ Dream Lantern") st.textContent = "" }, 6000);
+  }
   function useAudio(url, label, own) {
     if (s.dead) return;
-    if (clk.audio) { clk.audio.pause(); clk.audio.src = "" }
+    if (clk.shared) { clk.shared = false; if (mine()) ES.egg(null) } else if (clk.audio) { clk.audio.pause(); clk.audio.src = "" }
     if (clk.url) URL.revokeObjectURL(clk.url);
     clk.url = own ? url : null;
     const a = new Audio(); a.preload = "auto"; a.src = url; clk.audio = a; clk.lastAt = -1;
@@ -136,37 +146,30 @@ async function boot(s) {
 
   /* ---------- three.js ---------- */
   const THREE = await import("three");
-  const fx = tier === "ultra" ? await Promise.all(["postprocessing/EffectComposer.js", "postprocessing/RenderPass.js", "postprocessing/UnrealBloomPass.js", "postprocessing/OutputPass.js"].map(p => import(JSM + p))).catch(e => { console.warn("Dream Lantern: no bloom", e); return null }) : null;
   if (s.dead) return;
-  const R = new THREE.WebGLRenderer({ canvas: cv3, alpha: true, antialias: tier !== "saver", powerPreference: "high-performance" });
+  /* the scene renders into the pipeline's HDR target (MSAA there), and its last pass writes this canvas */
+  const R = new THREE.WebGLRenderer({ canvas: cv3, antialias: false, powerPreference: "high-performance" });
   s.R = R;
-  R.outputColorSpace = THREE.SRGBColorSpace; R.toneMapping = THREE.ACESFilmicToneMapping; R.toneMappingExposure = 1.05;
+  R.outputColorSpace = THREE.SRGBColorSpace; R.toneMapping = THREE.NoToneMapping;
   R.setClearColor(0, 0); R.autoClear = false;
+  const pipe = createPipeline(THREE, R, tier); s.pipe = pipe;
   let drawInk = inkStandIn;
   try { const ink = await import("./ink.mjs"); drawInk = ink.drawInk; s.off.push(() => ink.clearCache && ink.clearCache()) } catch (e) { console.warn("Dream Lantern: ink module failed", e) }
   if (s.dead) return;
-  let comp = null, bloom = null;
-  if (fx) {
-    comp = new fx[0].EffectComposer(R); comp.addPass(new fx[1].RenderPass(new THREE.Scene(), new THREE.PerspectiveCamera()));
-    bloom = new fx[2].UnrealBloomPass(new THREE.Vector2(256, 256), .4, .5, .95); comp.addPass(bloom); comp.addPass(new fx[3].OutputPass());
-    s.comp = comp;
-  }
 
   /* ---------- 2D helpers ---------- */
-  let W = 0, H = 0, d2 = 1, vig = null, hold = null;
+  let W = 0, H = 0, d2 = 1, hold = null;
   const grain = document.createElement("canvas"); grain.width = grain.height = 160;
   { const gg = grain.getContext("2d"), im = gg.createImageData(160, 160); for (let i = 0; i < im.data.length; i += 4) { const v = Math.random() * 255; im.data[i] = im.data[i + 1] = im.data[i + 2] = v; im.data[i + 3] = 255 } gg.putImageData(im, 0, 0) }
   const grainPat = g.createPattern(grain, "repeat");
   function resize() {
-    const dpr = Math.min(tier === "ultra" ? 3 : tier === "saver" ? 1 : 2, (typeof pcDpr === "function" ? pcDpr() : devicePixelRatio) || 1);
+    /* the post chain works at the drawing-buffer size, so the pixel ratio is capped lower than v1's: 1 / 1.5 / 2 */
+    const dpr = Math.min(tier === "ultra" ? 2 : tier === "saver" ? 1 : 1.5, (typeof pcDpr === "function" ? pcDpr() : devicePixelRatio) || 1);
     W = el.clientWidth || innerWidth; H = el.clientHeight || innerHeight;
-    R.setPixelRatio(dpr); R.setSize(W, H, false);
-    if (comp) { comp.setPixelRatio(dpr); comp.setSize(W, H); bloom.resolution.set(W * dpr / 2, H * dpr / 2) }
-    d2 = tier === "saver" ? 1 : Math.min(2, devicePixelRatio || 1);
+    R.setPixelRatio(dpr); R.setSize(W, H, false); pipe.resize(W, H);
+    d2 = dpr;
     for (const c of [cvB, cv2]) { c.width = W * d2 | 0; c.height = H * d2 | 0 }
     if (hold) hold.width = 0; hold = null;
-    vig = g.createRadialGradient(W * d2 / 2, H * d2 / 2, Math.min(W, H) * d2 * .35, W * d2 / 2, H * d2 / 2, Math.hypot(W, H) * d2 * .6);
-    vig.addColorStop(0, "rgba(0,0,0,0)"); vig.addColorStop(1, "rgba(5,2,12,.55)");
   }
   resize(); addEventListener("resize", resize); s.off.push(() => removeEventListener("resize", resize), () => { if (hold) hold.width = 0 });
 
@@ -177,7 +180,7 @@ async function boot(s) {
   const timeout = (p, ms, what) => { let k; return Promise.race([p, new Promise((_, no) => { k = setTimeout(() => no(Error(what + " took over " + ms / 1000 + " s")), ms) })]).finally(() => clearTimeout(k)) };
   function disposeMod(m) {
     try { m.inst && m.inst.dispose() } catch (e) { console.warn("Dream Lantern: " + m.id + ".dispose failed", e) }
-    m.inst = null;
+    m.inst = null; m.kit.dispose();
     m.scene.traverse(o => { /* whatever the module left behind */
       if (o.geometry) o.geometry.dispose();
       for (const mt of o.material ? [].concat(o.material) : []) { for (const k in mt) { const v = mt[k]; if (v && v.isTexture) v.dispose() } mt.dispose() }
@@ -192,18 +195,21 @@ async function boot(s) {
   }
   function retire(m) { MODS.delete(m.id); disposeMod(m) }
   async function spawn(id) {
-    const m = { id, st: "load", vis: false, inst: null, scene: new THREE.Scene(), cam: new THREE.PerspectiveCamera(50, W / H, .1, 3000) };
+    const m = { id, st: "load", vis: false, inst: null, scene: new THREE.Scene(), cam: new THREE.PerspectiveCamera(50, W / H, .1, 3000), kit: createKit(THREE, tier) };
     MODS.set(id, m);
     const gone = () => s.dead || MODS.get(id) !== m || m.st !== "load";
     try {
       const lib = await timeout(import(BASE + "scenes/" + id + ".mjs"), 8000, "loading " + id);
       if (gone()) return m;
-      const made = Promise.resolve(lib.create({ THREE, scene: m.scene, camera: m.cam, ctx2d: g, back2d: bg, renderer: R, tier, seed: 7 + IDS.indexOf(id), timing: TM, base: BASE, jsm: JSM }));
+      const made = Promise.resolve(lib.create({ THREE, scene: m.scene, camera: m.cam, ctx2d: g, back2d: bg, renderer: R, kit: m.kit, tier, seed: 7 + IDS.indexOf(id), timing: TM, base: BASE, jsm: JSM }));
       made.then(inst => { if (gone() && !m.inst) { m.inst = inst; disposeMod(m) } }, () => { }); /* a create that finishes after we gave up on it */
       m.inst = await timeout(made, 8000, id + ".create");
       if (gone()) { disposeMod(m); return m }
       /* compile the shaders now, not on the cut */
-      await timeout(R.compileAsync ? R.compileAsync(m.scene, m.cam) : Promise.resolve(R.compile(m.scene, m.cam)), 8000, "compiling " + id);
+      R.setRenderTarget(pipe.target);
+      const cp = R.compileAsync ? R.compileAsync(m.scene, m.cam) : Promise.resolve(R.compile(m.scene, m.cam));
+      R.setRenderTarget(null);
+      await timeout(cp, 8000, "compiling " + id);
       if (gone()) { disposeMod(m); return m }
       m.st = "ok";
     } catch (e) { fail(m, e) }
@@ -224,16 +230,27 @@ async function boot(s) {
     loading = spawn(want).finally(() => { loading = null });
   }
 
-  /* ---------- the song ---------- */
+  /* ---------- the song: the Sounds slot first, then the local file, then the picker and the silent clock ---------- */
   st.textContent = "";
-  const [, local] = await Promise.all([spawn(FALLBACK), findLocal()]);
+  if (ES) try { ES.egg("dreamlantern", 0) } catch (e) { }
+  /* a slot without a file stays set but never plays: give it 2.5 s, as the other films do */
+  const waitSlot = async () => { for (let k = 0; k < 25 && !s.dead && mine(); k++) { const a = ES.eggAudio(); if (a && !a.paused && a.currentTime > .01) return a; await new Promise(r => setTimeout(r, 100)) } return null };
+  const [, local, shared] = await Promise.all([spawn(FALLBACK), findLocal(), waitSlot()]);
   if (s.dead) return;
-  /* load it into memory first: a plain static server may not allow range requests, and then the song cannot be seeked */
-  const blob = local ? await fetch(local).then(r => r.ok ? r.blob() : null).catch(() => null) : null;
-  if (s.dead) return;
-  if (blob) useAudio(URL.createObjectURL(blob), L(["Dream Lantern (local file)", "Dream Lantern (tệp trên máy)", "夢灯籠（ローカルファイル）"]), true);
-  else { pick.hidden = false; st.textContent = L(["Playing silently on the beat map", "Đang chạy không tiếng theo nhịp", "ビートに合わせて無音で再生中"]) }
+  if (shared) useShared(shared);
+  else {
+    if (mine()) ES.egg(null);
+    /* load it into memory first: a plain static server may not allow range requests, and then the song cannot be seeked */
+    const blob = local ? await fetch(local).then(r => r.ok ? r.blob() : null).catch(() => null) : null;
+    if (s.dead) return;
+    if (blob) useAudio(URL.createObjectURL(blob), L(["Dream Lantern (local file)", "Dream Lantern (tệp trên máy)", "夢灯籠（ローカルファイル）"]), true);
+    else { pick.hidden = false; st.textContent = L(["♪ No song file found: playing silently. Add one under Sounds → Dream Lantern.", "♪ Không tìm thấy bài hát: đang chạy không tiếng. Thêm bài trong Âm thanh → Dream Lantern.", "♪ 曲が見つからないため無音で再生中。サウンド → Dream Lantern で追加できます。"]) }
+  }
   clk.held = false; clk.t0 = performance.now() / 1000;
+
+  /* the opening: the site's own Your Name sky (the starry twilight, the comet speeding in), seen through the title shot */
+  const skyCv = document.getElementById("sky");
+  try { if (typeof Sky !== "undefined" && Sky.yourname) Sky.yourname() } catch (e) { }
 
   /* ---------- drawing a shot ---------- */
   const shotAt = t => { let k = 0; for (let i = 0; i < SH.length; i++) if (SH[i].t <= t) k = i; return k };
@@ -254,7 +271,7 @@ async function boot(s) {
     const w = vp[2] * d2 | 0, h = vp[3] * d2 | 0;
     for (const c of [bg, g]) { c.save(); c.beginPath(); c.rect(x0 * d2, vp[1] * d2, (x1 - x0) * d2, vp[3] * d2); c.clip(); c.translate(vp[0] * d2, vp[1] * d2) }
     try {
-      if (CORE.has(p.mod)) return coreShot(p, shot, f0, w, h);
+      if (CORE.has(p.mod)) { extra.push({ look: lookFor(f0.section), x0: x0 / W, x1: x1 / W }); return coreShot(p, shot, f0, w, h) }
       let m = MODS.get(p.mod);
       if (!m || m.st !== "ok") m = MODS.get(FALLBACK);
       if (!m || m.st !== "ok") return;
@@ -263,14 +280,7 @@ async function boot(s) {
       m.cam.aspect = vp[2] / vp[3];
       try { m.inst.update(Object.assign({}, f0, { tier, W: w, H: h, dpr: d2, debug: false, shot })) } catch (e) { return fail(m, e) }
       m.cam.updateProjectionMatrix();
-      const y = H - vp[1] - vp[3];
-      if (comp && !clip && p.side === "F" && m.scene.background) { /* bloom only where the 3D layer is opaque */
-        const rp = comp.passes[0]; rp.scene = m.scene; rp.camera = m.cam; comp.render();
-      } else {
-        R.setViewport(vp[0], y, vp[2], vp[3]); R.setScissor(x0, y, x1 - x0, vp[3]); R.setScissorTest(true);
-        R.render(m.scene, m.cam);
-        R.setScissorTest(false); R.setViewport(0, 0, W, H);
-      }
+      pipe.part(m.scene, m.cam, vp, clip ? [x0, x1] : null, m.kit.takeLook(f0.section));
     } finally { bg.restore(); g.restore() }
   }
   /* the core's own shots: the titles and the black */
@@ -295,7 +305,8 @@ async function boot(s) {
       if (sa > 0) { g.globalAlpha = sa; g.fillStyle = "#6b4c78"; g.font = `500 ${Math.round(size * .13)}px ${SANS}`; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText("DREAM LANTERN  ·  RADWIMPS", w / 2, h * .44 + size * .78); g.globalAlpha = 1 }
       return;
     }
-    /* the opening: an ink flame lights on the first hit, then 夢灯籠 is brushed one glyph per half bar */
+    /* the opening: over the site's sky, an ink flame lights on the first hit, then 夢灯籠 is brushed one glyph per half bar */
+    if (skyCv && skyCv.width) bg.drawImage(skyCv, 0, 0, w, h);
     const t0 = TM.hits[0] || TM.downbeats[0] || 1.875, a = sm(0, .8, t) * (1 - sm(shot.t1 - shot.t0 - 2 * fb, shot.t1 - shot.t0 - .05, shot.lt));
     const fx0 = w / 2, fy = h * .64, fr = Math.min(w, h) * (.05 + .015 * f.pulse) * sm(t0 - .15, t0 + .3, t);
     if (fr > 0) { const gr = g.createRadialGradient(fx0, fy, 0, fx0, fy, fr * 3); gr.addColorStop(0, `rgba(255,214,150,${.9 * a})`); gr.addColorStop(.25, `rgba(255,140,60,${.35 * a})`); gr.addColorStop(1, "rgba(255,100,40,0)"); g.fillStyle = gr; g.beginPath(); g.arc(fx0, fy, fr * 3, 0, TAU); g.fill() }
@@ -305,7 +316,7 @@ async function boot(s) {
   }
 
   /* ---------- per-frame ---------- */
-  let lastF = 0, raf = 0, ended = false;
+  let lastF = 0, raf = 0, ended = false, extra = [];
   function transitionAt(t, i) { /* the cut whose window holds t: this shot's (after it) or the next one's (before it) */
     const a = SH[i], b = SH[i + 1];
     const xa = t - a.t, xb = b ? t - b.t : -1e9;
@@ -322,28 +333,29 @@ async function boot(s) {
     const t = now();
     if (t > TM.duration + .8 && !clk.audio) { if (!ended) { ended = true; stop() } return }
     const f0 = frameAt(TM, t, dt), i = shotAt(t), X = transitionAt(t, i), w = W * d2, h = H * d2;
+    API.skyThrough = SH[i].mod === "title" && !SH[i].var; /* the site's sky keeps drawing under the opening title only */
     [wasDrawn, drawn] = [drawn, wasDrawn]; drawn.clear();
     const clearAll = () => {
       bg.setTransform(1, 0, 0, 1, 0, 0); bg.clearRect(0, 0, w, h); g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, w, h);
-      /* a scene with an opaque background leaves its colour as the clear colour: reset it, or the transparent layer fills */
-      R.setRenderTarget(null); R.setScissorTest(false); R.setViewport(0, 0, W, H); R.setClearColor(0, 0); R.clear();
+      extra = []; pipe.begin();
     };
+    const finish = () => pipe.end(cvB, t, extra);
     clearAll();
-    if (X && X.type === "dissolve") { /* render the outgoing shot, keep a composite of its three layers, render the incoming, lay the composite over it */
-      drawShot(X.j - 1, f0, null);
+    if (X && X.type === "dissolve") { /* finish the outgoing shot, keep the picture, finish the incoming, lay the kept picture over it */
+      drawShot(X.j - 1, f0, null); finish();
       if (!hold) { hold = document.createElement("canvas"); hold.width = tier === "saver" ? w / 2 : w; hold.height = tier === "saver" ? h / 2 : h }
       const hg = hold.getContext("2d"); hg.clearRect(0, 0, hold.width, hold.height);
-      for (const c of [cvB, cv3, cv2]) hg.drawImage(c, 0, 0, hold.width, hold.height);
-      clearAll(); drawShot(X.j, f0, null);
+      for (const c of [cv3, cv2]) hg.drawImage(c, 0, 0, hold.width, hold.height);
+      clearAll(); drawShot(X.j, f0, null); finish();
       g.globalAlpha = 1 - eio((X.x + X.pre) / (X.pre + X.post)); g.drawImage(hold, 0, 0, w, h); g.globalAlpha = 1;
     } else if (X && X.type === "cord") { /* the red cord sweeps right to left as the seam between the two shots */
       const sx = Math.round(W * (1 - eio((X.x + X.pre) / (X.pre + X.post))));
-      drawShot(X.j - 1, f0, [0, sx]); drawShot(X.j, f0, [sx, W]);
+      drawShot(X.j - 1, f0, [0, sx]); drawShot(X.j, f0, [sx, W]); finish();
       TR.cordLine(g, sx * d2, h, d2, t, 1.6);
-    } else drawShot(i, f0, null);
+    } else { drawShot(i, f0, null); finish() }
     for (const m of wasDrawn) if (!drawn.has(m) && m.vis) { m.vis = false; try { m.inst && m.inst.setVisible(false) } catch (e) { fail(m, e) } }
     post(t, f0, i, X, w, h);
-    if (API.onFrame) try { API.onFrame([cvB, cv3, cv2]) } catch (e) { }
+    if (API.onFrame) try { API.onFrame([cv3, cv2]) } catch (e) { }
     manage(t);
   }
   function post(t, f, i, X, w, h) {
@@ -356,10 +368,9 @@ async function boot(s) {
       const end = sm(TM.duration - 1.2, TM.duration - .05, t);
       if (end > 0) { g.fillStyle = `rgba(0,0,0,${end})`; g.fillRect(0, 0, w, h) }
     }
-    /* letterbox (wider on the golden thread inserts of the final chorus), vignette, grain */
+    /* letterbox (wider on the golden thread inserts of the final chorus) and grain; the vignette is in the post */
     const lbk = sh.mod === "title" ? 0 : sh.sec === "chorus2" && sh.mod === "cord" && sh.key === "marudai" ? .13 : .085;
     if (lbk) { g.fillStyle = "#000"; g.fillRect(0, 0, w, h * lbk); g.fillRect(0, h - h * lbk, w, h * lbk) }
-    if (vig) { g.fillStyle = vig; g.fillRect(0, 0, w, h) }
     g.save(); g.globalAlpha = tier === "saver" ? .035 : .05; g.translate(-Math.random() * 160, -Math.random() * 160); g.fillStyle = grainPat; g.fillRect(0, 0, w + 160, h + 160); g.restore();
   }
   s.state = () => {
@@ -385,13 +396,16 @@ function teardown(s) {
   try { s.stopRaf && s.stopRaf() } catch (e) { }
   (s.off || []).forEach(f => { try { f() } catch (e) { } });
   const c = s.clk;
-  if (c && c.audio) { try { c.audio.pause(); c.audio.removeAttribute("src"); c.audio.load() } catch (e) { } }
+  try { const sl = EggSound.eggSlot(); if (sl && sl.indexOf("egg_dreamlantern") === 0) EggSound.egg(null) } catch (e) { } /* our Sounds slot, adopted or still starting */
+  if (c && c.audio && !c.shared) { try { c.audio.pause(); c.audio.removeAttribute("src"); c.audio.load() } catch (e) { } }
+  API.skyThrough = false;
   if (c && c.url) URL.revokeObjectURL(c.url);
   for (const m of s.mods ? s.mods.values() : []) {
     try { m.inst && m.inst.dispose() } catch (e) { }
+    try { m.kit.dispose() } catch (e) { }
     m.scene.traverse(o => { if (o.geometry) o.geometry.dispose(); for (const mt of o.material ? [].concat(o.material) : []) { for (const k in mt) { const v = mt[k]; if (v && v.isTexture) v.dispose() } mt.dispose() } });
   }
-  try { s.comp && s.comp.dispose && s.comp.dispose() } catch (e) { }
+  try { s.pipe && s.pipe.dispose() } catch (e) { }
   if (s.R) { try { s.R.dispose(); s.R.forceContextLoss() } catch (e) { } }
   const el = s.el;
   if (el) { el.style.opacity = "0"; setTimeout(() => el.remove(), 600) }
