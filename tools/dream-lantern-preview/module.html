@@ -12,7 +12,7 @@ select,button,input{font:inherit}ol{margin:6px 0;padding-left:22px}li{cursor:poi
 #bar input[type=range]{flex:1}#err{color:#ff8c8c;white-space:pre-wrap}#stats{font:12px ui-monospace,monospace;color:#bcd;white-space:pre}
 #off{position:fixed;inset:0;display:none;place-items:center;color:#667;font:15px system-ui;pointer-events:none}
 </style>
-<div id="stage"><canvas id="back"></canvas><canvas id="gl"></canvas><canvas id="front"></canvas></div>
+<div id="stage"><canvas id="gl"></canvas><canvas id="front"></canvas></div>
 <div id="off">not on screen in this module · press N for its next shot</div>
 <aside><b>Dream Lantern module</b> <button id="min">–</button>
 <div class="body">
@@ -29,37 +29,45 @@ select,button,input{font:inherit}ol{margin:6px 0;padding-left:22px}li{cursor:poi
    URL: module.html?m=sky&tier=smooth&t=7.5   Keys: space play/pause, N/P next/previous shot of this module, ←/→ one fast beat. */
 import * as THREE from "three";
 import { loadTiming, frameAt, lastIdx } from "../../assets/dream-lantern/timing.mjs";
+import { createPipeline, createKit, lookFor } from "../../assets/dream-lantern/kit.mjs";
 const BASE = new URL("../../assets/dream-lantern/", location.href).href, JSM = "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/";
 const Q = new URLSearchParams(location.search), $ = id => document.getElementById(id);
 const [TM, SJ] = await Promise.all([loadTiming(BASE + "timing.json"), fetch(BASE + "shots.json").then(r => r.json())]);
 const SHOTS = SJ.shots;
 for (const m of ["_template", ...SJ.modules]) $("mod").add(new Option(m, m));
 $("mod").value = Q.get("m") || SJ.modules[0]; $("tier").value = Q.get("tier") || "smooth";
-const cvB = $("back"), cvG = $("gl"), cvF = $("front"), back2d = cvB.getContext("2d"), ctx2d = cvF.getContext("2d");
-const R = new THREE.WebGLRenderer({ canvas: cvG, alpha: true, antialias: true, powerPreference: "high-performance" });
-R.outputColorSpace = THREE.SRGBColorSpace; R.toneMapping = THREE.ACESFilmicToneMapping; R.toneMappingExposure = 1.05; R.setClearColor(0, 0); R.autoClear = false;
+const cvB = document.createElement("canvas"), cvG = $("gl"), cvF = $("front"), back2d = cvB.getContext("2d"), ctx2d = cvF.getContext("2d");
+/* the same renderer set-up and dream-look pipeline as the core: the module renders into an HDR target, the post chain draws the screen */
+const R = new THREE.WebGLRenderer({ canvas: cvG, antialias: false, powerPreference: "high-performance" });
+R.outputColorSpace = THREE.SRGBColorSpace; R.toneMapping = THREE.NoToneMapping; R.setClearColor(0, 0); R.autoClear = false;
+let pipe = null, KIT = null;
 let W = 0, H = 0, dpr = 1, M = null, scene = null, camera = null, visible = false, err = "", playing = true, t = +(Q.get("t") || 0), lastP = performance.now(), audio = null, base0 = null, ms = 0;
 /* which shots (and which split halves) this module draws; a module whose name starts with "_" (the template) draws them all */
 let mine = [];
 const own = m => SHOTS.map(s => s.mod === "split" ? ["L", "R"].filter(k => s[k].mod === m || m[0] === "_") : s.mod === m || (m[0] === "_" && s.mod !== "black" && s.mod !== "title") ? ["F"] : []);
 function mod() { return $("mod").value }
 function resize() {
-  const tier = $("tier").value; dpr = Math.min(devicePixelRatio || 1, tier === "ultra" ? 3 : tier === "saver" ? 1 : 2);
+  const tier = $("tier").value; dpr = Math.min(devicePixelRatio || 1, tier === "ultra" ? 2 : tier === "saver" ? 1 : 1.5);
   W = innerWidth; H = innerHeight; R.setPixelRatio(dpr); R.setSize(W, H, false);
   for (const c of [cvB, cvF]) { c.width = W * dpr | 0; c.height = H * dpr | 0 }
+  if (pipe && pipe.tier !== tier) { pipe.dispose(); pipe = null }
+  if (!pipe) { pipe = createPipeline(THREE, R, tier); pipe.tier = tier }
+  pipe.resize(W, H);
 }
 addEventListener("resize", resize); resize();
 function fail(where, e) { err = where + ": " + (e && e.stack || e); $("err").textContent = err; console.error(e) }
 async function load() {
   if (M) { try { M.dispose() } catch (e) { fail("dispose", e) } }
-  M = null; err = ""; $("err").textContent = ""; visible = false; mine = own(mod());
+  if (KIT) KIT.dispose();
+  M = null; KIT = createKit(THREE, $("tier").value); err = ""; $("err").textContent = ""; visible = false; mine = own(mod());
+  pipe.begin(); pipe.end(cvB, 0, [{ look: lookFor("intro"), x: .5 }]); /* upload the pipeline's own resources before the baseline */
   R.renderLists.dispose(); base0 = { g: R.info.memory.geometries, x: R.info.memory.textures };
   scene = new THREE.Scene(); camera = new THREE.PerspectiveCamera(50, W / H, .1, 3000);
   history.replaceState(null, "", `?m=${mod()}&tier=${$("tier").value}&t=${t.toFixed(2)}`);
   try {
     const lib = await import(BASE + "scenes/" + mod() + ".mjs?v=" + Date.now());
     const t0 = performance.now();
-    M = await lib.create({ THREE, scene, camera, ctx2d, back2d, renderer: R, tier: $("tier").value, seed: 1, timing: TM, base: BASE, jsm: JSM });
+    M = await lib.create({ THREE, scene, camera, ctx2d, back2d, renderer: R, kit: KIT, tier: $("tier").value, seed: 1, timing: TM, base: BASE, jsm: JSM });
     R.compile(scene, camera);
     $("err").textContent = `create ${(performance.now() - t0).toFixed(0)} ms`;
   } catch (e) { fail("create", e) }
@@ -92,7 +100,7 @@ function frame() {
   $("beat").textContent = `${base.section} · bar ${Math.floor(base.bar)} · beat ${Math.floor(base.beat)} · #${i + 1} ${s.mod}`;
   back2d.setTransform(1, 0, 0, 1, 0, 0); back2d.clearRect(0, 0, cvB.width, cvB.height);
   ctx2d.setTransform(1, 0, 0, 1, 0, 0); ctx2d.clearRect(0, 0, cvF.width, cvF.height);
-  R.setRenderTarget(null); R.setViewport(0, 0, W, H); R.setScissorTest(false); R.clear();
+  pipe.begin();
   $("off").style.display = sides.length ? "none" : "grid";
   const on = !!(M && sides.length && !err);
   if (M && on !== visible) { try { M.setVisible(on) } catch (e) { fail("setVisible", e) } visible = on }
@@ -106,13 +114,12 @@ function frame() {
     try { M.update(f) } catch (e) { fail("update", e) }
     camera.updateProjectionMatrix();
     back2d.restore(); ctx2d.restore();
-    R.setViewport(vp[0], H - vp[1] - vp[3], vp[2], vp[3]); R.setScissor(vp[0], H - vp[1] - vp[3], vp[2], vp[3]); R.setScissorTest(true);
-    R.render(scene, camera); calls += R.info.render.calls; tris += R.info.render.triangles;
-    R.setScissorTest(false);
+    pipe.part(scene, camera, vp, null, KIT.takeLook(base.section)); calls += R.info.render.calls; tris += R.info.render.triangles;
   }
+  pipe.end(cvB, t, on ? null : [{ look: lookFor(base.section), x: .5 }]);
   ms = ms * .9 + (performance.now() - t0) * .1;
   if (on && $("safe").checked) { ctx2d.strokeStyle = "#ff0a"; ctx2d.lineWidth = 1; const lb = cvF.height * .085; ctx2d.strokeRect(0, lb, cvF.width, cvF.height - 2 * lb) }
-  $("stats").textContent = `update+render ${ms.toFixed(1)} ms   fps ${(1 / Math.max(dt, 1e-3)).toFixed(0)}\ncalls ${calls}   tris ${tris}\ngeometries ${R.info.memory.geometries}   textures ${R.info.memory.textures}\nprograms ${(R.info.programs || []).length}   canvas ${cvF.width}×${cvF.height}`;
+  $("stats").textContent = `update+render+post ${ms.toFixed(1)} ms   fps ${(1 / Math.max(dt, 1e-3)).toFixed(0)}\ncalls ${calls}   tris ${tris}\ngeometries ${R.info.memory.geometries}   textures ${R.info.memory.textures}\nprograms ${(R.info.programs || []).length}   canvas ${cvF.width}×${cvF.height}`;
 }
 $("mod").onchange = $("tier").onchange = () => { resize(); load() };
 $("min").onclick = () => document.querySelector("aside").classList.toggle("min");
@@ -122,7 +129,7 @@ $("pick").onclick = () => $("file").click();
 $("file").onchange = () => { const f = $("file").files[0]; if (f) useAudio(URL.createObjectURL(f), f.name) };
 function useAudio(url, label) { if (audio) audio.pause(); audio = new Audio(url); audio.currentTime = t; $("song").textContent = label; if (playing) audio.play().catch(() => { playing = false; $("play").textContent = "▶" }) }
 $("disp").onclick = () => {
-  if (!M) return; try { M.dispose() } catch (e) { fail("dispose", e) } M = null; visible = false;
+  if (!M) return; try { M.dispose() } catch (e) { fail("dispose", e) } KIT.dispose(); M = null; visible = false;
   R.renderLists.dispose(); R.render(scene, camera);
   const left = []; scene.traverse(o => { if (o !== scene) left.push(o.type + (o.name ? " " + o.name : "")) });
   const g = R.info.memory.geometries - base0.g, x = R.info.memory.textures - base0.x;
