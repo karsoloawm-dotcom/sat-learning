@@ -1,0 +1,56 @@
+<!doctype html>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dream Lantern | Tokyo skyline study</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(#141c38 4%,#6f729e 50%,#dfa69c 78%,#b49ba5);color:white;font:14px system-ui}canvas{display:block;width:100vw;height:100vh}aside{position:absolute;left:4vw;bottom:5vh;background:#171d37db;padding:14px 20px;border-radius:3px}select,button{font:inherit}output{display:block;margin-top:8px}
+</style>
+<aside><label>Tokyo skyline <select><option>saver</option><option selected>smooth</option><option>ultra</option></select></label>
+<label>Tempo <select id="tempo"><option value=".337">178 BPM</option><option value=".674">89 BPM</option></select></label>
+<button>Final chorus</button><output>Loading city…</output></aside>
+<script type="module">
+import * as T from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.min.js';
+import {create} from '../../assets/dream-lantern/scene-tokyo.mjs';
+const renderer = new T.WebGLRenderer({alpha:true, antialias:true});
+document.body.append(renderer.domElement);
+const scene = new T.Scene(), camera = new T.PerspectiveCamera(53,1,.1,250);
+camera.position.set(0,2,12);
+camera.lookAt(0,5,-55);
+const select = document.querySelector('select'), output = document.querySelector('output');
+const tempo = document.querySelector('#tempo');
+let city, start, chorus=false, frames=0, elapsed=0, last=0;
+function size(){
+  renderer.setPixelRatio(Math.min(devicePixelRatio,{saver:1,smooth:1.5,ultra:2}[select.value]));
+  renderer.setSize(innerWidth,innerHeight,false);
+  camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix();
+}
+function load(){
+  if(city){
+    city.setVisible(false); renderer.render(scene,camera);
+    if(renderer.info.render.calls) throw Error('Hidden city still rendered');
+    city.dispose();
+    if(scene.children.length || renderer.info.memory.geometries) throw Error('City disposal failed');
+  }
+  city=create({THREE:T,scene,tier:select.value,seed:73});
+  output.textContent=city.group.children[0].count+" instances · measuring"; size(); start=performance.now(); last=start; frames=elapsed=0;
+}
+select.onchange=load; window.onresize=size;
+document.querySelector('button').onclick=e=>{
+  chorus=!chorus; start=performance.now(); e.target.textContent=chorus?'Verse':'Final chorus';
+};
+load();
+renderer.setAnimationLoop(now=>{
+  const dt=(now-last)/1000;
+  if(select.value==='saver' && dt<1/30-.001) return;
+  last=now;
+  const beatSeconds=Number(tempo.value);
+  const t=(now-start)/1000, beat=t/beatSeconds, bar=beat/4;
+  city.update({t,dt,beat,beatPhase:beat%1,bar,barPhase:bar%1,
+    accent:Math.max(0,1-(bar%1)*4*beatSeconds/.4),section:chorus?'chorus2':'verse1',secT:Math.min(1,t/34)});
+  renderer.render(scene,camera);
+  elapsed+=dt; frames++;
+  if(frames>=12){
+    output.textContent=city.group.children[0].count+' instances · '+renderer.info.render.calls+' draw · '+(1000*elapsed/frames).toFixed(1)+' ms/frame · '+Math.round(T.MathUtils.radToDeg(city.group.rotation.z))+'°';
+    elapsed=frames=0;
+  }
+});
+</script>
