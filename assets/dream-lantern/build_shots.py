@@ -57,7 +57,7 @@ SHOTS = [
     (67.88, "rail.window:tunnel", "cut", "mix", "distance", "Green hills, then a tunnel swallows the light on the 68.55 downbeat."),
     (69.228, "rail.tracks", "cut", "3D", "distance", "Vanishing-point tracks in green sunlight."),
     (69.902, "rail.tracks:gate", "cut", "3D", "distance", "Close on a crossing: lamps alternate on the beat."),
-    (70.576, "shadows.bridge", "cut", "2D", "shadows", "Two cut-paper shadows cross a footbridge against a blue-orange dusk, not looking."),
+    (70.576, "shadows.platform", "cut", "2D", "shadows", "A sunset platform: two long shadows reach in from opposite edges and overlap for one beat while a train strobes between them."),
     (71.25, "pages.paper:note", "cut", "2D", "memory", "A paper note; its words drain off the page."),
     (71.587, "rooms.desk:night", "cut", "mix", "memory", "Amber-lit table at night, a cup steaming."),
     (72.262, "pages.paper:map", "cut", "2D", "mirror lake", "A folded map opens to an ink-drawn round lake."),
@@ -78,7 +78,7 @@ SHOTS = [
     (85.408, "city.elevated", "cut", "3D", "distance", "Upward along a curving elevated road, cyan and amber light trails."),
     (87.43, "lake.torii", "cut", "mix", "gate", "Low wide on a vermilion torii among cedars; the sun warms and flares (2D leak)."),
     # ---- final chorus 90.13-114.40: lavender and scarlet, gold and pink dusk, orange fire, blue-black crater.
-    (90.127, "city.lookout", "flash", "mix", "distance", "Climax: a railing over a bright city, blue sky, cumulus; the camera surges past the rail."),
+    (90.127, "city.lookout", "flash", "mix", "mirror", "Climax: the bright city upside down in a rain puddle on a lookout, a lantern's reflection drifting through; tilt up into the real city as the camera surges forward."),
     (93.498, "cord.drift", "cord", "mix", "cord", "Red and blue strands drift in lavender-white space, mint flecks."),
     (93.835, "cord.drift:tumble", "match", "mix", "cord", "Falling through the cord lines; 2D speed lines."),
     (94.846, "cord.drift:indigo", "cut", "mix", "cord+lantern", "A red loop passes a small suspended lantern in a slow indigo float."),
