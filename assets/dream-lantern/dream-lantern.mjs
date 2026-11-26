@@ -8,6 +8,7 @@
    Timing (beats, downbeats, accents, sections) comes from timing.json, measured from the song; shots are cut on its downbeats.
    Quality follows the site's sky setting: saver/phone, smooth, ultra (4K, bloom, more lanterns).
    Debug: DreamLantern.seek(seconds), DreamLantern.state(). ===== */
+import { loadTiming, frameAt, lastIdx, barsFrom } from "./timing.mjs";
 const BASE = new URL("./", import.meta.url).href;
 const JSM = "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/";
 /* parallel-built scene modules (scene-tokyo.mjs, ink.mjs); the stand-ins below take over if one fails to load */
@@ -32,52 +33,7 @@ export function start() {
 export function stop() { const s = S; S = null; API.on = false; if (s) teardown(s) }
 Object.assign(API, { start, stop, seek: t => S && S.seek && S.seek(t), state: () => S && S.state && S.state() });
 
-/* ---------------- timing ---------------- */
-function defaultTiming() {
-  const bp = 60 / 89.1, duration = 126.76, beats = [];
-  for (let t = 0; t < duration; t += bp) beats.push(+t.toFixed(3));
-  const secs = [["intro", 0], ["verse1", 24], ["chorus1", 52], ["verse2", 63.2], ["build", 84], ["chorus2", 90], ["outro", 124]];
-  return { duration, beats, downbeats: beats.filter((_, i) => i % 4 === 0), accents: [], sections: secs.map(([name, t0], i) => ({ name, t0, t1: secs[i + 1] ? secs[i + 1][1] : duration })) };
-}
-function prepTiming(j) {
-  const d = defaultTiming(), T = {
-    duration: j && j.duration || d.duration,
-    beats: j && j.beats && j.beats.length > 8 ? j.beats : d.beats,
-    downbeats: j && j.downbeats && j.downbeats.length > 2 ? j.downbeats : null,
-    accents: j && j.accents || [],
-    sections: j && j.sections && j.sections.length ? j.sections : d.sections,
-    cues: j && j.cues || {}
-  };
-  T.fast = j && j.fast && j.fast.length ? j.fast : T.beats;
-  if (!T.downbeats) T.downbeats = T.beats.filter((_, i) => i % 4 === 0);
-  return T;
-}
-const lastIdx = (a, t) => { if (!a.length || t < a[0]) return -1; let lo = 0, hi = a.length - 1; while (lo < hi) { const m = (lo + hi + 1) >> 1; if (a[m] <= t) lo = m; else hi = m - 1 } return lo };
-function along(a, t, per) { /* float index into a sorted time list, extrapolated at both ends */
-  const i = lastIdx(a, t);
-  if (i < 0) return (t - a[0]) / per;
-  const b0 = a[i], b1 = a[i + 1] !== undefined ? a[i + 1] : b0 + per;
-  return i + cl((t - b0) / (b1 - b0));
-}
-function frameAt(TM, t, dt) {
-  const B = TM.beats, D = TM.downbeats, beat = along(B, t, TM.bp), bar = along(D, t, TM.bp * 4);
-  const bi = lastIdx(B, t), di = lastIdx(D, t), ai = lastIdx(TM.accents, t);
-  let si = 0; for (let i = 0; i < TM.sections.length; i++) if (TM.sections[i].t0 <= t) si = i;
-  const sec = TM.sections[si];
-  return {
-    t, dt, beat, bar, beatPhase: beat - Math.floor(beat), barPhase: bar - Math.floor(bar),
-    pulse: bi < 0 ? 0 : Math.exp(-(t - B[bi]) / .16), downPulse: di < 0 ? 0 : Math.exp(-(t - D[di]) / .3),
-    accent: ai < 0 ? 0 : Math.exp(-(t - TM.accents[ai]) / .4),
-    section: sec.name, secT: cl((t - sec.t0) / (sec.t1 - sec.t0))
-  };
-}
-/* the downbeat n bars after the downbeat nearest t */
-function barsFrom(TM, t, n) {
-  const D = TM.downbeats; let k = lastIdx(D, t);
-  if (k < 0) k = 0; else if (D[k + 1] !== undefined && D[k + 1] - t < t - D[k]) k++;
-  const j = k + n; if (j >= 0 && j < D.length) return D[j];
-  return D[Math.max(0, Math.min(D.length - 1, j))] + (j - Math.max(0, Math.min(D.length - 1, j))) * TM.bp * 4;
-}
+/* ---------------- timing (timing.mjs) ---------------- */
 const sectionT = (TM, name, fb) => { const s = TM.sections.find(x => x.name === name); return s ? s.t0 : fb };
 function buildShots(TM) {
   const C = (n, fb) => sectionT(TM, n, fb), Q = TM.cues, sh = [], add = (t, id, o) => sh.push(Object.assign({ t, id }, o || {}));
@@ -134,8 +90,7 @@ vec3 skyCol(vec3 d){
 const TM_OUT = "\n#include <tonemapping_fragment>\n#include <colorspace_fragment>";
 
 async function boot(s) {
-  const TM = prepTiming(await fetch(BASE + "timing.json").then(r => r.ok ? r.json() : null).catch(() => null));
-  TM.bp = TM.beats.length > 1 ? (TM.beats[TM.beats.length - 1] - TM.beats[0]) / (TM.beats.length - 1) : .673;
+  const TM = await loadTiming(BASE + "timing.json");
   if (s.dead) return;
   const SH = buildShots(TM);
   const tier = API.forceTier || (() => {
