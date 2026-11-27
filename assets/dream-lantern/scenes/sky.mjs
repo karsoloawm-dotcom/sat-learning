@@ -14,9 +14,9 @@ function random(seed) {
 // The first colour in a pair fills the unlit paper; the second catches the light.
 const skies = {
   night: {
-    sky: ['#020519', '#091332', '#183563', '#597299', '#bf967f'],
-    far: ['#485878', '#c9adb3'], middle: ['#263556', '#9298ad'], near: ['#101d36', '#626e8d'],
-    mist: '#aaa0ae', sun: '#ffb272', power: .13
+    sky: ['#010414', '#030b21', '#0e2044', '#344b70', '#997662'],
+    far: ['#394862', '#aa9c9e'], middle: ['#293752', '#8393a9'], near: ['#152239', '#536785'],
+    mist: '#afa0ad', sun: '#ffa368', power: .125
   },
   approach: {
     sky: ['#02051a', '#070e27', '#10264a', '#2d4f73', '#745d74'],
@@ -31,7 +31,7 @@ const skies = {
   day: {
     sky: ['#164dae', '#175ec4', '#328ad5', '#74bfec', '#b8dbec'],
     far: ['#94b4d7', '#fffeeb'], middle: ['#7795c4', '#fff7e8'], near: ['#607dae', '#fffbe7'],
-    mist: '#e3effa', sun: '#f5faff', power: .19
+    mist: '#e3effa', sun: '#f5faff', power: .065
   },
   indigo: {
     sky: ['#090b23', '#1b1a42', '#30345b', '#514469', '#766985'],
@@ -59,9 +59,9 @@ const skies = {
     mist: '#ffd3b6', sun: '#ffce95', power: .19
   },
   fire: {
-    sky: ['#020a18', '#0c1833', '#252942', '#62404d', '#cf684b'],
-    far: ['#534050', '#d2876d'], middle: ['#302d42', '#97635f'], near: ['#151e32', '#684855'],
-    mist: '#986d76', sun: '#ff9146', power: .13
+    sky: ['#010613', '#081226', '#0c1b32', '#263047', '#604354'],
+    far: ['#343346', '#98756e'], middle: ['#222638', '#785859'], near: ['#101b2d', '#4d404b'],
+    mist: '#866b73', sun: '#ff9146', power: .10
   }
 };
 
@@ -78,12 +78,13 @@ function skyName(key, variant) {
 
 function paintStars(g, w, h, rnd) {
   // A dust river threads through the sparser, colder fixed stars.
-  for (let i = 0; i < 3100; i++) {
+  g.fillStyle = '#000'; g.fillRect(0, 0, w, h);
+  for (let i = 0; i < 2300; i++) {
     const x = rnd(), band = i % 3 !== 0;
     const y = band ? .16 + x * .25 + (rnd() + rnd() + rnd() - 1.5) * .17 : rnd();
-    const r = (.45 + Math.pow(rnd(), 6) * 1.7) * w / 1280;
+    const r = (.45 + Math.pow(rnd(), 9) * 1.35) * w / 1280;
     g.fillStyle = i % 7 === 0 ? '#ffe2b3' : i % 3 === 0 ? '#a8ceff' : '#e5eaff';
-    g.globalAlpha = (.12 + rnd() * (band ? .42 : .77)) * clamp(1.5 - y * 1.55);
+    g.globalAlpha = (.12 + rnd() * (band ? .44 : .79)) * clamp((.63 - y) * 3.9);
     g.fillRect(x * w, y * h, r, r);
     if (r > w / 655) {
       g.globalAlpha *= .42;
@@ -223,9 +224,11 @@ function paintGrid(g, w, h, rnd) {
 }
 
 export async function create({ THREE, scene, camera, ctx2d, back2d, kit, tier, seed = 1, timing }) {
-  const image = new Image();
-  image.src = new URL('./sky/cloud-relief.webp', import.meta.url).href;
-  await image.decode();
+  const [image, deckImage] = await Promise.all(['cloud-relief', 'cloud-deck'].map(async name => {
+    const img = new Image();
+    img.src = new URL('./sky/' + name + '.webp', import.meta.url).href;
+    await img.decode(); return img;
+  }));
   const root = new THREE.Group(), owned = [], rnd = random(seed + 264);
   const quality = { saver: [16, 150, 768], smooth: [240, 500, 1024], ultra: [1024, 1500, 1280] }[tier];
   const [hazeCount, tailCount, paperWidth] = quality;
@@ -252,10 +255,20 @@ export async function create({ THREE, scene, camera, ctx2d, back2d, kit, tier, s
   const ramps = Object.fromEntries(Object.entries(skies).map(([k, p]) => [k, kit.ramp(p.sky)]));
   const stars = kit.paint(paperWidth, paperWidth / 2, (g, w, h) => paintStars(g, w, h, rnd)).image;
   const cirrus = card(kit.paint(768, 320, (g, w, h) => paintCirrus(g, w, h, rnd)), -8);
+  const deck = card(kit.paint(960, 320, (g, w, h) => {
+    g.drawImage(deckImage, 0, 0, w, h);
+    g.globalCompositeOperation = 'destination-in';
+    const fade = g.createLinearGradient(0, 0, 0, h);
+    fade.addColorStop(0, 'transparent'); fade.addColorStop(.08, '#fffb'); fade.addColorStop(.16, '#fff');
+    g.fillStyle = fade; g.fillRect(0, 0, w, h);
+  }), -7);
   const haze = kit.haze({ count: hazeCount, box: [200, 3, 51], center: [0, -8.2, -79], size: tier === 'ultra' ? 4.3 : 7.5,
     opacity: .38, drift: [.022, 0, 0], renderOrder: -6, seed: seed + 43 });
   root.add(haze);
-  const tiles = [0, 1, 2].map(i => kit.paint(640, 352, g => g.drawImage(image, 0, i * 352, 640, 352, 0, 0, 640, 352)));
+  const tiles = Array.from({ length: 6 }, (_, i) => kit.paint(640, 352, g => {
+    if (i >= 3) { g.translate(640, 0); g.scale(-1, 1) }
+    g.drawImage(image, 0, (i % 3) * 352, 640, 352, 0, 0, 640, 352);
+  }));
   const bands = Array.from({ length: 6 }, (_, i) => {
     const n = [8, 7, 6, 5, 4, 3][i];
     const mesh = new THREE.InstancedMesh(quad, ink(tiles[i % 3]), n);
@@ -268,7 +281,7 @@ export async function create({ THREE, scene, camera, ctx2d, back2d, kit, tier, s
     const cacheKey = name + ':' + aspect;
     if (recipes.has(cacheKey)) return recipes.get(cacheKey);
     const rows = [], day = name === 'day', night = name === 'night';
-    const rng = random(seed + (day ? 99 : night ? 151 : 22));
+    const rng = random(seed + { day: 99, night: 151, teal: 37, indigo: 48, split: 192, approach: 281, fire: 61 }[name] || seed + 22);
     for (let row = 0; row < bands.length; row++) {
       const n = bands[row].count, z = [112, 84, 60, 42, 29, 18][row];
       const height = lens * z, width = height * aspect;
@@ -283,13 +296,19 @@ export async function create({ THREE, scene, camera, ctx2d, back2d, kit, tier, s
           const wall = Math.exp(-Math.pow((x - .72) / .25, 2));
           y -= .030 + wall * [.04, .10, .17, .19, .04, 0][row];
           h *= 1.39 + wall * 1.7;
+        } else if (name === 'teal' || name === 'indigo') {
+          const slope = name === 'teal' ? x - .5 : .5 - x;
+          y += .08 + slope * .26;
+          if (row === 3) { y = (name === 'teal' ? .02 : -.16) + slope * .32; h *= .60; }
+        } else if (name === 'split') {
+          y += Math.sin(x * 8.4 + row * .37) * .06 - .045;
         } else if (night) {
           y -= Math.cos(x * 6 + row * .7) * row * .008;
         }
         w = Math.max(w, h * 1.12);
         shape.position.set((x - .5) * width, (.5 - y) * height, -z);
         shape.rotation.set(0, 0, (rng() - .5) * .07);
-        shape.scale.set((i + row) % 3 === 0 ? -w : w, h, 1);
+        shape.scale.set(w, h, 1);
         shape.updateMatrix(); mats.push(shape.matrix.clone());
       }
       rows.push(mats);
@@ -365,12 +384,14 @@ export async function create({ THREE, scene, camera, ctx2d, back2d, kit, tier, s
       const [shadow, light] = i < 2 ? p.far : i < 4 ? p.middle : p.near;
       const u = m.material.uniforms;
       u.uEmissive.value.set(shadow); u.uColor.value.set(light).sub(dark.set(shadow));
-      u.uMap.value = tiles[name === 'day' ? (i === 0 ? 1 : 2) : i % 2];
+      u.uMap.value = tiles[(name === 'day' ? (i === 0 ? 1 : 2) : i % 2) + (i % 3 === 1 ? 3 : 0)];
       rows[i].forEach((mat, j) => m.setMatrixAt(j, mat)); m.instanceMatrix.needsUpdate = true;
     });
     du.uRamp.value = ramps[name]; du.uSunCol.value.set(p.sun); du.uSun.value = p.power;
     haze.material.uniforms.uTop.value.set(p.mist); haze.material.uniforms.uBot.value.set(p.far[0]);
     cirrus.material.uniforms.uColor.value.set(p.mist);
+    deck.material.uniforms.uColor.value.set(p.middle[1]).multiplyScalar(.75);
+    deck.material.uniforms.uEmissive.value.set(p.middle[0]);
     lastName = name; lastAspect = aspect;
   }
   function place(obj, x, y, z, aspect) {
@@ -430,6 +451,7 @@ export async function create({ THREE, scene, camera, ctx2d, back2d, kit, tier, s
       cirrus.position.set(Math.sin(f.t * .07) * .4, 0, -125);
       cirrus.scale.set(125 * lens * aspect * 1.04, 125 * lens, 1);
       cirrus.material.uniforms.uOpacity.value = day ? .29 : twilight ? .20 : .10;
+      place(deck, .5, .816, 116, aspect); deck.scale.set(lens * 116 * aspect * 1.07, lens * 116 * .47, 1);
       kit.tick(f, dome, haze);
       main.group.visible = isNight || shard;
       fragment.group.visible = name === 'split' && f.t >= splitHit;
@@ -475,8 +497,8 @@ export async function create({ THREE, scene, camera, ctx2d, back2d, kit, tier, s
       if (impact) {
         const stepped = Math.max(0, Math.floor(f.beat) - impactStart);
         const grow = .15 + .11 * ease(u) + .038 * Math.min(3, stepped) + .025 * f.downPulse;
-        place(flame, .66, .63 - grow * .28, 23, aspect); flame.scale.setScalar(23 * lens * grow);
-        place(fireGlow, .66, .62, 24, aspect); fireGlow.scale.setScalar(24 * lens * grow * 2.4);
+        place(flame, .66, .745 - grow * .25, 23, aspect); flame.scale.set(23 * lens * grow, 23 * lens * grow * 1.75, 1);
+        place(fireGlow, .66, .707, 24, aspect); fireGlow.scale.setScalar(24 * lens * grow * 2.05);
         fireGlow.material.uniforms.uColor.value.setRGB(3.4, .73, .095);
         place(embers, .66, .53, 22, aspect); kit.tick(f, embers);
       }
@@ -491,7 +513,7 @@ export async function create({ THREE, scene, camera, ctx2d, back2d, kit, tier, s
       kit.look({ rays: impact ? .47 : twilight ? .34 : .23, rayX, rayY, glow: day ? .12 : .24,
         bloom: impact ? .90 : .74, threshold: day ? .91 : .57, tilt: .10, focus: .51,
         lift: isNight ? [.003, .006, .017] : impact ? [.004, .007, .018] : twilight ? [.018, .011, .028] : [.008, .015, .024],
-        leak: impact ? .034 + .035 * f.downPulse : 0, leakX: .66, leakY: .61 });
+        chroma: .12, leak: impact ? .014 + .025 * f.downPulse : 0, leakX: .66, leakY: .70 });
     },
     setVisible(on) { root.visible = on },
     dispose() { scene.remove(root); for (const o of owned) o.dispose(); recipes.clear() }
