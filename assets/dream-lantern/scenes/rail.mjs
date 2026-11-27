@@ -325,3 +325,225 @@ export async function create({ THREE: T, scene, camera, back2d, kit, tier, seed 
     }
   },{opacity:.98,rimK:0,emissive:new T.Color(.22,.03,.02)});
   cord.depthWrite=false;
+  const passing = group(), nearTrain = group(passing), farTrain = group(passing);
+  const trainGlass = paintMaterial(160,128,(g,w,h) => {
+    wash(g, [[0,"#344a62"], [.23,"#809fae"], [.70,"#a4b7b5"], [1,"#657b88"]],0,0,h,w);
+    polygon(g,"#d4d8c7",[[24,0],[48,0],[13,h],[0,h],[0,89]]);
+    polygon(g,"#c3ccc0",[[138,0],[145,0],[104,h],[96,h]]);
+    g.fillStyle="#5c7280";g.fillRect(0,h*.79,w,3);
+  }, {rimK:.04,shade:"#d1d9da"});
+  const passingDust = dust(passing,[0,1.8,1],[22,6,7],.065,33,"#ffe7a9");
+  function coach(parent, direction, stripe, symbol) {
+    const carLength=11.9;
+    place(parent,round,soft,"#c2c8c7",0,1.48,0,carLength,2.04,1.78);
+    place(parent,round,metal,"#8999a4",0,2.46,0,11.65,.29,1.69);
+    place(parent,block,enamel,"#364956",0,.40,0,11.32,.32,1.26);
+    place(parent,block,soft,stripe,0,1.03,.902,11.55,.26,.046);
+    place(parent,block,soft,"#dba971",0,.865,.906,11.55,.031,.046);
+    for (let i=0;i<4;i++) place(parent,block,metal,"#98a5ad",0,.60+i*.055,.904,11.46,.018,.035);
+    for (const x of [-4,4]) {
+      place(parent,round,enamel,"#364455",x,.34,0,1.9,.43,1.30);
+      for (const dx of [-.60,.60]) {
+        place(parent,rod,enamel,"#273945",x+dx,.27,.60,.54,.17,.54,Math.PI/2);
+        place(parent,rod,metal,"#81909a",x+dx,.27,.70,.23,.06,.23,Math.PI/2);
+      }
+      place(parent,round,metal,"#94a4ab",x,2.72,0,1.55,.18,1.07);
+    }
+    for (const x of [-4.72,-1.86,-.60,.66,1.92,4.79]) {
+      place(parent,round,enamel,"#344b5b",x,1.73,.922,1.08,1.02,.055);
+      place(parent,round,trainGlass,"#faf4de",x,1.74,.963,.96,.88,.026);
+      place(parent,block,metal,"#a0a9a6",x,1.97,.994,.94,.022,.019);
+    }
+    for (const x of [-3.31,3.34]) {
+      place(parent,block,enamel,"#788891",x,1.38,.93,1.20,1.85,.025);
+      for (const dx of [-.29,.29]) {
+        place(parent,block,soft,"#bbc3c5",x+dx,1.38,.952,.55,1.77,.022);
+        place(parent,round,trainGlass,"#c7dbe0",x+dx,1.76,.978,.39,.77,.022);
+        place(parent,block,soft,stripe,x+dx,1.03,.98,.55,.24,.021);
+      }
+    }
+    const end=direction*5.96;
+    place(parent,round,enamel,"#364e5e",end,1.85,0,1.58,1.02,.07,0,direction*Math.PI/2);
+    for(const z of [-.57,.57]) {
+      place(parent,round,lit,"#fff4c7",end+direction*.047,1.06,z,.29,.18,.075,0,direction*Math.PI/2);
+    }
+    place(parent,card,destination,"#ffecc9",direction*4.78,2.33,.941,1.20,.26,1);
+    const markX=direction*1.92;
+    place(parent,card,symbol,"#ffffff",markX,1.71,1.012,.83,1.00,1);
+  }
+  coach(nearTrain,1,"#668f98",saver ? cord : paper);
+  if (!saver) coach(farTrain,-1,"#bb6669",cord);
+  for(const [z,y] of [[0,-.02],[-4.4,1.32]]) {
+    if (saver && z<0) continue;
+    place(passing,block,enamel,"#657579",0,y-.27,z,55,.35,2.7);
+    place(passing,block,metal,"#b1ada2",0,y-.045,z+.83,55,.08,.10);
+    for(let x=-24;x<26;x+=4.3) {
+      place(passing,block,soft,"#84928d",x,y-1.88,z,.53,3.1,1.29);
+      place(passing,block,metal,"#788b8c",x+1.96,y-.53,z+.70,4.6,.11,.11,0,0,.22);
+    }
+  }
+  for (const x of [-13,-3.2,8.5,20]) {
+    place(passing,rod,metal,"#7b8e96",x,2.4,-6,.125,8,.125);
+    place(passing,block,metal,"#80939c",x,5.05,-5,.08,.07,3.20);
+  }
+  place(passing,block,soft,"#5b7588",0,4.95,-1.32,70,.018,.018);
+
+  const tracks=group(), crossing=group(tracks);
+  const trackDust=dust(tracks,[0,1.4,-12],[16,4.5,31],.031,62,"#fff2ab");
+  const air=kit.haze({section:"verse2",count:saver?5:11,seed:seed+2,center:[0,1,-60],
+    box:[64,2,18],size:12,drift:[.005,0,0],top:"#f4edc7",bottom:"#9fb7aa",opacity:.15});
+  tracks.add(air);
+  function terrainPaint(ballast) {
+    const size=256, texture=kit.paint(size,size,(g,w,h)=>{
+      g.fillStyle=ballast?"#9b968b":"#98a765"; g.fillRect(0,0,w,h);
+      const colors=ballast?["#777d7b","#bec0ac","#9c9b8d","#87898a","#d7cbb4"]:["#77966b","#bcc379","#859d6c","#c4c885","#6f895c"];
+      for(let i=0;i<(ballast?4000:1600);i++){
+        const x=rand()*w,y=rand()*h,s=1+rand()*(ballast?4:9);
+        polygon(g,colors[i%colors.length],[[x,y],[x+s,y-s*.34],[x+s*.76,y+s*.46],[x+s*.14,y+s*.57]]);
+      }
+    });
+    texture.wrapS=texture.wrapT=T.RepeatWrapping;texture.repeat.set(ballast?2:23,ballast?55:35);
+    // kit.toon samples vUv directly, so put tiling in the geometry UVs.
+    const plane=geo(new T.PlaneGeometry()), uv=plane.attributes.uv;
+    for(let i=0;i<uv.count;i++) uv.setXY(i,uv.getX(i)*texture.repeat.x,uv.getY(i)*texture.repeat.y);
+    return [plane,material({map:texture,rimK:0,side:T.DoubleSide,shade:"#91a295"})];
+  }
+  const [meadow,meadowMat]=terrainPaint(false), [gravel,gravelMat]=terrainPaint(true);
+  place(tracks,meadow,meadowMat,"#fff5d3",0,-.12,-45,110,160,1,-Math.PI/2);
+  place(tracks,gravel,gravelMat,"#fff9dd",0,.001,-48,3.35,134,1,-Math.PI/2);
+  place(tracks,gravel,gravelMat,"#efd8b6",3.48,-.064,-48,1.72,134,1,-Math.PI/2);
+  for(let i=0;i<154;i++) {
+    const z=12-i*.75;
+    place(tracks,block,soft,i%3?"#74675d":"#887763",0,.045,z,2.43,.09,.21,0,(rand()-.5)*.012);
+    for(const x of [-.76,.76]) place(tracks,block,enamel,"#62584f",x,.099,z,.22,.045,.16);
+  }
+  for(const x of [-.76,.76]) {
+    place(tracks,block,enamel,"#7e6c5e",x,.16,-46,.079,.16,121);
+    place(tracks,block,metal,"#d7d1ae",x,.252,-46,.105,.028,121);
+  }
+  for(let z=8;z>=-100;z-=2.85) {
+    place(tracks,rod,soft,"#607d74",2.41,.48,z,.083,1.13,.083);
+    place(tracks,rod,metal,"#c7ba96",2.41,1.06,z,.09,.043,.09);
+  }
+  for(const y of [.48,.95]) place(tracks,rod,soft,"#687d72",2.41,y,-46,.042,111,.042,Math.PI/2);
+  // Curved catenary spans. The staggered droppers give scale without a forest of poles.
+  for(let z=3;z>=-100;z-=14) {
+    place(tracks,rod,metal,"#7b8685",-2.52,2.82,z,.13,5.88,.13);
+    place(tracks,block,metal,"#a0a49a",-1.39,5.20,z,2.72,.08,.09);
+    place(tracks,block,metal,"#87958e",-1.71,4.75,z,1.91,.053,.06,0,0,.41);
+    for(let k=0;k<4;k++) {
+      const y0=5.61-.52*Math.sin(k*Math.PI/4), y1=5.61-.52*Math.sin((k+1)*Math.PI/4);
+      place(tracks,block,soft,"#687c84",0,(y0+y1)/2,z-(k+.5)*3.5,.016,.019,3.55,Math.atan2(y1-y0,3.5));
+      place(tracks,rod,soft,"#718389",0,(4.97+y0)/2,z-k*3.5,.014,y0-4.97,.014);
+    }
+  }
+  place(tracks,block,soft,"#768588",0,4.97,-45,.021,.021,130);
+  const blades=geo(new T.BufferGeometry());
+  blades.setAttribute("position",new T.Float32BufferAttribute([-.48,0,0,.07,0,.02,-.53,.62,.05, -.08,0,.03,.19,0,0,.49,.86,.04, -.24,0,.01,.13,0,.01,-.03,1,.07],3));
+  blades.computeVertexNormals();
+  const grassMat=material({side:T.DoubleSide,rimK:.04,shade:"#a7ab84"});
+  const greens=["#b4bb75","#749268","#96a565","#cad17e","#6e8e68"];
+  for(let i=0;i<(saver?1000:ultra?2800:1800);i++) {
+    const z=9-rand()**1.7*88, side=rand()<.5?-1:1;
+    let x=side*(1.72+rand()**1.8*14);
+    if(x>2.60&&x<4.38)x+=2;
+    const h=.10+rand()*.45;
+    place(tracks,blades,grassMat,greens[i%5],x,-.10,z,h*.84,h,1,0,rand()*Math.PI);
+  }
+  const poleX=-1.90, poleZ=-4.0;
+  place(crossing,rod,enamel,"#4e5656",poleX,1.90,poleZ,.125,3.85,.125);
+  for(let i=0;i<9;i++) place(crossing,rod,soft,"#e1b459",poleX,.30+i*.38,poleZ,.129,.19,.129);
+  for(const a of [-.71,.71]) {
+    place(crossing,block,soft,"#e6b953",poleX,3.48,poleZ,1.13,.16,.084,0,0,a);
+    for(const dx of [-.38,0,.38]) place(crossing,block,enamel,"#4a5052",poleX+dx*Math.cos(a),3.48+dx*Math.sin(a),poleZ+.057,.16,.16,.031,0,0,a);
+  }
+  const lamps=[];
+  for(const side of [-1,1]) {
+    const x=poleX+side*.34;
+    place(crossing,rod,enamel,"#333c48",x,2.90,poleZ,.65,.33,.65,Math.PI/2);
+    const bulb=material({rimK:.10,shade:"#ad6555"});
+    lamps.push(bulb);
+    place(crossing,rod,bulb,"#aa4039",x,2.90,poleZ+.193,.41,.059,.41,Math.PI/2);
+    place(crossing,round,enamel,"#3e484b",x,3.16,poleZ+.168,.60,.11,.28,-.08);
+  }
+  place(crossing,block,enamel,"#e6b54f",-.12,.89,poleZ-1,3.80,.11,.10);
+  for(let i=0;i<10;i++) place(crossing,block,enamel,"#4a5457",-1.88+i*.40,.89,poleZ-.94,.19,.11,.025);
+  const views={interior,window:windowSeat,passing,tracks};
+  bake();
+  const fog=new T.Fog(palette.fog,12,110);
+  const originalFog=scene.fog;
+  function frameCamera(f, x,y,z, tx,ty,tz, fov) {
+    camera.position.set(x,y,z); camera.up.set(0,1,0);camera.lookAt(tx,ty,tz);camera.fov=fov;
+  }
+  function tunnelWall(f) {
+    back2d.fillStyle="#152533";back2d.fillRect(0,0,f.W,f.H);
+    const h=f.H, pitch=h*.44, offset=(f.shot.lt*pitch*3)%pitch;
+    for(let x=-offset;x<f.W+pitch;x+=pitch) {
+      back2d.fillStyle="#1d3340";back2d.fillRect(x,h*.24,pitch*.024,h*.65);
+      back2d.fillStyle="#936d58";back2d.fillRect(x,h*.46,pitch*.39,h*.012);
+    }
+  }
+  return {
+    update(f) {
+      const {key, var:variant,lt}=f.shot;
+      for(const [name,g] of Object.entries(views)) g.visible=name===key;
+      scene.fog=key==="window"?null:fog;
+      const sway=Math.sin(f.t*1.7)*.014;
+      if(key==="interior") {
+        fog.color.set("#afb9be");fog.near=7;fog.far=27;
+        const low=variant==="low";
+        frameCamera(f,low?-.66:.27,low?.60:1.19,1.55-lt*.58,low?-.96:-.15,low?.74:1.28,-8,low?61:65);
+        camera.rotateZ(sway*.49);
+        bands.position.z=f.beatPhase*2.48;
+        kit.tick(f,aisleDust);
+        kit.look({rays:.32,rayX:.08,rayY:.36,leak:.085+f.pulse*.055,leakX:.02,leakY:.40,glow:.28,tilt:.15,focus:.50,bloom:.65});
+      } else if(key==="window") {
+        const close=variant==="reflection", dark=variant==="tunnel"&&f.t>=68.554;
+        if(dark) tunnelWall(f); else landscape(f,day,lt+1.7);
+        poles.visible=!dark;poles.position.x=-((lt*5.8+3.1)%6.8);
+        const focus=close?.47:0, camZ=close?2.29:3.32;
+        frameCamera(f,.22+focus+sway,1.53+sway,camZ,focus,1.62,0,close?40:43);
+        ghost.position.set(.47+.025*Math.sin(f.t*1.8),1.59+.024*Math.sin(f.t*2),.245);
+        ghost.rotation.z=.04*Math.sin(f.t*1.9);
+        paper.uniforms.uOpacity.value=close?.86:dark?.52:.61;
+        kit.tick(f,windowDust);
+        kit.look({bloom:close?.7:.55,glow:dark?.12:.24,rays:dark?.01:.22,rayX:.72,rayY:.33,
+          leak:dark?.004:close?.13:.045,leakX:.73,leakY:.26,tilt:.12,focus:.51,
+          exposure:dark?.52:.90,sat:close?.42:1.01,gain:close?[1.17,.91,.65]:[.97,1,.99]});
+      } else if(key==="passing") {
+        landscape(f,day,.36+.12*lt,-.10);
+        fog.color.set("#c4d2cd");fog.near=12;fog.far=46;
+        nearTrain.position.set(-5.45+(lt-.67)*4.6,.0,0);
+        farTrain.position.set(5.82-(lt-.67)*5.0,1.34,-4.4);
+        trainGlass.uniforms.uEmissive.value.setRGB(.03+f.fastPulse*.23,.06+f.fastPulse*.22,.08+f.fastPulse*.17);
+        paper.uniforms.uOpacity.value=.96;
+        frameCamera(f,3.1,1.44+sway,10.2,0,1.58,-1.2,41);
+        kit.tick(f,passingDust);
+        kit.look({rays:.19,rayX:.20,rayY:.33,leak:.065+f.fastPulse*.04,leakX:.16,leakY:.35,glow:.24,tilt:.14,focus:.51});
+      } else if(key==="tracks") {
+        const gate=variant==="gate",dusk=variant==="dusk";
+        landscape(f,dusk?sunset:day,.14+lt*.018,-.13);
+        fog.color.set(dusk?"#c6a28e":"#bed0bc");fog.near=dusk?5:14;fog.far=dusk?49:80;
+        crossing.visible=gate;
+        if(gate) frameCamera(f,-.54,1.61,-.35-lt*.18,poleX,2.64,poleZ,43);
+        else if(dusk) frameCamera(f,3.61,.82,2.2-lt*.5,2.8,1.00,-9.6,48);
+        else frameCamera(f,.05,.75,3.8-lt*.77,-.12,.98,-15,57);
+        for(let i=0;i<2;i++){
+          const on=(Math.floor(f.beat)%2)===i;
+          lamps[i].uniforms.uEmissive.value.setRGB(on?2.9:.06,on?.19:.016,on?.035:.02);
+        }
+        meadowMat.uniforms.uColor.value.set(dusk?"#e6bb94":"#ffffff");
+        grassMat.uniforms.uColor.value.set(dusk?"#f6cb99":"#ffffff");
+        kit.tick(f,trackDust,air);
+        kit.look({rays:dusk?.45:.20,rayX:dusk?.37:.16,rayY:.38,leak:dusk?.25:.055,leakX:dusk?.34:.14,leakY:.37,
+          glow:dusk?.33:.25,tilt:gate?.17:.10,focus:.48,sat:dusk?1.06:1.02,gain:dusk?[1.18,.89,.77]:[1,1.01,.96]});
+      }
+    },
+    setVisible(on) {root.visible=on;},
+    dispose() {
+      scene.remove(root);scene.fog=originalFog;
+      for(const mesh of instances) mesh.dispose();
+      for(const geometry of allocated) geometry.dispose();
+    }
+  };
+}
