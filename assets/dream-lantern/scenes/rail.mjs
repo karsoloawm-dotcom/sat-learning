@@ -185,3 +185,143 @@ export async function create({ THREE: T, scene, camera, back2d, kit, tier, seed 
     if (y > 0) { back2d.fillStyle = "#659cb9"; back2d.fillRect(0, 0, f.W, Math.ceil(y)); }
     if (y + h < f.H) { back2d.fillStyle = "#839377"; back2d.fillRect(0, Math.floor(y + h), f.W, f.H - y - h + 1); }
   }
+  const cloth = paintMaterial(192, 128, (g, w, h) => {
+    wash(g, [[0, "#faabb1"], [.13, "#b65d7d"], [.63, "#9a4564"], [.92, "#713952"], [1, "#ca788a"]], 0, 0, h, w);
+    for (let y = 7; y < h; y += 9) for (let x = -3; x < w; x += 12) {
+      const a = x + (y % 2) * 6;
+      polygon(g, "#d38394", [[a, y], [a + 3, y - 1.4], [a + 1, y + .6], [a - 2, y + 1.8]]);
+    }
+  }, {shade: "#a690ae", rimK: .18});
+  // Panels with signs and moquette need face UVs across the whole cap (ExtrudeGeometry uses world XY).
+  const uv = round.getAttribute("uv");
+  for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) + .5, uv.getY(i) + .5);
+  function sign(w, h, draw) { return paintMaterial(w, h, draw, {shade: "#b1c1c7", rimK: .02}); }
+  const destination = sign(384, 96, (g, w, h) => {
+    g.fillStyle = "#243a48"; g.fillRect(0, 0, w, h);
+    g.fillStyle = "#e2ad74"; g.font = '42px "Yu Mincho",serif'; g.fillText("星　川", 19, 55);
+    g.font = '14px system-ui,sans-serif'; g.fillText("H O S H I K A W A", 21, 79);
+    g.fillStyle = "#eee3bb"; g.font = 'bold 23px system-ui,sans-serif'; g.fillText("LOCAL", 263, 56);
+    g.fillStyle = "#ab5d66"; g.fillRect(0, h - 5, w, 5);
+  });
+  const routeMap = sign(512, 74, (g, w, h) => {
+    g.fillStyle = "#d7d5c3"; g.fillRect(0, 0, w, h);
+    g.fillStyle = "#657a76"; g.fillRect(23, 35, w - 48, 3);
+    for (let i = 0; i < 10; i++) {
+      const x = 26 + i * 50;
+      oval(g, i === 6 ? "#c56355" : "#4f7280", x, 36, 5, 5);
+      g.fillStyle = "#738084"; g.fillRect(x - 6, 48, 12 + i % 3 * 2, 2); g.fillRect(x - 5, 54, 9, 2);
+    }
+  });
+  const carPane = paintMaterial(320, 144, (g,w,h) => {
+    wash(g, [[0, "#bedae6"], [.60, "#fff7db"], [1, "#cbdabe"]], 0, 0, h, w);
+    for (let i = 0; i < 2; i++) {
+      const edge = [];
+      for (let x = 0; x <= w; x += 4) edge.push([x, 92 + i * 16 + Math.sin(x * .025 + i) * 9 + Math.cos(x * .06) * 2]);
+      polygon(g, i ? "#9cae94" : "#c2d1c2", [...edge, [w, h], [0,h]]);
+    }
+  }, {emissive: new T.Color(.30, .36, .33), rimK: .03, shade: "#e8f1ee"});
+  const interior = group(), bands = group(interior);
+  const aisleDust = dust(interior, [0, 1.35, -7], [3, 2.5, 19], .024, 46, "#ffe2a2");
+  const sunPatch = paintMaterial(128, 128, (g,w,h) => {
+    const light = g.createLinearGradient(0,0,w,h*.25);
+    light.addColorStop(0,"rgba(255,222,159,0)"); light.addColorStop(.15,"rgba(255,226,181,.55)");
+    light.addColorStop(.78,"rgba(255,245,209,.91)"); light.addColorStop(1,"rgba(255,246,218,.05)");
+    g.fillStyle = light; g.fillRect(0,0,w,h);
+  }, {opacity: .62, emissive: new T.Color(.38,.25,.10), rimK: 0});
+  sunPatch.depthWrite = false;
+  const aisleFloor = paintMaterial(192, 384, (g,w,h) => {
+    wash(g, [[0,"#7d92a0"],[.5,"#778f9d"],[1,"#91a0a9"]], 0, 0, h, w);
+    for (let i = 0; i < 2100; i++) {
+      g.fillStyle = i % 2 ? "#8698a2" : "#627e90"; g.fillRect(rand()*w,rand()*h,1+rand()*3,1);
+    }
+  }, {rimK:.03});
+  place(interior, block, enamel, "#45576a", 0,-.08,-6, 3.8,.15,25);
+  place(interior, card, aisleFloor, "#ffffff", 0,.004,-6, 3.65,25,1,-Math.PI/2);
+  place(interior, block, soft, "#c4c6bc", 0,2.83,-6, 3.7,.18,25);
+  for (const side of [-1,1]) {
+    const face = -side * Math.PI/2;
+    place(interior, block, enamel, "#7b8d98", side*1.80,1.38,-6, .10,2.8,25);
+    place(interior, block, metal, "#b4bcc0", side*1.64,2.51,-6, .30,.26,25,0,0,-side*.32);
+    place(interior, rod, metal, "#aebac0", side*.99,2.35,-6, .045,24,.045,Math.PI/2);
+    place(interior, block, lit, "#ffe8c8", side*.75,2.726,-6, .09,.035,24);
+    place(interior, block, metal, "#b4bab6", side*1.67,1.04,-6, .12,.06,24);
+    for (let i = 0; i < 9; i++) {
+      const z = 4.2 - 2.48*i;
+      place(interior, round, enamel, "#304758", side*1.70,1.65,z, 2.14,1.10,.10,0,face);
+      place(interior, round, carPane, "#ffffff", side*1.637,1.65,z, 2.03,.99,.028,0,face);
+      place(interior, block, metal, "#b2b7b4", side*1.61,1.91,z, .04,.035,1.99);
+      place(interior, block, soft, "#a1aeb4", side*1.31,.28,z, .64,.42,2.00);
+      place(interior, round, cloth, "#fff0f3", side*1.31,.55,z, 2.08,.18,.69,0,face);
+      place(interior, round, cloth, "#e6c4d2", side*1.59,.79,z, 2.06,.48,.15,0,face,-side*.055);
+      for (const dz of [-1.05,1.05]) {
+        place(interior, rod, metal, "#cfccc1", side*1.09,.62,z+dz, .032,.37,.032);
+        place(interior, rod, metal, "#e5e1cd", side*1.31,.80,z+dz, .038,.48,.038,0,0,Math.PI/2);
+      }
+      place(interior, rod, metal, "#e0dad0", side*.99,1.30,z-1.15,.034,2.14,.034);
+      place(interior, block, soft, "#756955", side*.99,2.21,z,.025,.23,.049);
+      place(interior, loop, soft, "#e8ddbf", side*.99,2.04,z, .245,.27,.22,0,side*.26);
+      if (i % 2 === 0) place(interior, card, routeMap, "#ffffff", side*1.65,2.36,z, 1.48,.19,1,0,face);
+    }
+  }
+  place(interior, block, soft, "#a2b0b5", 0,1.32,-17.3, 3.55,2.76,.15);
+  place(interior, round, enamel, "#4b6372", 0,1.10,-17.19, 1.04,2.13,.08);
+  place(interior, round, soft, "#abb6b7", 0,1.09,-17.12,.91,2.04,.08);
+  place(interior, round, carPane, "#ffffff",0,1.50,-17.05,.68,.82,.04);
+  place(interior, card, destination, "#ffffff",0,2.40,-17.18,1.10,.27,1);
+  for (let i=-1; i<12; i++) {
+    place(bands, card, sunPatch, "#fff2ce", -.05,.021,4-i*2.48,3.20,.79,1,-Math.PI/2,0,-.46);
+    place(bands, card, sunPatch, "#fff2ce", -.05,.022,4-i*2.48+.47,3.10,.10,1,-Math.PI/2,0,-.46);
+  }
+
+  const windowSeat = group(), poles = group(windowSeat), ghost = group(windowSeat);
+  const windowDust = dust(windowSeat, [0,1.4,.75], [4,2,.8], .013, 20, "#fee8aa");
+  const reveal = material({color: "#fff5dd", shade:"#65798d", rimK:.16});
+  // The reveal surrounds an actual opening: the lit landscape never intersects the window.
+  for (const side of [-1,1]) {
+    place(windowSeat, block, enamel, "#687e8b", side*7.04,1.6,0, 10.2,10,.12);
+    place(windowSeat, block, enamel, "#687e8b", 0,1.63+side*6.03,0, 4.04,10,.12);
+    for (const [inset, thick, depth, col] of [[0,.15,.13,"#bcc3c0"], [.078,.063,.16,"#273d4b"], [.118,.025,.185,"#dabf97"]]) {
+      place(windowSeat, block, reveal, col,side*(1.99-inset),1.63,depth,thick,2.19-inset*2,.06);
+      place(windowSeat, block, reveal, col,0,1.63+side*(1.06-inset),depth,3.98-inset*2,thick,.06);
+    }
+  }
+  place(windowSeat, block, metal, "#a6adb0",0,2.28,.22,3.83,.032,.043);
+  place(windowSeat, block, metal, "#b8bcb7",0,.56,.19,4.13,.08,.36);
+  place(windowSeat, card, routeMap, "#ffffff",0,2.85,.08,2.08,.30,1);
+  place(windowSeat, round, cloth, "#f4d6df",-1.75,.50,.81,1.45,.88,.30,-.12,-.12,-.04);
+  place(windowSeat, round, cloth, "#ebc3d3",1.97,.39,.83,1.10,.70,.28,-.10,.12,.04);
+  for (let i=-3;i<=3;i++) {
+    const x = i*6.8;
+    place(poles, rod, soft, "#515e63",x,1,-3,.095,8,.095,0,0,.018);
+    place(poles, block, soft, "#52676c",x,3.14,-3,.8,.075,.10);
+    for(const dx of [-.31,.30]) place(poles, rod, soft, "#acb4a9",x+dx,3.24,-3,.063,.15,.063);
+  }
+  for (const y of [2.78,2.86,3.10]) place(poles, block, soft, "#576779",0,y,-3,52,.013,.013,0,0,-.009);
+  function lanternArt(g,w,h) {
+    g.scale(w/200,h/300);
+    g.lineWidth=2; g.strokeStyle="#916e58"; g.beginPath(); g.arc(100,80,28,Math.PI,TAU);g.stroke();
+    const l=g.createRadialGradient(91,122,4,101,139,78);
+    l.addColorStop(0,"#fff5bf"); l.addColorStop(.58,"#ffe09b"); l.addColorStop(.88,"#e9a974"); l.addColorStop(1,"#d28970");
+    g.fillStyle=l;g.beginPath();g.moveTo(74,76);g.bezierCurveTo(28,87,25,161,53,187);
+    g.bezierCurveTo(71,206,126,210,148,186);g.bezierCurveTo(177,152,164,90,126,76);g.closePath();g.fill();
+    g.save();g.clip();
+    for(let i=0;i<11;i++) { const y=80+i*11;g.strokeStyle="rgba(148,89,70,.50)";g.lineWidth=1.8;
+      g.beginPath();g.moveTo(28,y);g.quadraticCurveTo(100,y+23,173,y-2);g.stroke(); }
+    g.fillStyle="#dc9c76"; g.beginPath();g.arc(108,141,11,0,TAU);g.fill();
+    g.restore();
+    oval(g,"#786358",100,76,29,5);oval(g,"#97705b",100,199,26,5);
+    g.strokeStyle="#c16e61";g.lineWidth=2.6;g.beginPath();g.moveTo(100,201);g.bezierCurveTo(98,213,121,219,106,234);g.stroke();
+    polygon(g,"#c97765",[[107,229],[114,232],[110,252],[106,260],[105,244],[101,251]]);
+  }
+  const paper = paintMaterial(192,288,lanternArt,{opacity:.70, rimK:0, shade:"#ffd5a1", emissive:new T.Color(.42,.22,.06)});
+  paper.depthWrite=false;
+  if (!saver) place(ghost,card,paper,"#ffedd2",0,0,0,.81,1.24,1);
+  const cord = paintMaterial(160,192,(g,w,h)=>{
+    g.scale(w/160,h/192);
+    for (const [color,lw] of [["#692d51",9],["#e6444c",6],["#ffba6c",1.6]]) {
+      g.strokeStyle=color;g.lineWidth=lw;g.lineCap="round";g.setLineDash(lw<2?[4,4]:[]);
+      g.beginPath();g.moveTo(66,13);g.bezierCurveTo(86,48,109,109,70,111);
+      g.bezierCurveTo(21,108,64,53,80,91);g.bezierCurveTo(95,119,55,134,71,173);g.stroke();
+    }
+  },{opacity:.98,rimK:0,emissive:new T.Color(.22,.03,.02)});
+  cord.depthWrite=false;
