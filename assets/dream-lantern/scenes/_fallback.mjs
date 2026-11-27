@@ -3,7 +3,7 @@
    shading, a painted section sky behind it, paper lanterns floating and rising with their mirror images, the red cord over
    the water, fog banks and sparkles. The framing changes with the shot, so consecutive fallback shots do not repeat. */
 const ANG = [ /* camera position, look-at, fov: wide, low over the water, the torii, the shore, high over the crater */
-  [[0, 4.5, 34], [0, 7, -24], 55], [[.3, 1.1, 10], [.2, 2, -20], 46], [[-7, .9, -7], [0, 3.2, -20], 42],
+  [[0, 4.5, 34], [0, 7, -24], 55], [[.3, 1.8, 10], [.2, 2.6, -20], 46], [[-7, .9, -7], [0, 3.2, -20], 42],
   [[-22, 1.4, -18], [-6, 2, -34], 44], [[14, 46, 40], [0, 0, -6], 48]];
 export async function create({ THREE, scene, camera, back2d, kit, tier, jsm, base }) {
   const N = { saver: [70, 16], smooth: [180, 40], ultra: [420, 90] }[tier] || [180, 40], rnd = mulberry(5);
@@ -20,7 +20,7 @@ export async function create({ THREE, scene, camera, back2d, kit, tier, jsm, bas
     if (terr) { prep(terr, false); terr.scale.set(1.15, .48, 1.15); world.add(terr) }
     if (torii) { prep(torii, true); torii.position.set(0, -.15, -20); torii.scale.setScalar(1.15); world.add(torii) }
     if (toro) { prep(toro, true); [[-9, -31.4], [9, -31.4], [-19, -26.3], [19, -26.3], [-27, -18]].forEach(([x, z], i) => { const o = i ? toro.clone() : toro; o.position.set(x, -.25, z); o.rotation.y = Math.atan2(x, z); world.add(o) }) }
-    for (const o of [...world.children]) mirror.add(o.clone()); /* their reflections (shared geometry) */
+    for (const o of [...world.children]) if (o !== terr) mirror.add(o.clone()); /* reflections; not the terrain: its lake bed, flipped, would rise above the water */
   } catch (e) { console.warn("Dream Lantern fallback: lake.glb unavailable", e) }
   /* paper lanterns: a ribbed lathe, warm inside */
   const prof = [[0, -.5], [.16, -.5], [.3, -.42], [.4, -.24], [.43, -.02], [.4, .2], [.3, .38], [.17, .47], [0, .48]].map(([x, y]) => new THREE.Vector2(x, y));
@@ -43,11 +43,11 @@ export async function create({ THREE, scene, camera, back2d, kit, tier, jsm, bas
   /* water: a dark, tinted pane over the mirrored world; the painted sky shows through it */
   const water = new THREE.Mesh(own(new THREE.PlaneGeometry(600, 600).rotateX(-Math.PI / 2)), own(new THREE.MeshBasicMaterial({ color: "#1a1530", transparent: true, opacity: .42, depthWrite: false })));
   water.renderOrder = 1; scene.add(water);
-  const fog = kit.haze({ count: { saver: 14, smooth: 36, ultra: 80 }[tier], center: [0, 1.2, -18], box: [90, 2, 60], size: 18, opacity: .38 });
+  const fog = kit.haze({ count: { saver: 14, smooth: 36, ultra: 80 }[tier], center: [0, .6, -44], box: [110, .8, 20], size: 12, opacity: .3 });
   const glints = kit.particles({ kind: "spark", count: { saver: 200, smooth: 700, ultra: 2000 }[tier], center: [0, .05, -10], box: [60, .1, 50], size: .09, drift: [0, 0, 0], wobble: .05, twinkle: .9, on: "fast" });
   const motes = kit.particles({ kind: "glow", count: { saver: 150, smooth: 500, ultra: 1500 }[tier], center: [0, 4, -12], box: [50, 8, 40], size: .12, drift: [.05, .12, 0] });
   scene.add(fog, glints, motes);
-  scene.fog = new THREE.Fog(0x000000, 40, 170);
+  scene.fog = new THREE.Fog(0x000000, 60, 280);
   const paint = new Map(); /* the sky for each section, painted once: the gradient, stars, soft cloud bands, its reflection below */
   function sky(sec) {
     if (paint.has(sec)) return paint.get(sec);
@@ -56,18 +56,23 @@ export async function create({ THREE, scene, camera, back2d, kit, tier, jsm, bas
     st.forEach((s, i) => { gr.addColorStop(i / (st.length - 1), s); gr2.addColorStop(1 - i / (st.length - 1), s) });
     g.fillStyle = gr; g.fillRect(0, 0, c.width, hz); g.globalAlpha = .7; g.fillStyle = gr2; g.fillRect(0, hz, c.width, H - hz); g.globalAlpha = 1;
     const r = mulberry(sec.length * 31);
-    for (let i = 0; i < 260; i++) { const y = r() * hz * .7; g.globalAlpha = (1 - y / (hz * .7)) * r() * .9; g.fillStyle = "#fff"; g.fillRect(r() * c.width, y, 1.5, 1.5) }
+    for (let i = 0; i < 420; i++) { const y = r() * hz * .8, s = 1 + r() * r() * 2.6; g.globalAlpha = Math.min(1, (1.15 - y / (hz * .8)) * (.4 + r() * .8)); g.fillStyle = r() < .15 ? "#ffe9c8" : "#fff"; g.beginPath(); g.arc(r() * c.width, y, s, 0, 6.3); g.fill() }
+    g.globalAlpha = 1; g.globalCompositeOperation = "lighter"; /* the afterglow over the far rim */
+    const ag = g.createRadialGradient(0, 0, 0, 0, 0, c.width * .55); ag.addColorStop(0, st[st.length - 1] + "b0"); ag.addColorStop(1, st[st.length - 1] + "00");
+    g.save(); g.translate(c.width * .62, hz); g.scale(1, .32); g.fillStyle = ag; g.fillRect(-c.width, -c.width, c.width * 2, c.width * 2); g.restore(); g.globalCompositeOperation = "source-over";
     g.globalAlpha = 1; /* soft cloud bands: round gradients squashed into long ellipses */
     for (let i = 0; i < 26; i++) { const x = r() * c.width, y = hz * (.45 + r() * .5), rx = 80 + r() * 260, gg = g.createRadialGradient(0, 0, 0, 0, 0, rx); gg.addColorStop(0, "rgba(255,230,220,.16)"); gg.addColorStop(1, "rgba(255,230,220,0)"); g.save(); g.translate(x, y); g.scale(1, .22); g.fillStyle = gg; g.fillRect(-rx, -rx, rx * 2, rx * 2); g.restore() }
+    const P = kit.palette(sec); /* cumulus on the far rim, lit from below */
+    for (let i = 0; i < 5; i++) kit.cloud2d(g, c.width * (.08 + i * .21), hz * (.93 + .03 * (i % 2)), c.width * .3, H * .2, P.shade, P.light, sec.length + i);
     paint.set(sec, c); return c;
   }
-  const V = new THREE.Vector3(), V2 = new THREE.Vector3();
+  const V = new THREE.Vector3(), V2 = new THREE.Vector3(), TC = new THREE.Color();
   return {
     update(f) {
       const P0 = kit.palette(f.section);
-      back2d.drawImage(sky(f.section), -f.W * .03 + Math.sin(f.t * .05) * f.W * .02, 0, f.W * 1.06, f.H);
       scene.fog.color.set(P0.fog); water.material.color.set(P0.shade).multiplyScalar(.35);
-      fog.userData.material.uniforms.uTop.value.set(P0.fog); fog.userData.material.uniforms.uBot.value.set(P0.shade);
+      terrMat.uniforms.uColor.value.set("#b9a6c2").lerp(TC.set(P0.light), .4).multiplyScalar(f.section === "outro" || f.section === "chorus1" ? 1.7 : 1);
+      fog.userData.material.uniforms.uTop.value.set(P0.shade); fog.userData.material.uniforms.uBot.value.set(P0.light).multiplyScalar(1.2);
       /* the rising lanterns loop upward; their mirror images follow */
       for (let i = 0; i < N[1]; i++) { const [x, z, ph, sp] = RP[i], y = ((f.t * .6 * sp + ph * 40) % 40), s = .8 * (1 - y / 46); M.compose(P.set(x + Math.sin(f.t * .3 + ph * 9) * 1.2, y + .3, z), Q.setFromAxisAngle(up, f.t * .2 + ph * 6), S.setScalar(Math.max(.01, s))); rise.setMatrixAt(i, M) }
       rise.instanceMatrix.needsUpdate = true;
@@ -77,8 +82,12 @@ export async function create({ THREE, scene, camera, back2d, kit, tier, jsm, bas
       const a = ANG[((f.shot.i * 7 + (f.shot.side === "R" ? 3 : 0)) % ANG.length + ANG.length) % ANG.length], u = f.shot.u, e = u * u * (3 - 2 * u);
       camera.position.set(...a[0]).add(V.set(Math.sin(f.t * .2) * .6 + (e - .5) * 3, Math.sin(f.t * .15) * .2, -(e - .5) * 3));
       camera.lookAt(V2.set(...a[1])); camera.fov = a[2];
+      /* the painted sky, its horizon (58 % down the painting) placed where this camera sees the horizon */
+      camera.updateMatrixWorld(); camera.updateProjectionMatrix(); camera.getWorldDirection(V); V.y = 0; V.normalize().multiplyScalar(2000).add(camera.position); V.y = 0;
+      const hy = Math.min(1.4, Math.max(-.4, (1 - V.project(camera).y) / 2)) * f.H, ph = f.H * 1.25;
+      back2d.drawImage(sky(f.section), -f.W * .03 + Math.sin(f.t * .05) * f.W * .02, hy - ph * .58, f.W * 1.06, ph);
       kit.tick(f, fog, glints, motes);
-      kit.look({ glow: .4, bloom: .9, rays: .35, rayX: .5, rayY: .55, tilt: a === ANG[4] ? .8 : .25, focus: .55 });
+      kit.look({ glow: .4, bloom: .9, rays: .3, rayX: .5, rayY: .62, tilt: a === ANG[4] ? .8 : .25, focus: .55 });
     },
     setVisible(on) { world.visible = mirror.visible = water.visible = fog.visible = glints.visible = motes.visible = on },
     dispose() {
