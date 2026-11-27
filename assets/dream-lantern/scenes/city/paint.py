@@ -3,7 +3,7 @@ from pathlib import Path
 from random import Random
 
 import numpy as np
-from PIL import Image, ImageDraw, ImageFilter
+from PIL import Image, ImageDraw
 
 
 OUT = Path(__file__).parent
@@ -42,14 +42,27 @@ def clouds():
     fine = wash(w, h, 7) + .5 * wash(w, h, 3)
     val = np.clip(light + fine * .12, 0, 1)
     val = .8 * val + .2 * np.round(val * 7) / 7
-    alpha = np.uint8(255 * np.clip((depth + 2) / 4, 0, 1))
+    ends = np.clip(np.minimum(x, w-1-x)/92, 0, 1)
+    fringe = np.clip((depth + 2) / 4, 0, 1)
+    alpha = np.uint8(255 * fringe * ends)
+    # A second, much higher layer. Drag the grain along the wind in individual strokes.
+    silks = Image.new('RGBA', (w, h))
+    brush = ImageDraw.Draw(silks)
+    for i in range(740):
+        sx = rng.uniform(-100,w); band = rng.choice([1, 2, 3])
+        yy = 28 + band*21 + 24*np.sin(sx/177 + band) + rng.gauss(0, 5)
+        length = rng.uniform(9, 104)
+        points = [(sx+length*k/8, yy - 4*np.sin(k*.3) - length*k/8*.056) for k in range(9)]
+        opacity = int(rng.uniform(9, 38)*max(0, min(1, sx/70, (w-sx)/70)))
+        brush.line(points, fill=(167, 191, 215, opacity), width=1 if i%8 else 2)
     for name, stops in [
         ('day', ['889ab9', 'acbed8', 'dce2e4', 'fff6dd', 'fffcea']),
-        ('night', ['111c38', '182c4b', '2d507a', '5997b4', '9cdde4'])
+        ('night', ['111a36', '142841', '284d70', '5095ac', '8be0dc'])
     ]:
         ramp = np.array([list(bytes.fromhex(s)) for s in stops])
         rgb = np.stack([np.interp(val, np.linspace(0, 1, 5), ramp[:, c]) for c in range(3)], axis=2)
-        Image.fromarray(np.dstack((rgb.astype('uint8'), alpha))).save(OUT / f'cloud-{name}.webp', quality=83)
+        bank = Image.fromarray(np.dstack((rgb.astype('uint8'), alpha)))
+        Image.alpha_composite(silks, bank).save(OUT / f'cloud-{name}.webp', quality=83)
 
 
 def lookout():
