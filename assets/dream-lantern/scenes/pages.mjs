@@ -8,9 +8,9 @@ const ease = x => { x = clamp(x); return x * x * (3 - 2 * x); };
 const mix = (a, b, u) => a + (b - a) * u;
 
 const SURFACES = {
-  palm: ["verse1", "#211e38", "#716786", "#f5c78c", "cloth"],
+  palm: ["verse1", "#242441", "#655b81", "#d9a075", "cloth"],
   notebook: ["prechorus", "#242c4c", "#594b68", "#da9a61", "wood"],
-  note: ["verse2", "#202c40", "#444b67", "#be785c", "wood"],
+  note: ["verse2", "#152840", "#394c64", "#9b786a", "wood"],
   map: ["verse2", "#263b38", "#53594d", "#e1a867", "wood"],
   chalk: ["verse2", "#162e31", "#355750", "#7b9b77", "slate"],
   sketches: ["chorus2", "#333a50", "#787c85", "#d9a67b", "plaster"],
@@ -85,16 +85,23 @@ function backdrop(g, rnd, name, palette) {
   wash(g, 165, 32, 660, [[0, palette.light + "8f"], [.3, warm + "5b"], [1, warm + "00"]]);
   wash(g, 1050, 590, 540, [[0, dark + "be"], [1, dark + "00"]]);
 
-  if (material === "wood" || material === "cloth") {
-    const cloth = material === "cloth";
+  if (material === "cloth") {
+    fill(g, "M-40 64 Q230 9 364 77 C579 188 513 461 821 586 Q916 628 1110 675 H618 Q466 602 404 500 C324 361 331 153 -40 151 Z",
+      gradient(g, 500, 190, 250, 520, [[0, "#aa8ba330"], [.52, "#32274673"], [.68, "#382645ae"], [1, "#51456909"]]));
+    fill(g, "M30 0 Q306 12 408 88 C582 217 517 476 816 580 Q973 640 1200 629 V675 Q854 683 727 603 C497 443 523 259 392 129 Q281 32 30 35 Z",
+      gradient(g, 506, 68, 418, 557, [[0, "#ffe4a577"], [.42, "#e2a3a157"], [1, "#c99ac24a"]]));
+    fill(g, "M0 442 C262 390 292 543 474 675 H0 Z", "#352b5043");
+    wash(g, 280, 112, 469, [[0, "#fff0bdba"], [.4, "#ffdd9359"], [1, "#ffe1a100"]]);
+    fiber(g, rnd, WIDTH, HEIGHT, 2500, "#ffe7ba25", "#25213d2d", 11, 3);
+  } else if (material === "wood") {
     g.save();
-    g.transform(1, cloth ? .11 : -.075, cloth ? -.54 : .22, 1, -140, 10);
-    for (let y = -45; y < 840; y += cloth ? 76 : 112) {
+    g.transform(1, -.075, .22, 1, -140, 10);
+    for (let y = -45; y < 840; y += 112) {
       const wobble = rnd() * 24;
-      line(g, `M0 ${y} Q750 ${y + wobble} 1750 ${y - 7}`, dark + "68", cloth ? 9 : 2.5);
-      line(g, `M0 ${y + 3} Q750 ${y + wobble + 4} 1750 ${y - 4}`, warm + "69", cloth ? 4 : 1.5);
+      line(g, `M0 ${y} Q750 ${y + wobble} 1750 ${y - 7}`, dark + "68", 2.5);
+      line(g, `M0 ${y + 3} Q750 ${y + wobble + 4} 1750 ${y - 4}`, warm + "69", 1.5);
     }
-    fiber(g, rnd, 1900, 880, 1700, "#ffe2ba22", "#1f223a2f", cloth ? 15 : 190, cloth ? 3 : -2);
+    fiber(g, rnd, 1900, 880, 1700, "#ffe2ba22", "#1f223a2f", 190, -2);
     g.restore();
   } else {
     for (let i = 0; i < 105; i++) {
@@ -104,12 +111,23 @@ function backdrop(g, rnd, name, palette) {
     fiber(g, rnd, WIDTH, HEIGHT, 1950, "#e6dec824", "#212a372d", material === "slate" ? 60 : 8, -3);
   }
 
-  if (name !== "sketches") {
-    const beam = gradient(g, 354, 29, 205, 420,
-      [[0, "#fff1bb9f"], [.54, "#ffe4a359"], [1, "#ffe4a300"]]);
-    fill(g, "M-270 -90 H286 L1040 676 H694 Z", beam);
-    fill(g, "M320 -72 H383 L1169 675 H1072 Z", "#ffdf9a26");
-    fill(g, "M394 -75 H437 L1239 676 H1199 Z", dark + "47");
+  if (name === "notebook") {
+    const beam = gradient(g, 190, 160, 335, 583, [[0, "#ffe4b0ba"], [.54, "#ffde9b44"], [1, "#ffde9b00"]]);
+    fill(g, "M0 10 L1200 393 V652 L0 224 Z", beam);
+    fill(g, "M0 240 L1200 663 V676 H1163 L0 255 Z", dark + "66");
+  } else if (name === "note") {
+    fill(g, "M0 0 H723 L826 39 L0 440 Z", gradient(g, 127, 54, 410, 408, [[0, "#fff0cd96"], [.48, "#f1ded661"], [1, "#c7cedc00"]]));
+    fill(g, "M0 445 L810 58 L847 71 L0 505 Z", "#30395065");
+    fill(g, "M0 524 L1200 463 V676 H0 Z", "#29395246");
+  } else if (name === "map") {
+    wash(g, 744, 53, 579, [[0, "#fff0c4be"], [.44, "#ffd08d61"], [1, "#ffd08d00"]]);
+    fill(g, "M-26 543 Q295 504 644 560 Q926 605 1225 494 V675 H0 Z", "#233b4057");
+  } else if (name === "book") {
+    wash(g, 898, 220, 436, [[0, "#ffe9b6a3"], [.62, "#ffd8a53d"], [1, "#ffe3ac00"]]);
+    fill(g, "M654 -45 H877 L391 675 H37 Z", gradient(g, 636, 125, 293, 650, [[0, "#fff0ca5b"], [1, "#ffe1a100"]]));
+  } else if (name === "chalk") {
+    fill(g, "M-150 -81 H278 L928 530 H650 Z", gradient(g, 199, 91, 571, 502, [[0, "#e9e9afac"], [.52, "#d9d69b50"], [1, "#d8d69e00"]]));
+    fill(g, "M320 -72 H365 L1025 530 H979 Z", "#13273259");
   }
   if (name === "chalk") {
     g.fillStyle = gradient(g, 0, 524, 0, 586, [[0, "#9a9d727f"], [.17, "#a3a487"], [.26, "#6d7579"], [.62, "#454956"], [1, "#282d3c"]]);
@@ -199,11 +217,12 @@ function hinge(g, h) {
   line(g, `M0 6 Q-4 ${h / 2} 0 ${h + 1}`, "#4b363e63", 1);
 }
 
-function turn(g, image, w, h, p, tint) {
+function turn(g, image, w, h, p, tint, opacity = 1) {
   if (p <= 0 || p >= 1) return;
   const side = Math.cos(p * Math.PI), lift = Math.sin(p * Math.PI);
   const direction = Math.sign(side) || 1;
   g.save();
+  g.globalAlpha *= opacity;
   g.transform(side, -lift * .23, 0, 1 - lift * .09, 0, lift * 21);
   if (direction < 0) {
     g.translate(w, 0);
@@ -243,14 +262,17 @@ function mapPanel(g, rnd, w, h, panel) {
   g.strokeStyle = "#877c646f";
   g.strokeRect(7, 7, w - 14, h - 14);
   g.save();
-  g.translate(panel === 0 ? w + 30 : panel === 2 ? -56 : w / 2, panel === 1 ? h * .54 : h * .53);
-  for (let i = 10; i > 0; i--) {
+  g.translate(panel === 0 ? w + 159 : panel === 2 ? -159 : w / 2, h * .54);
+  for (let i = 12; i > 0; i--) {
     g.save();
-    g.rotate(i * .007);
-    g.scale(1 + i * .13, 1 + i * .145);
+    g.translate(i * 1.8, Math.sin(i * .24) * 14);
+    g.rotate(i * .012);
+    g.scale(1 + i * .192, 1 + i * .127);
     basin(g, null, i % 3 ? "#786a5569" : "#806d579f");
     g.restore();
   }
+  line(g, "M-365 107 C-247 83 -271 -9 -177 -18 C-147 -20 -123 9 -117 47 L-100 65 Q-39 108 64 106 T361 65 M-352 81 Q-288 53 -273 11 M126 -142 Q146 -100 212 -93 T351 -34", "#8a645c9b", 1.5);
+  line(g, "M-365 116 C-242 94 -269 0 -180 -8 C-147 -10 -130 13 -124 51 L-108 72 Q-40 120 65 114 T362 76", "#fbebba87", 1);
   if (panel === 1) {
     basin(g, "#648d9b", "#3c5c71");
     g.save();
@@ -262,6 +284,7 @@ function mapPanel(g, rnd, w, h, panel) {
     ellipse(g, -98, 44, 4, 4, "#ad424a");
     line(g, "M119 -106 V-68 M107 -86 H130 M119 -107 l-5 11 h10 Z", "#694e55", 1.5);
   }
+  line(g, "M220 121 h86 m-85 -4 v9 m28 -8 v7 m28 -7 v7 m28 -8 v9 M-309 -108 h61 m-61 4 h48 m-40 5 h25", "#665e529b", 1.1);
   g.restore();
   fiber(g, rnd, w, h, 78, "#814e3e31", "#64594a5b", 28);
 }
@@ -348,10 +371,10 @@ const SKETCHES = [
 ];
 
 const LOOKS = {
-  palm: { exposure: 1.02, lift: [.024, .018, .038], gain: [1.08, .98, 1.02], glow: .29, bloom: .78, tilt: .33, rayX: .20, rayY: .15, rays: .34, leakColor: [1, .52, .26] },
-  notebook: { exposure: 1.02, lift: [.027, .025, .053], gain: [1.07, .96, 1.08], glow: .24, bloom: .75, tilt: .29, rayX: .14, rayY: .13, rays: .28, leakColor: [1, .57, .35] },
+  palm: { exposure: 1.02, lift: [.024, .018, .038], gain: [1.08, .98, 1.02], glow: .33, bloom: .84, tilt: .33, rayX: .22, rayY: .17, rays: .37, leakColor: [1, .52, .26] },
+  notebook: { exposure: 1.02, lift: [.025, .022, .048], gain: [1.05, .96, 1.08], glow: .29, bloom: .79, tilt: .29, rayX: .14, rayY: .23, rays: .31, leakColor: [1, .57, .35] },
   note: { exposure: 1.01, lift: [.021, .024, .039], gain: [1.04, .97, 1.04], glow: .23, bloom: .68, tilt: .33, rayX: .23, rayY: .12, rays: .25, leakColor: [1, .53, .31] },
-  map: { exposure: 1.01, lift: [.02, .026, .036], gain: [1.05, 1, .96], glow: .25, bloom: .72, tilt: .25, rayX: .18, rayY: .14, rays: .27, leakColor: [1, .64, .37] },
+  map: { exposure: 1.01, lift: [.02, .026, .036], gain: [1.05, 1, .96], glow: .25, bloom: .72, tilt: .25, rayX: .71, rayY: .12, rays: .29, leakColor: [1, .64, .37] },
   chalk: { exposure: .98, lift: [.012, .023, .031], gain: [1.03, 1.07, 1.03], glow: .27, bloom: .7, tilt: .32, rayX: .12, rayY: .22, rays: .20, leakColor: [1, .75, .48] },
   sketches: { exposure: 1.04, lift: [.028, .027, .048], gain: [1.07, .99, 1.03], glow: .26, bloom: .77, tilt: .31, rayX: .13, rayY: .14, rays: .31, leakColor: [1, .65, .42] },
   book: { exposure: 1.02, lift: [.025, .019, .043], gain: [1.05, .99, 1.08], glow: .29, bloom: .79, tilt: .31, rayX: .65, rayY: .35, rays: .32, leakColor: [1, .58, .31] }
@@ -373,9 +396,16 @@ export async function create({ THREE, scene, camera, back2d: g, kit, tier, seed 
     grounds[name] = paint(WIDTH, HEIGHT, ctx => backdrop(ctx, rnd, name, kit.palette(section)), resolution / WIDTH * .5);
   }
 
-  const palm = paint(680, 557, ctx => {
+  const palm = paint(1022, 596, ctx => {
     ctx.translate(-327, -72);
     hand(ctx, rnd);
+    // The sleeve carries the cropped wrist into foreground shadow.
+    fill(ctx, "M848 513 Q874 523 908 505 Q933 504 953 520 Q1008 556 1086 596 L1350 681 H955 Q922 637 885 609 Q855 573 848 513 Z",
+      gradient(ctx, 870, 503, 1083, 642, [[0, "#806d9a"], [.35, "#656185"], [.68, "#424160"], [1, "#31334f"]]));
+    fill(ctx, "M857 519 Q882 526 902 511 Q892 547 921 580 Q961 617 1016 661 L977 666 Q899 612 881 569 Z", "#ac8db0");
+    fill(ctx, "M925 511 Q945 512 956 524 Q982 565 1085 597 Q1044 595 997 587 Q940 568 925 511 Z", "#b3a0c580");
+    line(ctx, "M859 521 Q869 580 932 631 M864 523 Q884 584 972 641 M907 511 Q911 548 948 582 M886 572 Q934 626 990 643", "#ead0cf55", 1.9);
+    fill(ctx, "M1030 575 Q1085 605 1204 634 L1351 678 H953 Q1032 652 1030 575 Z", "#34344f74");
   });
   const leafW = 350, leafH = 386;
   const notebook = paint(leafW, leafH, (ctx, w, h) => notebookPaper(ctx, rnd, w, h));
@@ -446,7 +476,8 @@ export async function create({ THREE, scene, camera, back2d: g, kit, tier, seed 
 
   function palmShot(f) {
     g.translate(-6 + f.shot.u * 13, 4 - f.shot.u * 7);
-    g.drawImage(palm, 327, 72, 680, 557);
+    g.drawImage(palm, 327, 72, 1022, 596);
+    fill(g, "M946 657 Q1001 665 1059 640 L1337 648 L1700 870 L1580 990 L1000 760 Z", "#34344f");
     g.save();
     g.translate(621, 328);
     g.rotate(-.21);
@@ -497,6 +528,8 @@ export async function create({ THREE, scene, camera, back2d: g, kit, tier, seed 
       g.drawImage(inkBleed, 0, 0, leafW, leafH);
       g.restore();
     }
+    g.fillStyle = gradient(g, 63, 86, 7, 243, [[0, "#fff0c000"], [.26, "#fff0c053"], [.71, "#ffdeac28"], [1, "#ffdeac00"]]);
+    g.fillRect(-leafW, 0, 2 * leafW, leafH);
     hinge(g, leafH);
     turn(g, notebook, leafW, leafH, pageProgress, "#b38ca446");
     if (!fast) {
@@ -510,8 +543,9 @@ export async function create({ THREE, scene, camera, back2d: g, kit, tier, seed 
 
   function noteShot(f) {
     const u = f.shot.u;
-    g.translate(368 + 7 * u, 224 - 12 * u);
+    g.translate(347 + 7 * u, 215 - 12 * u);
     g.rotate(-.22 + u * .024);
+    g.scale(1.10, 1.10);
     fill(g, "M-65 81 Q211 110 496 41 L530 236 L51 332 L-48 260 Z", "#22213275");
     fill(g, "M-66 59 L441 -34 L516 226 L9 319 Z", "#754c60");
     fill(g, "M-66 59 L242 178 L441 -34 L245 126 Z", "#ab746d");
@@ -538,8 +572,9 @@ export async function create({ THREE, scene, camera, back2d: g, kit, tier, seed 
   function mapShot(f) {
     const p = ease((f.shot.u - .04) / .61);
     const right = ease((f.shot.u - .16) / .62);
-    g.translate(597 - 15 * f.shot.u, 171 - 4 * f.shot.u);
+    g.translate(601 - 15 * f.shot.u, 158 - 4 * f.shot.u);
     g.rotate(-.115 + .025 * f.shot.u);
+    g.scale(1.07, 1.07);
     const center = mapW[1], leftW = mapW[0] * mix(.20, 1, p), rightW = mapW[2] * mix(.10, 1, right);
     g.fillStyle = "#28283568";
     g.fillRect(-center / 2 - leftW + 14, 19, center + leftW + rightW + 3, mapH + 8);
@@ -565,10 +600,11 @@ export async function create({ THREE, scene, camera, back2d: g, kit, tier, seed 
   function chalkShot(f) {
     const write = f.shot.var === "write";
     const u = f.shot.u;
-    const rub = write ? 0 : ease((u - .13) / .8);
+    const rub = write ? 0 : ease((u - .12 + .07 * f.fastPulse) / .80);
     const progress = write ? .07 + .51 * ease(u * .79 + f.fastPhase * .21) : 1;
-    g.translate(344 + (write ? 12 : -12) * u, 120 - 7 * u);
+    g.translate(315 + (write ? 12 : -12) * u, 88 - 7 * u);
     g.rotate(-.075);
+    g.scale(1.16, 1.16);
     g.save();
     g.globalAlpha = write ? .40 : .79 * (1 - rub * .7);
     g.drawImage(chalk, 0, 0, 493, 293);
@@ -588,8 +624,11 @@ export async function create({ THREE, scene, camera, back2d: g, kit, tier, seed 
   }
 
   function sketchShot(f) {
-    const position = mix(118, 1063, ease(f.shot.u));
+    const position = mix(83, 1072, ease(f.shot.u));
     g.translate(10 - f.shot.u * 15, 2);
+    g.translate(600, 337);
+    g.scale(1.12, 1.12);
+    g.translate(-600, -337);
     for (const [i, paper] of SKETCHES.entries()) {
       const { x, y, w, h, tilt } = paper;
       g.save();
@@ -629,7 +668,7 @@ export async function create({ THREE, scene, camera, back2d: g, kit, tier, seed 
     g.strokeRect(-357, 32, 714, 320);
     hinge(g, bookH);
     if (p === 0) g.drawImage(linen, 0, 0, bookW, bookH);
-    turn(g, linen, bookW, bookH, p, "#ac94b058");
+    turn(g, linen, bookW, bookH, p, "#ac94b058", 1 - ease((p - .58) / .42));
   }
 
   const shots = { palm: palmShot, notebook: journalShot, note: noteShot, map: mapShot, chalk: chalkShot, sketches: sketchShot, book: bookShot };
