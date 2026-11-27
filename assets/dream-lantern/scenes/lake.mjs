@@ -145,3 +145,213 @@ function paintClouds(g,w,h) {
     }
   }
 }
+
+const MOODS = {
+  lanterns: { sky:['#03091c','#0a1734','#153863','#35658a'], fog:'#294d71', water:'#112941', sun:'#c6eaff', glow:.10, stars:.85, ridge:'#587d97' },
+  mist: { sky:['#829fa9','#a7bcc1','#d1d6d2','#d5e0dc'], fog:'#afc8c9', water:'#688890', sun:'#eaf5ec', glow:.09, stars:0, ridge:'#9daea9' },
+  tree: { sky:['#689caa','#88b7c0','#bcd5cf','#dbe4d8'], fog:'#accbc8', water:'#5e9497', sun:'#e7fae4', glow:.11, stars:0, ridge:'#80a5a3' },
+  drift: { sky:['#78a2b1','#9bbfc4','#c6d7cf','#d8e1d5'], fog:'#b4ccca', water:'#639295', sun:'#fff0d7', glow:.09, stars:0, ridge:'#8aa6a0' },
+  rim: { sky:['#202447','#505583','#938bac','#eed0bb'], fog:'#9998b3', water:'#4d597f', sun:'#ffdcbd', glow:.15, stars:.12, ridge:'#858197' },
+  night: { sky:['#070f26','#142344','#2d4366','#7385a2'], fog:'#384c68', water:'#24496a', sun:'#a0c9ff', glow:.12, stars:.75, ridge:'#3f5871' },
+  mirror: { sky:['#1a2549','#464776','#a28aa1','#d7a8a0'], fog:'#8f839e', water:'#464663', sun:'#f9c6b3', glow:.10, stars:.21, ridge:'#827d95' },
+  day: { sky:['#5c97b6','#95bdc9','#dbe2c9','#e6dfc0'], fog:'#b8c6b6', water:'#61969a', sun:'#fff4bd', glow:.19, stars:0, ridge:'#698354' }
+};
+const WATER_V = `
+varying vec3 vWorld;
+varying vec4 vClip;
+void main(){
+  vWorld=(modelMatrix*vec4(position,1.)).xyz;
+  vClip=projectionMatrix*viewMatrix*vec4(vWorld,1.);
+  gl_Position=vClip;
+}`;
+const WATER_F = `
+uniform sampler2D uReflection,uSky;
+uniform vec3 uWater,uSun,uLight;
+uniform vec2 uRippleCenter;
+uniform float uTime,uMotion,uPulse,uRing,uSunPower,uFlat;
+varying vec3 vWorld;
+varying vec4 vClip;
+float noise2(vec2 p){
+  vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);
+  vec4 h=fract(sin(dot(i,vec2(121.3,37.7))+vec4(0.,121.3,37.7,159.))*43758.545);
+  return mix(mix(h.x,h.y,f.x),mix(h.z,h.w,f.x),f.y);
+}
+void main(){
+  vec2 p=vWorld.xz;
+  vec3 eye=vWorld-cameraPosition, ray=normalize(eye);
+  float att=1./(1.+length(eye)*.036);
+  float brush=noise2(p*vec2(.78,2.8)+vec2(uTime*.14,0.));
+  float wave=sin(p.y*3.+brush*6.+uTime*.32);
+  float ink=(brush-.5)*uMotion;
+  vec2 off=vec2(ink,wave*uMotion)*(.004*att);
+  vec2 uv=.5+.5*vClip.xy/vClip.w;
+  float rad=length(p-uRippleCenter);
+  float ring=exp(-pow((rad-uRing*3.2)*8.,2.))*exp(-max(uRing,0.)*1.85)*step(0.,uRing);
+  off.y+=ring*.006;
+  vec3 refl;
+#ifdef LIVE_MIRROR
+  refl=texture2D(uReflection,clamp(uv+off,.001,.999)).rgb;
+#else
+  vec3 reflected=reflect(ray,normalize(vec3(ink*.07,1.,wave*.016*uMotion)));
+  refl=texture2D(uSky,vec2(.5,1.-pow(max(reflected.y,0.),.6))).rgb;
+  float hills=.042+.021*sin(reflected.x*29.)+.013*sin(reflected.x*63.+reflected.z*8.);
+  refl=mix(refl*.45,refl,smoothstep(hills-.003,hills+.003,reflected.y));
+#endif
+  float grazing=pow(1.-max(-ray.y,0.),2.);
+  vec3 color=mix(uWater,refl,.32+.55*grazing);
+  vec3 halfVec=normalize(uLight-ray);
+  float glint=pow(max(dot(halfVec,normalize(vec3(ink*.072,1.,wave*.043*uMotion))),0.),340.);
+  color+=uSun*uSunPower*glint*(.35+brush*.9);
+  float fleck=smoothstep(.65,.92,brush)*smoothstep(.5,.96,wave)*att;
+  color+=(uWater+.12)*fleck*(.35+uPulse*.12)*uMotion;
+  color+=vec3(.35,.30,.24)*ring*.54;
+  gl_FragColor=vec4(color,1.);
+}`;
+function lakeSurface(THREE, tier) {
+  const target=tier==='saver'?null:new THREE.WebGLRenderTarget(1,1,{ type:THREE.HalfFloatType });
+  const uniforms = {
+    uReflection:{value:target?.texture || null},uSky:{value:null},uWater:{value:new THREE.Color()},
+    uSun:{value:new THREE.Color()},uLight:{value:new THREE.Vector3()},uRippleCenter:{value:new THREE.Vector2()},
+    uTime:{value:0},uMotion:{value:1},uPulse:{value:0},uRing:{value:-1},uSunPower:{value:0}
+  };
+  const material = new THREE.ShaderMaterial({uniforms, defines:target?{LIVE_MIRROR:1}:{},
+    vertexShader:WATER_V,fragmentShader:WATER_F,depthWrite:!!target});
+  const mesh=new THREE.Mesh(new THREE.PlaneGeometry(600,600).rotateX(-Math.PI/2),material);
+  mesh.renderOrder=-5;
+  return {target,uniforms,mesh};
+}
+function paintPaper(g,w,h) {
+  const rng=random(64), grad=g.createLinearGradient(0,0,0,h);
+  for(const [y,c] of [[0,'#563342'],[.05,'#be5529'],[.26,'#ffb75a'],[.49,'#ffe5a0'],[.72,'#ffd184'],[.92,'#f09041'],[1,'#523642']]) grad.addColorStop(y,c);
+  g.fillStyle=grad;g.fillRect(0,0,w,h);
+  for(let i=0;i<1600;i++){
+    const x=rng()*w,y=rng()*h;
+    stroke(g,x,y,x+rng()*4,y-rng()*4,.65,i%3?'rgba(112,64,36,.12)':'rgba(255,246,204,.62)');
+  }
+  for(let i=1;i<=13;i++) {
+    const y=i*h/14;
+    stroke(g,0,y,w,y,h*.007,'rgba(130,56,34,.57)');
+    stroke(g,0,y+h*.007,w,y+h*.007,h*.008,'rgba(255,237,186,.65)');
+  }
+  for(let i=0;i<8;i++) {
+    const x=i*w/8;stroke(g,x,0,x,h,1.4,'rgba(131,78,38,.37)');
+  }
+  // An original sheaf of reeds stencilled into the lower band of the paper.
+  for(let i=0;i<24;i++){
+    const x=(i+.4)*w/24, y=h*(.66+rng()*.10);
+    stroke(g,x,h*.9,x+4,y,1,'#b46d42');stroke(g,x+2,h*.81,x-3,y+2,1.4,'#cb8f54');
+  }
+}
+function terrainWash(g,w,h) {
+  const rng=random(85);
+  g.fillStyle='#f0eddf';g.fillRect(0,0,w,h);
+  for(let i=0;i<12500;i++){
+    const x=rng()*w,y=rng()*h, size=.2+rng()*w*.007;
+    stroke(g,x,y,x+size,y-size*(rng()*.9),.6+rng()*1.6,i%4?'rgba(69,88,74,.22)':'rgba(255,253,213,.63)');
+  }
+}
+function tintTopography(THREE, geo) {
+  const pos=geo.attributes.position;
+  geo.computeVertexNormals();
+  const norm=geo.attributes.normal, colors=new Float32Array(pos.count*3), uv=new Float32Array(pos.count*2);
+  const low=new THREE.Color('#7d9b61'), woods=new THREE.Color('#3f7463'), crag=new THREE.Color('#b3afa1'), color=new THREE.Color();
+  for(let i=0;i<pos.count;i++){
+    const x=pos.getX(i),z=pos.getZ(i),y=pos.getY(i);
+    const grove=.52+.22*Math.sin(x*.22+Math.cos(z*.36))+.25*Math.sin(z*.28+x*.12);
+    color.copy(low).lerp(woods,clamp(grove)).lerp(crag,clamp((1-norm.getY(i))*2.8+(y-18)*.035));
+    color.multiplyScalar(.90+.1*Math.sin(x*.85+z*.31));
+    color.toArray(colors,i*3);uv.set([(x+131)/262,(z+131)/262],i*2);
+    // Lower the outermost edge of the rectangular Blender grid into far fog.
+    const boundary=Math.max(Math.abs(x),Math.abs(z));
+    if(boundary>96) pos.setY(i,y*(1-.8*clamp((boundary-96)/28)));
+  }
+  geo.setAttribute('color',new THREE.BufferAttribute(colors,3));
+  geo.setAttribute('uv',new THREE.BufferAttribute(uv,2));
+  geo.computeVertexNormals();
+}
+function paperShape(THREE,segments) {
+  const profile=[[0,-.5],[.23,-.49],[.34,-.38],[.40,-.13],[.40,.14],[.34,.38],[.23,.48],[0,.49]];
+  return new THREE.LatheGeometry(profile.map(([r,y])=>new THREE.Vector2(r,y)),segments);
+}
+function pointPositions(pts,coords) {
+  const attr=pts.geometry.attributes.position;
+  for(let i=0;i<coords.length;i++)attr.setXYZ(i,...coords[i]);
+  attr.needsUpdate=true;
+}
+// Fixed kit particles can act as a soft halo on a specific lantern or window.
+function fixedGlow(kit, coords, options) {
+  const points=kit.particles({kind:'glow',count:coords.length,box:[480,480,480],center:[0,0,0],
+    drift:[0,0,0],wobble:0,twinkle:.12,beat:.12,...options});
+  pointPositions(points,coords);return points;
+}
+export async function create({THREE,scene,camera,back2d,ctx2d,renderer,kit,tier,seed,timing,base,jsm}) {
+  const {GLTFLoader}=await import(jsm+'loaders/GLTFLoader.js');
+  const gltf=await new GLTFLoader().loadAsync(base+'lake.glb');
+  const rng=random(392+(seed||0)), root=new THREE.Group(), world=new THREE.Group(), geos=new Set(), instances=[];
+  root.add(world);scene.add(root);
+  const geom=g=>(geos.add(g),g);
+  const group=p=>{const o=new THREE.Group();p.add(o);return o};
+  const mesh=(p,g,m)=>{const o=new THREE.Mesh(geom(g),m);p.add(o);return o};
+  const inst=(p,g,m,n)=>{const o=new THREE.InstancedMesh(geom(g),m,n);p.add(o);instances.push(o);o.frustumCulled=false;return o};
+  const dummy=new THREE.Object3D();
+  function stamp(o,i,x,y,z,sx,sy=sx,sz=sx,angle=0) {
+    dummy.position.set(x,y,z);dummy.scale.set(sx,sy,sz);dummy.rotation.set(0,angle,0);
+    dummy.updateMatrix();o.setMatrixAt(i,dummy.matrix);
+  }
+  function painted(options,texture){
+    const mat=kit.toon(options);
+    mat.uniforms.uMapOn.value=1;mat.uniforms.uMap.value=texture;return mat;
+  }
+  const sky=kit.sky({section:'verse1',stops:MOODS.lanterns.sky});world.add(sky);
+  const cloud=kit.paint(768,192,paintClouds);cloud.wrapS=THREE.RepeatWrapping;
+  const skyM=sky.material, skyU=skyM.uniforms;
+  skyU.uCloud={value:cloud};skyU.uCloudInk={value:new THREE.Color()};skyU.uCloudLight={value:new THREE.Color()};
+  skyM.fragmentShader='uniform sampler2D uCloud; uniform vec3 uCloudInk,uCloudLight;\n'+skyM.fragmentShader.replace('gl_FragColor=vec4(c,1.);',`
+    vec2 q=vec2(atan(d.z,d.x)/6.2831853+.5+uTime*.00021,clamp(d.y*1.55+.16,0.,1.));
+    vec4 cloud=texture2D(uCloud,q);
+    float lit=smoothstep(.21,.65,cloud.r);
+    c=mix(c,mix(uCloudInk,uCloudLight,lit),cloud.a*.74);
+    gl_FragColor=vec4(c,1.);`);
+  const ramps={};for(const [name,m] of Object.entries(MOODS))ramps[name]=kit.ramp(m.sky);
+  const lake=lakeSurface(THREE,tier), water=lake.mesh, wu=lake.uniforms;root.add(water);
+  const basin=group(world);
+  const terrain=gltf.scene.getObjectByName('terrain'), gate=gltf.scene.getObjectByName('torii'), stone=gltf.scene.getObjectByName('toro');
+  const oldMaterials=new Set();
+  gltf.scene.traverse(o=>{if(o.isMesh){geos.add(o.geometry);oldMaterials.add(o.material)}});
+  oldMaterials.forEach(m=>m.dispose());
+  tintTopography(THREE,terrain.geometry);
+  const land=painted({section:'outro',vertexColors:true,lightDir:[-.65,.48,-.51],soft:.23,rimK:.12,ambient:.42},kit.paint(512,512,terrainWash));
+  terrain.material=land;basin.add(terrain);
+  // Water is the only surface with a specialised shader. Clip the submerged
+  // lake floor out of the reflected terrain, including when looking straight down.
+  land.uniforms.uReflect={value:0};
+  land.fragmentShader='uniform float uReflect;\n'+land.fragmentShader.replace('void main(){','void main(){if(uReflect>.5 && vWp.y>.015) discard;');
+  const clay=kit.toon({vertexColors:true,section:'build',shade:'#994c52',light:'#ffe2bb',ambient:.48,rimK:.20,lightDir:[.6,.7,-.25]});
+  gate.geometry.computeVertexNormals();stone.geometry.computeVertexNormals();gate.material=clay;stone.material=clay;
+  const shrine=group(world);shrine.add(gate);
+  const steps=inst(shrine,new THREE.BoxGeometry(1,1,1),kit.toon({section:'build',color:'#848379',shade:'#615e72',rimK:.10}),12);
+  for(let i=0;i<12;i++)stamp(steps,i,0,-.12-i*.115,1.5+i*.73,5.2+.7*i,.25,.88);
+  for(const [x,z,s] of [[-3.4,2,1],[3.5,2,1],[-4.3,5.7,.92],[4.3,5.7,.92]]) {
+    const o=stone.clone();o.position.set(x,.13-(z-2)*.18,z);o.scale.setScalar(s);shrine.add(o);
+  }
+  let forest=null,leaves=null,fogStrip=null;
+  const paper=painted({section:'build',light:'#ffe8c8',shade:'#cd835d',rim:'#ffdd86',ambient:.4,rimK:.24,
+    emissive:new THREE.Color(.34,.11,.018)},kit.paint(256,192,paintPaper));
+  const hero=group(world), heroBody=mesh(hero,paperShape(THREE,32),paper);
+  const wood=kit.toon({section:'build',color:'#59403f',rim:'#e5b886',rimK:.12});
+  const cap=geom(new THREE.CylinderGeometry(.24,.24,.055,24));
+  for(const y of [-.49,.49])mesh(hero,cap,wood).position.y=y;
+  const loop=new THREE.CatmullRomCurve3([[-.18,.50,0],[-.16,.65,0],[0,.73,0],[.16,.65,0],[.18,.50,0]].map(v=>new THREE.Vector3(...v)));
+  mesh(hero,new THREE.TubeGeometry(loop,16,.012,5,false),wood);
+  const lanternGlow=fixedGlow(kit,[[0,0,0]],{color:'#ffaf52',size:2.1,opacity:.36,intensity:2.4});
+  hero.add(lanternGlow);
+  const flotilla=group(world), count={saver:150,smooth:450,ultra:1400}[tier];
+  const fleet=inst(flotilla,paperShape(THREE,tier==='ultra'?10:8),paper,count), lights=[];
+  for(let i=0;i<count;i++) {
+    const a=rng()*TAU, r=8+Math.sqrt(rng())*32;
+    const x=Math.cos(a)*r, z=-6+Math.sin(a)*r, s=(.12+rng()*.62)*(i<140?1:.43);
+    const y=.22+Math.pow(rng(),4.8)*(i%4===0?12:4.6)+s*.45;
+    stamp(fleet,i,x,y,z,s,s*1.06,s,rng()*TAU);lights.push([x,y,z]);
+  }
+  const fleetGlow=fixedGlow(kit,lights,{color:'#ffbc6a',color2:'#ffd58a',size:1.1,opacity:.33,intensity:2,on:'fast'});
+  flotilla.add(fleetGlow);
