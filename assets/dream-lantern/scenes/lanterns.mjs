@@ -129,6 +129,20 @@ function paperTexture(kit, size, name, fibers) {
     for (const [t, color] of [[0, edge], [.18, field], [.57, heart], [.79, field], [1, foot]]) gr.addColorStop(t, color);
     g.fillStyle = gr; g.fillRect(0, 0, 1024, 512);
     dyePattern(g, name);
+    // The wick illuminates a patch of paper, leaving the dyed folds in shade.
+    // Wrap both copies of the wash around the lathe's forward-facing seam.
+    const dark = name === "rain" || name === "stars";
+    const falloff = g.createLinearGradient(0, 0, 1024, 0);
+    for (const [u, alpha] of [[0,.02],[.18,.22],[.40,.38],[.68,.32],[.84,.14],[1,.02]]) {
+      falloff.addColorStop(u, 'rgba(63,40,62,' + alpha + ')');
+    }
+    g.fillStyle = falloff; g.fillRect(0, 0, 1024, 512);
+    for (const x of [-35, 989]) {
+      g.save(); g.translate(x, 300); g.scale(1, .79);
+      wash(g,0,0,223,[[0,dark ? "rgba(239,189,146,.16)" : "rgba(255,239,163,.49)"],
+        [.30,dark ? "rgba(219,173,149,.08)" : "rgba(255,210,131,.26)"],[1,"rgba(255,194,124,0)"]]);
+      g.restore();
+    }
     g.fillStyle = g.createPattern(fibers, "repeat"); g.fillRect(0, 0, 1024, 512);
     // Horizontal cane leaves a narrow cast shadow and a fine transmitted edge.
     for (let i = 0; i <= RIBS; i++) {
@@ -143,34 +157,45 @@ function paperTexture(kit, size, name, fibers) {
   });
 }
 
-function cloudBank(g, x, y, w, h, tint, shadow, rand) {
-  // Broad, interlocking scallops with broken dry-brush marks along the light.
-  const phase = rand() * TAU, crest = [];
-  const edge = u => Math.pow(Math.max(0, Math.sin(Math.PI * u)), .70) *
-    (.48 + .28 * Math.sin(8 * u + phase) + .24 * Math.abs(Math.sin(17 * u + phase)) +
-     .12 * Math.abs(Math.sin(49 * u + phase)) + .05 * Math.sin(93 * u));
-  for (let i = 0; i <= 76; i++) crest.push([x + w * i / 76, y - h * edge(i / 76)]);
-  const gr = g.createLinearGradient(0, y - h, 0, y + h * .35);
-  gr.addColorStop(0, tint); gr.addColorStop(.49, tint); gr.addColorStop(.82, shadow); gr.addColorStop(1, shadow);
-  g.fillStyle = gr; g.beginPath(); g.moveTo(...crest[0]);
-  for (const p of crest) g.lineTo(...p);
-  g.bezierCurveTo(x + w * .8, y + h * .5, x + w * .23, y + h * .56, x, y);
-  g.fill();
-  g.fillStyle = tint;
-  for (let j = 0; j < 14; j++) {
-    const u = .09 + rand() * .82, xx = x + u * w, yy = y - h * edge(u) + h * rand() * .24;
-    g.beginPath(); g.ellipse(xx, yy, w * (.012 + rand() * .036), Math.max(.45, h * .018), -.06, 0, TAU); g.fill();
+function cloudBrush(kit, light, body, depth, seed) {
+  // A bank is stamped with clusters of wet, overlapping dabs. Each cluster
+  // catches a little dawn light on the upper left and dissolves underneath.
+  return kit.paint(224, 144, g => {
+    const rand = randomSequence(seed);
+    for (let i = 0; i < 34; i++) {
+      const x = 36 + rand() * 150, crown = Math.sin(Math.PI * (x - 20) / 190);
+      const y = 78 - crown * 25 + rand() * 30, r = 12 + rand() * 26;
+      g.save(); g.translate(x,y); g.scale(1.35,.74 + rand()*.36);
+      const gr = g.createRadialGradient(-r*.27,-r*.4,r*.09,0,0,r);
+      gr.addColorStop(0,light); gr.addColorStop(.40,body); gr.addColorStop(.71,depth);
+      gr.addColorStop(.90,depth+"ba"); gr.addColorStop(1,depth+"00");
+      g.fillStyle = gr; g.fillRect(-r,-r,r*2,r*2); g.restore();
+    }
+  }).image;
+}
+
+function cloudBank(g, brush, x, y, w, h, rand) {
+  const phase = rand() * TAU;
+  for (let i = 0; i < 9; i++) {
+    const u = i/8, mass = .45 + .65 * Math.sin(u*Math.PI);
+    const ww = w * (.27 + rand()*.36), hh = h * mass * (.72 + rand()*.54);
+    const yy = y - h*(.17*Math.sin(u*7 + phase) + rand()*.13);
+    g.drawImage(brush, x+w*u-ww*.5, yy-hh*.58, ww, hh);
   }
 }
 
 function cloudPainting(kit, size, foreground) {
+  const tones = foreground ? [["#8484a0","#525c7a","#273753"],["#707d9c","#485575","#1e2d47"]] :
+    [["#fbc5aa","#c99c9b","#82788b"],["#eebba9","#a795a4","#72758d"],["#d0adb2","#9997b0","#64738d"],
+      ["#bab0c4","#878eaa","#526582"],["#b2acbe","#7f8ba6","#485b7a"],["#abb0c8","#7887a3","#3a4d6b"]];
+  const brushes = tones.map(([a,b,c], i) => cloudBrush(kit,a,b,c,77 + i * 31));
   return kit.paint(size, Math.round(size * .54), (g, w, h) => {
     g.scale(w / 1024, h / 552);
     const rand = randomSequence(foreground ? 128 : 54);
     if (foreground) {
-      cloudBank(g, -300, 505, 640, 103, "#535e85", "#252f50", rand);
-      cloudBank(g, -315, 537, 770, 110, "#354260", "#171f39", rand);
-      cloudBank(g, 820, 537, 520, 124, "#686680", "#262b48", rand);
+      cloudBank(g, brushes[0], -120, 447, 440, 142, rand);
+      cloudBank(g, brushes[1], -150, 500, 560, 173, rand);
+      cloudBank(g, brushes[0], 848, 494, 380, 175, rand);
       return;
     }
     const gr = g.createLinearGradient(0, 0, 0, 552), P = kit.palette("intro");
@@ -184,13 +209,17 @@ function cloudPainting(kit, size, foreground) {
       g.beginPath(); g.arc(x, y, r, 0, TAU); g.fill();
     }
     g.globalAlpha = 1;
-    const shades = [["#bda1a1", "#836f89"], ["#aaa0b1", "#63637f"], ["#9293aa", "#4d5776"],
-      ["#858ba5", "#3f4b6a"], ["#77819e", "#354460"], ["#727c98", "#2e3c58"]];
-    shades.forEach(([hi, lo], row) => {
-      const y = 415 + row ** 1.6 * 8;
-      for (let i = 0; i < 12 - row; i++) {
-        const x = (i - 1) * 1024 / (10 - row) + rand() * 45, width = 120 + 42 * row + rand() * 86;
-        cloudBank(g, x, y + rand() * 12, width, 13 + row * 10 + rand() * 16, hi, lo, rand);
+    g.globalAlpha = .44;
+    for (let i = 0; i < 22; i++) {
+      const x = rand() * 1160 - 110, y = 333 + rand() * 75;
+      g.drawImage(brushes[0],x,y,35 + rand()*170,3 + rand()*12);
+    }
+    g.globalAlpha = 1;
+    brushes.forEach((brush, row) => {
+      const y = 421 + row ** 1.56 * 8.2;
+      for (let i = 0; i < 8 - row; i++) {
+        const x = (i - .5) * 1024 / (7 - row) + rand() * 44, width = 205 + 58 * row + rand() * 90;
+        cloudBank(g, brush, x, y + rand() * 12, width, 22 + row * 18 + rand() * 22, rand);
       }
     });
   });
@@ -271,10 +300,15 @@ export async function create({ THREE, scene, camera, kit, tier, ctx2d, back2d })
   const papers = Object.fromEntries(Object.keys(dyes).map(key => [key, paperTexture(kit, size, key, fibers)]));
   const clouds = cloudPainting(kit, size, false).image, nearClouds = cloudPainting(kit, size, true).image;
   const gold = goldGround(kit, size, fibers).image, shadow = shadowStamp(kit).image;
+  const blush = kit.paint(512, 288, g => {
+    g.fillStyle = "#eac7cb"; g.fillRect(0,0,512,288);
+    g.translate(200,130); g.scale(1.5,1);
+    wash(g,0,0,274,[[0,"#ffedcf"],[.5,"rgba(250,222,211,.67)"],[1,"rgba(224,186,204,0)"]]);
+  }).image;
   const rings = [];
   for (let i = 0; i <= RIBS * 4; i++) {
     const u = i / (RIBS * 4), bow = Math.max(0, Math.sin(Math.PI * u)) ** .72;
-    const r = .34 + bow * .43 + .010 * Math.cos(TAU * RIBS * u);
+    const r = .34 + bow * .43 + .0045 * Math.cos(TAU * RIBS * u);
     rings.push(new THREE.Vector2(r, (u - .5) * 1.48));
   }
   const body = keep(new THREE.LatheGeometry(rings, segments));
@@ -291,14 +325,23 @@ export async function create({ THREE, scene, camera, kit, tier, ctx2d, back2d })
   const hot = kit.toon({ emissive: new THREE.Color(3.6, 1.4, .27), color: "#ffcc74", rimK: .15 });
   const wood = kit.toon({ color: "#593730", shade: "#734454", rim: "#ffcf9b", rimK: .38, soft: .35 });
   const brass = kit.toon({ color: "#d6a76f", shade: "#a0695d", rim: "#ffdda7", rimK: .55 });
-  const paper = kit.toon({ light: "#fff4e4", shade: "#d9b5a9", rim: "#ffe2ad", rimK: .30, rimPow: 4,
+  const paper = kit.toon({ light: "#fff4e4", shade: "#c39fa9", rim: "#ffe2ad", rimK: .30, rimPow: 4,
     wrap: .36, soft: .65, ambient: .12, side: THREE.DoubleSide });
   // Assign the owned textures directly. toon() copies its initial uniforms.
   paper.uniforms.uMapOn.value = 1;
-  const halo = kit.paint(128, 128, g => wash(g, 64, 64, 64, [[0,"rgba(255,231,166,.58)"], [.26,"rgba(255,179,116,.24)"], [.53,"rgba(244,153,119,.07)"], [1,"rgba(230,134,117,0)"]]));
+  // Store the falloff in sRGB, which has finer precision near black than an
+  // 8-bit alpha ramp. The black edges contribute zero under additive blending.
+  const halo = kit.paint(256, 256, g => {
+    g.fillStyle = "#000"; g.fillRect(0,0,256,256);
+    wash(g,128,128,128,[[0,"#faad79"],[.28,"#b77857"],[.52,"#583b34"],[.80,"#17121a"],[1,"#000"]]);
+  });
   const aura = kit.toon({ opacity: .52, shade: "#fff6ef", light: "#fff5de", ambient: 0, rimK: 0 });
   aura.uniforms.uMap.value = halo; aura.uniforms.uMapOn.value = 1;
-  aura.depthWrite = false; aura.blending = THREE.AdditiveBlending;
+  aura.depthWrite = false;
+  // Add light without covering the separate painted layer in the HDR composite.
+  aura.blending = THREE.CustomBlending;
+  aura.blendSrc = THREE.SrcAlphaFactor; aura.blendDst = THREE.OneFactor;
+  aura.blendSrcAlpha = THREE.ZeroFactor; aura.blendDstAlpha = THREE.OneFactor;
   const haloPlane = keep(new THREE.PlaneGeometry(3.9, 3.9));
   function mesh(parent, geometry, mat, x = 0, y = 0, z = 0) {
     const m = new THREE.Mesh(geometry, mat); m.position.set(x, y, z); parent.add(m); return m;
@@ -337,9 +380,8 @@ export async function create({ THREE, scene, camera, kit, tier, ctx2d, back2d })
   const sparks = kit.particles({ kind: "spark", count: { saver: 160, smooth: 340, ultra: 580 }[tier],
     center: [0,1,-7], box: [23,12,11], seed: 39, size: .067, drift: [.026,.048,0], color: "#ffdbb4", color2: "#bbd6ff", twinkle: .8 });
   root.add(mist, sparks);
-  const weather = Array.from({ length: 105 }, (() => {
-    const rand = randomSequence(888); return () => [rand(), rand(), rand(), rand()];
-  })());
+  const rainRandom = randomSequence(888);
+  const weather = Array.from({ length: 105 }, () => [rainRandom(), rainRandom(), rainRandom(), rainRandom()]);
   function precipitation(f, snow) {
     const g = ctx2d, unit = Math.min(f.W, f.H), count = tier === "saver" ? 48 : weather.length;
     g.save(); g.fillStyle = "#ebeff8"; g.strokeStyle = "#afc2df"; g.lineCap = "round";
@@ -373,14 +415,8 @@ export async function create({ THREE, scene, camera, kit, tier, ctx2d, back2d })
         back2d.save(); back2d.translate(W*.5 + unit*.29, H*.5 + unit*.20);
         back2d.rotate(-.70); back2d.globalAlpha = .82;
         back2d.drawImage(shadow, -unit*.072, -unit*.13, unit*.144, unit*.216); back2d.restore();
-      } else {
-        back2d.fillStyle = alone ? "#eac7cb" : "#000"; back2d.fillRect(0, 0, W, H);
-        if (alone) {
-          back2d.save(); back2d.translate(W*.39,H*.45); back2d.scale(1.5,1);
-          wash(back2d,0,0,H*.95,[[0,"#ffedcf"],[.5,"rgba(250,222,211,.67)"],[1,"rgba(224,186,204,0)"]]);
-          back2d.restore();
-        }
-      }
+      } else if (alone) back2d.drawImage(blush,0,0,W,H);
+      else { back2d.fillStyle = "#000"; back2d.fillRect(0, 0, W, H); }
       back2d.restore();
       if (pair && (index === 3 || index === 7)) precipitation(f, index === 7);
       mist.visible = sparks.visible = rise;
@@ -401,13 +437,13 @@ export async function create({ THREE, scene, camera, kit, tier, ctx2d, back2d })
       const fire = .06 * f.fastPulse + .09 * f.pulse, dark = name === "rain" || name === "stars";
       paper.uniforms.uLight.value.setRGB(1.12 + fire, .96 + fire*.64, .84 + fire*.26);
       paper.uniforms.uRimK.value = (dark ? .42 : .27) + .05 * f.pulse;
-      aura.uniforms.uOpacity.value = (dark ? .29 : .53) + .10 * f.pulse;
+      aura.uniforms.uOpacity.value = (dark ? .065 : .17) + .04 * f.pulse;
       const sway = Math.sin(shot.lt * 11) * Math.exp(-Math.abs(shot.lt)*6) * .032;
       for (let i = 0; i < lamps.length; i++) {
         const {group,model,tail,wick,glow} = lamps[i]; group.visible = !i || pair;
         if (!group.visible) continue;
         const side = (i ? 1 : -1) * (index >= 4 && pair ? -1 : 1);
-        group.position.set(top ? -.65 : rise ? -.38 + .38*u : alone ? -.81 : side*.99,
+        group.position.set(top ? -.65 : rise ? -.86 + .46*u : alone ? -.81 : side*.99,
           top ? .28 : rise ? -.42 + .93*u : .075, top ? -.28 : 0);
         model.rotation.set(top ? .11 : .025, top ? .55 + u*.13 : (i ? -.43 : .39) + (rise ? u*.38 : 0),
           (i ? -.037 : .045) + sway + (pair ? 0 : drift*.026));
