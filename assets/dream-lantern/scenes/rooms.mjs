@@ -65,9 +65,9 @@ export async function create({ THREE, scene, camera, back2d, kit, tier, timing }
   /* kit.particles() lit by the same sun: dust shows only inside the beams */
   function litPoints(o) {
     const p = kit.particles(o), m = p.userData.material;
-    m.vertexShader = "varying vec3 vPw;\n" + m.vertexShader.replace("gl_Position=projectionMatrix*mv;}", "vPw=(modelMatrix*vec4(p,1.)).xyz;gl_Position=projectionMatrix*mv;}");
+    m.vertexShader = "varying vec3 vPw;uniform float uNear;\n" + m.vertexShader.replace("gl_PointSize=", "vA*=smoothstep(uNear*.4,uNear,-mv.z);gl_PointSize=").replace("gl_Position=projectionMatrix*mv;}", "vPw=(modelMatrix*vec4(p,1.)).xyz;gl_Position=projectionMatrix*mv;}");
     m.fragmentShader = LIGHT + "uniform float uLitAmb,uLitK;varying vec3 vPw;\n" + m.fragmentShader.replace("if(a<.003)discard;", "vec3 pw=vPw;pw.x*=uMir;a*=uLitAmb+uLitK*(winLit(pw)+dot(lampAt(pw,vec3(0.,1.,0.)),vec3(.3)));if(a<.003)discard;");
-    Object.assign(m.uniforms, U, { uLitAmb: { value: .05 }, uLitK: { value: 1 } }); return p;
+    Object.assign(m.uniforms, U, { uLitAmb: { value: .05 }, uLitK: { value: 1 }, uNear: { value: .4 } }); return p;
   }
 
   /* ---------- painted textures (canvas, once) ---------- */
@@ -97,33 +97,36 @@ export async function create({ THREE, scene, camera, back2d, kit, tier, timing }
   }, true);
   const SW = px(160, 224, 320), paper = tex(SW, SW * 1.47 / .87, (g, w, h) => { /* paper above, glass below (transparent: the garden on back2d shows through), kumiko lattice */
     const k = w / .87, Y = y => h - (y - .3) * k, bw = Math.max(2, .017 * k);
-    const pg = g.createLinearGradient(0, 0, 0, Y(.92)); pg.addColorStop(0, "#fffaf2"); pg.addColorStop(1, "#fff2e2"); g.fillStyle = pg; g.fillRect(0, 0, w, Y(.92));
-    for (let i = 0; i < 220; i++) { const x = rnd() * w, y = rnd() * Y(.92); g.strokeStyle = `rgba(205,182,150,${.05 + rnd() * .09})`; g.lineWidth = .6 + rnd(); g.beginPath(); g.moveTo(x, y); g.quadraticCurveTo(x + (rnd() - .5) * 18, y + (rnd() - .5) * 18, x + (rnd() - .5) * 26, y + (rnd() - .5) * 26); g.stroke() }
+    const pg = g.createLinearGradient(0, 0, 0, Y(.92)); pg.addColorStop(0, "#fffaf2"); pg.addColorStop(1, "#fff2e2"); g.fillStyle = pg; g.fillRect(0, 0, w, Y(.79));
+    for (let i = 0; i < 220; i++) { const x = rnd() * w, y = rnd() * Y(.79); g.strokeStyle = `rgba(205,182,150,${.05 + rnd() * .09})`; g.lineWidth = .6 + rnd(); g.beginPath(); g.moveTo(x, y); g.quadraticCurveTo(x + (rnd() - .5) * 18, y + (rnd() - .5) * 18, x + (rnd() - .5) * 26, y + (rnd() - .5) * 26); g.stroke() }
     g.fillStyle = "#2c2018";
     for (const u of [1 / 3, 2 / 3]) g.fillRect(u * w - bw / 2, 0, bw, h);
-    for (let r = 1; r < 4; r++) g.fillRect(0, Y(.92 + r * .2125) - bw / 2, w, bw);
-    g.fillRect(0, Y(.6) - bw / 2, w, bw); g.fillRect(0, Y(.935), w, Y(.865) - Y(.935));
+    for (let r = 1; r < 8; r++) g.fillRect(0, Y(.79 + r * .1225) - bw * .4, w, bw * .8);
+    g.fillRect(0, Y(.525) - bw / 2, w, bw); g.fillRect(0, Y(.79), w, Y(.75) - Y(.79));
   });
-  const FW = px(192, 320, 448), fusumaTex = tex(FW, FW * 2, (g, w, h) => {
-    const k = w / .9, bg = g.createLinearGradient(0, 0, 0, h); bg.addColorStop(0, "#f4ecd9"); bg.addColorStop(1, "#e8dbc0"); g.fillStyle = bg; g.fillRect(0, 0, w, h);
-    for (let i = 0; i < 320; i++) blob(g, rnd() * w, rnd() * h, (3 + rnd() * 14) * w / 448, rnd() < .5 ? "rgba(185,150,100,.06)" : "rgba(255,250,236,.08)");
-    g.fillStyle = "rgba(78,96,156,.24)"; g.beginPath(); g.moveTo(0, h); for (let x = 0; x <= w; x += w / 16) g.lineTo(x, h * (.7 + .05 * Math.sin(x / w * 5 + 1) + .025 * Math.sin(x / w * 15))); g.lineTo(w, h); g.fill();
-    g.fillStyle = "rgba(78,96,156,.14)"; g.beginPath(); g.moveTo(0, h); for (let x = 0; x <= w; x += w / 16) g.lineTo(x, h * (.62 + .06 * Math.sin(x / w * 3 + 4))); g.lineTo(w, h); g.fill();
-    for (const [y, x0, x1, th] of [[.16, -.3, .72, .065], [.38, .3, 1.3, .055], [.55, -.2, .5, .045], [.84, .35, 1.25, .07]]) {
-      const Y = y * h, T = th * h, X0 = x0 * w, X1 = x1 * w, gg = g.createLinearGradient(0, Y - T / 2, 0, Y + T / 2);
-      gg.addColorStop(0, "#f6dc9c"); gg.addColorStop(.5, "#dfb75e"); gg.addColorStop(1, "#c4943e"); g.fillStyle = gg;
-      g.beginPath(); g.moveTo(X0 + T / 2, Y - T / 2); g.lineTo(X1 - T / 2, Y - T / 2); g.arc(X1 - T / 2, Y, T / 2, -Math.PI / 2, Math.PI / 2); g.lineTo(X0 + T / 2, Y + T / 2); g.arc(X0 + T / 2, Y, T / 2, Math.PI / 2, Math.PI * 1.5); g.fill();
-      g.strokeStyle = "rgba(140,100,40,.55)"; g.lineWidth = 1 + w / 448; g.stroke();
+  const FW = px(192, 320, 448), fusumaTex = tex(FW, FW * 2, (g, w, h) => { /* blush paper, periwinkle ink-wash hills, champagne-gold clouds, gold leaf */
+    const k = w / .9, bg = g.createLinearGradient(0, 0, 0, h); bg.addColorStop(0, "#f7efe2"); bg.addColorStop(.6, "#f2e5d6"); bg.addColorStop(1, "#ead9cf"); g.fillStyle = bg; g.fillRect(0, 0, w, h);
+    for (let i = 0; i < 300; i++) blob(g, rnd() * w, rnd() * h, (3 + rnd() * 14) * w / 448, rnd() < .5 ? "rgba(185,150,110,.05)" : "rgba(255,250,240,.08)");
+    for (const [base, amp, f0, col] of [[.58, .08, 3, "rgba(160,176,226,.34)"], [.67, .07, 5, "rgba(118,138,200,.36)"], [.78, .05, 8, "rgba(84,102,172,.3)"]]) {
+      const gr = g.createLinearGradient(0, h * (base - amp), 0, h); gr.addColorStop(0, col); gr.addColorStop(.75, col.replace(/[\d.]+\)$/, "0)")); g.fillStyle = gr;
+      g.beginPath(); g.moveTo(0, h); for (let x = 0; x <= w; x += w / 32) g.lineTo(x, h * (base - amp * (.55 + .45 * Math.sin(x / w * f0 + base * 9)) * (.7 + .3 * Math.sin(x / w * 17 + f0)))); g.lineTo(w, h); g.fill();
     }
-    for (let i = 0; i < 170; i++) { g.save(); g.translate(rnd() * w, rnd() * h); g.rotate(rnd() * 3); g.fillStyle = `rgba(232,192,96,${.35 + rnd() * .55})`; const s = (2 + rnd() * 6) * w / 448; g.fillRect(-s / 2, -s / 2, s, s * (.5 + rnd())); g.restore() }
-    const lw = .022 * k; g.strokeStyle = "#1e1410"; g.lineWidth = lw; g.strokeRect(lw / 2, lw / 2, w - lw, h - lw);
-    g.fillStyle = "#2a1c14"; g.beginPath(); g.arc(.085 * k, h - .85 * k, .03 * k, 0, 7); g.fill(); g.strokeStyle = "#c9a058"; g.lineWidth = .007 * k; g.stroke();
+    const cloud = (cx, cy, L, T) => {
+      const n = 9, gr = g.createLinearGradient(0, cy - T * 1.2, 0, cy + T * .5); gr.addColorStop(0, "#fcefcf"); gr.addColorStop(.5, "#ebcd92"); gr.addColorStop(1, "#d3aa6c");
+      const puffs = []; for (let i = 0; i < n; i++) puffs.push([cx + (i / (n - 1) - .5) * L, cy - T * .2 * rnd(), T * (.35 + .65 * Math.sin((i + .5) / n * Math.PI)) * (.75 + rnd() * .5)]);
+      g.fillStyle = gr; g.beginPath(); for (const [x, y, r] of puffs) { g.moveTo(x + r, y); g.arc(x, y, r, 0, Math.PI * 2) } g.rect(cx - L / 2, cy - T * .1, L, T * .45); g.fill();
+      g.fillStyle = "rgba(255,250,232,.35)"; g.beginPath(); for (const [x, y, r] of puffs) { g.moveTo(x + r * .7, y - r * .25); g.arc(x, y - r * .25, r * .7, 0, Math.PI * 2) } g.fill();
+    };
+    for (const [x, y, L, T] of [[.25, .14, 1.0, .045], [.78, .34, .9, .038], [.2, .5, .7, .032], [.72, .9, 1.0, .045]]) cloud(x * w, y * h, L * w, T * h);
+    for (let i = 0; i < 90; i++) { g.save(); g.translate(rnd() * w, rnd() * h); g.rotate(rnd() * 3); g.fillStyle = `rgba(236,204,128,${.35 + rnd() * .5})`; const s = (2 + rnd() * 5) * w / 448; g.fillRect(-s / 2, -s / 2, s, s * (.5 + rnd())); g.restore() }
+    const lw = .02 * k; g.strokeStyle = "#1e1410"; g.lineWidth = lw; g.strokeRect(lw / 2, lw / 2, w - lw, h - lw);
+    g.fillStyle = "#2a1c14"; g.beginPath(); g.arc(.085 * k, h - .85 * k, .028 * k, 0, 7); g.fill(); g.strokeStyle = "#c9a058"; g.lineWidth = .006 * k; g.stroke();
   });
   const futonTex = tex(px(256, 384, 512), px(256, 384, 512), (g, w, h) => {
     g.fillStyle = "#dde6f2"; g.fillRect(0, 0, w, h);
     for (let i = 0; i < 8; i++) { g.fillStyle = "rgba(255,255,255,.4)"; g.fillRect(0, (i + .3) * h / 8, w, h / 40) }
-    const flower = (x, y, r) => { g.fillStyle = "#f3c3cd"; for (let p = 0; p < 5; p++) { const a = p * 1.2566 + x; g.beginPath(); g.arc(x + Math.cos(a) * r * .55, y + Math.sin(a) * r * .55, r * .45, 0, 7); g.fill() } g.fillStyle = "#e48c9c"; g.beginPath(); g.arc(x, y, r * .2, 0, 7); g.fill() };
-    for (let i = 0; i < 22; i++) { const x = rnd() * w, y = rnd() * h, r = (8 + rnd() * 10) * w / 512; for (const dx of [-w, 0, w]) for (const dy of [-h, 0, h]) flower(x + dx, y + dy, r) }
+    const flower = (x, y, r) => { g.fillStyle = "#f6d4da"; for (let p = 0; p < 5; p++) { const a = p * 1.2566 + x; g.beginPath(); g.arc(x + Math.cos(a) * r * .55, y + Math.sin(a) * r * .55, r * .45, 0, 7); g.fill() } g.fillStyle = "#e48c9c"; g.beginPath(); g.arc(x, y, r * .2, 0, 7); g.fill() };
+    for (let i = 0; i < 16; i++) { const x = rnd() * w, y = rnd() * h, r = (4 + rnd() * 5) * w / 512; for (const dx of [-w, 0, w]) for (const dy of [-h, 0, h]) flower(x + dx, y + dy, r) }
   }, true);
   const cordTex = tex(64, 16, (g, w, h) => {
     g.fillStyle = "#c21d2b"; g.fillRect(0, 0, w, h);
@@ -239,7 +242,7 @@ export async function create({ THREE, scene, camera, back2d, kit, tier, timing }
   fl.push(floorPart(-3.6, 0), floorPart(0, 1.8), floorPart(1.8, 3.6), floorPart(3.6, 5.9));
   const floorMesh = mesh(merge(fl), floorMat);
   /* shoji: four panels (two tracks), a wooden frame (toon) and the paper (HDR glow, glass cut out) per panel, instanced */
-  const fr = [box(.03, 1.8, .03, -.435, .9, .012, WOOD), box(.03, 1.8, .03, .435, .9, .012, WOOD), box(.9, .03, .03, 0, 1.785, .012, WOOD), box(.9, .04, .03, 0, .9, .012, WOOD), box(.9, .3, .022, 0, .15, .01, "#d9bb94", { tm: .6 })];
+  const fr = [box(.03, 1.8, .03, -.435, .9, .012, WOOD), box(.03, 1.8, .03, .435, .9, .012, WOOD), box(.9, .03, .03, 0, 1.785, .012, WOOD), box(.9, .04, .03, 0, .77, .012, WOOD), box(.9, .3, .022, 0, .15, .01, "#d9bb94", { tm: .6 })];
   const shojiFrame = new THREE.InstancedMesh(merge(fr), woodMat, 4), paperMat = M(new THREE.MeshBasicMaterial({ map: paper, alphaTest: .5, fog: false, color: new THREE.Color(2.4, 2.2, 1.9) }));
   const pg = G(new THREE.PlaneGeometry(.87, 1.47)); pg.translate(0, 1.035, 0);
   const shojiPaper = new THREE.InstancedMesh(pg, paperMat, 4);
@@ -277,17 +280,17 @@ export async function create({ THREE, scene, camera, back2d, kit, tier, timing }
   const ng = new THREE.PlaneGeometry(.42, .28, 24, 1); ng.rotateX(-Math.PI / 2); const np = ng.attributes.position;
   for (let i = 0; i < np.count; i++) { const x = Math.abs(np.getX(i)); np.setY(i, .016 * (1 - Math.exp(-x * 30)) - .006 * Math.pow(x / .21, 4)) }
   ng.computeVertexNormals(); const notebook = mesh(G(ng), toon({ map: note, rimK: .2, soft: .5, wrap: .5 })); notebook.position.set(-1.0, .362, -3.05); notebook.rotation.y = .06;
-  const cup = mesh(merge([part(new THREE.LatheGeometry([[0, 0], [.026, 0], [.029, .004], [.031, .05], [.033, .07], [.03, .07], [.028, .012], [0, .012]].map(p => new THREE.Vector2(p[0], p[1])), 24), 0, 0, 0, "#7d93a0"), part(new THREE.CircleGeometry(.029, 24), 0, .058, 0, "#6a4a1a", { rx: -Math.PI / 2 })]), toon({ vertexColors: true, rimK: .8, rim: "#ffe0c0", soft: .2 }));
+  const cup = mesh(merge([part(new THREE.LatheGeometry([[0, 0], [.026, 0], [.029, .004], [.031, .05], [.033, .07], [.03, .07], [.028, .012], [0, .012]].map(p => new THREE.Vector2(p[0], p[1])), 24), 0, 0, 0, "#7a5038"), part(new THREE.CircleGeometry(.029, 24), 0, .058, 0, "#5a4a14", { rx: -Math.PI / 2 })]), toon({ vertexColors: true, rimK: .8, rim: "#ffe0c0", soft: .2 }));
   cup.position.set(-.74, .36, -3.16);
   const andonMat = toon({ map: andonTex, rimK: .2, soft: .5, wrap: .6 }), andon = mesh(G(new THREE.BoxGeometry(.24, .46, .24)), andonMat); andon.position.set(-1.62, .4, -2.55);
   /* the hand mirror: lacquer back, gold rim, handle, and a glass that holds the dawn */
-  const mirror = new THREE.Group(); mirror.position.set(-.36, 0, -1.6); mirror.rotation.y = .7; root.add(mirror);
+  const mirror = new THREE.Group(); mirror.position.set(-.8, 0, -1.4); mirror.rotation.y = .9; root.add(mirror);
   mesh(merge([part(new THREE.CylinderGeometry(.112, .112, .014, 40), 0, .007, 0, "#3a1016"), part(new THREE.TorusGeometry(.104, .006, 8, 48), 0, .0145, 0, "#e0b060", { rx: Math.PI / 2 }), box(.034, .016, .16, 0, .008, .19, "#2a1010"), box(.036, .018, .02, 0, .008, .13, "#c22a30"), box(.036, .018, .02, 0, .008, .17, "#c22a30")]), toon({ vertexColors: true, rimK: .8, rim: "#ffd0a0", soft: .25 }), mirror);
   const glassMat = M(new THREE.MeshBasicMaterial({ map: dawn, fog: false, color: new THREE.Color(2.2, 2, 1.9) })), glass = mesh(G(new THREE.CircleGeometry(.1, 48)), glassMat, mirror); glass.rotation.x = -Math.PI / 2; glass.position.y = .0146;
   dawn.wrapS = dawn.wrapT = THREE.MirroredRepeatWrapping; dawn.repeat.set(.82, .82);
   /* soft contact shadows under things (no shadow maps; these ground the props) */
   const blobs = new THREE.InstancedMesh(G(new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2)), M(new THREE.MeshBasicMaterial({ map: shadowTex, color: 0x1a1430, transparent: true, opacity: .55, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2 })), 7);
-  [[.31, .002, -1.72, 1.35, 2.5], [-1.05, .002, -3.1, 1.15, .7], [1.25, .002, -3.05, .7, .5], [1.17, .3425, -3.03, .24, .14], [-.36, .002, -1.6, .36, .36], [-.74, .3612, -3.16, .1, .1], [-1.62, .002, -2.55, .4, .4]].forEach(([x, y, z, sx, sz], i) => blobs.setMatrixAt(i, m4.compose(v3.set(x, y, z), q4.identity(), new V3(sx, 1, sz))));
+  [[.31, .002, -1.72, 1.35, 2.5], [-1.05, .002, -3.1, 1.15, .7], [1.25, .002, -3.05, .7, .5], [1.17, .3425, -3.03, .24, .14], [-.8, .002, -1.4, .36, .36], [-.74, .3612, -3.16, .1, .1], [-1.62, .002, -2.55, .4, .4]].forEach(([x, y, z, sx, sz], i) => blobs.setMatrixAt(i, m4.compose(v3.set(x, y, z), q4.identity(), new V3(sx, 1, sz))));
   blobs.frustumCulled = false; blobs.renderOrder = 1; insts.push(blobs); root.add(blobs);
   /* light shafts */
   const shaftMat = M(new THREE.ShaderMaterial({ vertexShader: SHAFT_V, fragmentShader: SHAFT_F, defines: { STEPS: px(6, 10, 16) }, side: THREE.DoubleSide, transparent: true, depthWrite: false,
@@ -296,15 +299,16 @@ export async function create({ THREE, scene, camera, back2d, kit, tier, timing }
   const shaftGeo = G(new THREE.BoxGeometry(1, 1, 1)); shaftGeo.translate(.5, .5, .5);
   const shaft = mesh(shaftGeo, shaftMat); shaft.matrixAutoUpdate = false; shaft.frustumCulled = false; shaft.renderOrder = 5;
   /* dust (lit only in the beams), sparkles, steam, door puffs */
+  const DUSTK = [3, 1.4, .6][Q]; /* the same look with fewer motes on lower tiers */
   const dust = litPoints({ kind: "dust", count: px(300, 1500, 5000), center: [0, .5, -2], box: [2, 1, 2], size: .01, drift: [.004, .012, .002], wobble: .03, color: "#fff2d8", color2: "#ffd8b0", intensity: 2.2, twinkle: .6 });
   const sparks = litPoints({ kind: "spark", count: px(60, 200, 600), center: [0, .5, -2], box: [2, 1, 2], size: .03, drift: [0, .02, 0], wobble: .04, color: "#fff6e0", intensity: 3, on: "fast", beat: 2, twinkle: .8 });
-  const steam = kit.particles({ kind: "glow", count: px(30, 60, 120), center: [-.74, .52, -3.16], box: [.05, .3, .05], size: .05, drift: [0, .08, 0], wobble: .02, color: "#ffe6c8", intensity: .35, twinkle: .2, beat: 0 });
+  const steam = kit.particles({ kind: "glow", count: px(16, 28, 48), center: [-.74, .55, -3.16], box: [.04, .32, .04], size: .03, drift: [0, .07, 0], wobble: .018, color: "#fff4ea", intensity: .16, twinkle: .3, beat: 0 });
   root.add(dust, sparks, steam); dust.renderOrder = sparks.renderOrder = 6;
-  const puffs = [0, 1, 2].map(i => { const h = kit.haze({ count: 7, center: [0, 0, 0], box: [.3, 1.5, .12], size: .5, opacity: 0, drift: [0, .05, 0], seed: 11 + i, top: "#fff4e8", bottom: "#c8b8d8" }); root.add(h); return h });
+  const puffs = [0, 1, 2].map(i => { const h = kit.haze({ count: 7, center: [0, 0, 0], box: [.3, 1.5, .12], size: .5, opacity: 0, drift: [0, .05, 0], seed: 11 + i, top: "#fff0e0", bottom: "#e8d8f0", additive: true }); root.add(h); return h });
   /* flare: in camera space, only for the flare shot */
   const flareMat = M(new THREE.ShaderMaterial({ vertexShader: FL_V, fragmentShader: FL_F, transparent: true, depthTest: false, depthWrite: false, blending: THREE.CustomBlending, blendSrc: THREE.OneFactor, blendDst: THREE.OneFactor, blendSrcAlpha: THREE.ZeroFactor, blendDstAlpha: THREE.OneFactor, uniforms: { uI: { value: 1 } } }));
   const FLN = 8, flGeo = G(new THREE.PlaneGeometry(1, 1)), flK = new Float32Array(FLN);
-  const FLS = [[1, 2, .55, "#fff2dc", 3.2], [.62, 0, .07, "#ffd6a0", .5], [.36, 1, .16, "#a0e0ff", .35], [.12, 0, .05, "#c8ffb0", .45], [-.2, 1, .26, "#ffb0e0", .3], [-.5, 0, .1, "#90b0ff", .45], [-.85, 0, .18, "#ffcf90", .3], [-1.25, 1, .34, "#d0a0ff", .22]];
+  const FLS = [[1, 2, .22, "#fff2dc", 3], [.62, 0, .07, "#ffd6a0", .5], [.36, 1, .16, "#a0e0ff", .35], [.12, 0, .05, "#c8ffb0", .45], [-.2, 1, .26, "#ffb0e0", .3], [-.5, 0, .1, "#90b0ff", .45], [-.85, 0, .18, "#ffcf90", .3], [-1.25, 1, .34, "#d0a0ff", .22]];
   FLS.forEach((s, i) => flK[i] = s[1]); flGeo.setAttribute("aK", new THREE.InstancedBufferAttribute(flK, 1));
   const flare = new THREE.InstancedMesh(flGeo, flareMat, FLN); FLS.forEach((s, i) => flare.setColorAt(i, C(s[3], s[4]))); flare.frustumCulled = false; flare.renderOrder = 50; insts.push(flare); scene.add(flare);
   const enfilade = []; /* hidden outside the door shots */
@@ -312,13 +316,13 @@ export async function create({ THREE, scene, camera, back2d, kit, tier, timing }
   /* ---------- moods: light, shade, rim, ambient sky/ground, sun, paper glow, fog, the garden ---------- */
   const mood = (o) => ({ light: C(o.light[0], o.light[1]), shade: C(o.shade), rim: C(o.rim[0], o.rim[1]), sky: C(o.sky[0], o.sky[1]), ground: C(o.ground[0], o.ground[1]), sun: C(o.sun[0], o.sun[1]), paper: C(o.paper[0], o.paper[1]), fog: C(o.fog), near: o.near, far: o.far, out: OUT[o.out], dust: C(o.dust || "#fff2d8") });
   const MOODS = {
-    honey: mood({ light: ["#ffe6c2", .55], shade: "#6462a8", rim: ["#ffd2a0", .9], sky: ["#a49ad0", .34], ground: ["#704c3c", .3], sun: ["#ffc888", 3.2], paper: ["#ffe6c8", 2.7], fog: "#d8c2cc", near: 2.5, far: 14, out: "morning" }),
-    pastel: mood({ light: ["#f8eaff", .5], shade: "#5a68b0", rim: ["#ffd0e0", .8], sky: ["#a8b4ee", .34], ground: ["#7a6070", .28], sun: ["#ffb070", 3.4], paper: ["#fff0f4", 2.5], fog: "#dcd2ea", near: 2, far: 14, out: "morning" }),
-    dusk: mood({ light: ["#b0a8e8", .4], shade: "#34407e", rim: ["#ff9ec0", .7], sky: ["#6a6aa8", .32], ground: ["#3a2a40", .25], sun: ["#ff9ab0", 1.7], paper: ["#c8a8e8", 1.5], fog: "#5a5890", near: 2, far: 12, out: "dusk", dust: "#ffd0e8" }),
-    night: mood({ light: ["#5a6aa8", .22], shade: "#1a2350", rim: ["#8aa8e8", .5], sky: ["#2a3a78", .26], ground: ["#160e22", .2], sun: ["#a8c0ff", .45], paper: ["#5a78c8", .5], fog: "#0e1734", near: 1.5, far: 9, out: "night", dust: "#ffe0b0" }),
-    pale: mood({ light: ["#eef2f2", .7], shade: "#8292a6", rim: ["#ffffff", .6], sky: ["#bcccd6", .42], ground: ["#7a7268", .32], sun: ["#fff4e0", 1.8], paper: ["#f6f8f8", 2.4], fog: "#d6e0e2", near: 1.5, far: 11, out: "pale" }),
-    gold: mood({ light: ["#ffc888", .6], shade: "#6c3a56", rim: ["#ffb070", 1.1], sky: ["#c48070", .32], ground: ["#5a2a20", .3], sun: ["#ffae4c", 4.6], paper: ["#ffcc80", 3.6], fog: "#d8946a", near: 1.2, far: 11, out: "gold", dust: "#ffd890" }),
-    rose: mood({ light: ["#ffd0b8", .55], shade: "#5c4a8e", rim: ["#ff9ec0", 1], sky: ["#a088c0", .32], ground: ["#4a2a3a", .3], sun: ["#ffc8a0", 4.4], paper: ["#ffd6c4", 3.3], fog: "#c898b0", near: 1.5, far: 12, out: "flare", dust: "#ffe0d0" })
+    honey: mood({ light: ["#ffe2b8", .3], shade: "#7c78b4", rim: ["#ffcf9a", .9], sky: ["#8c86c0", .22], ground: ["#8a5a40", .3], sun: ["#ffbe78", 3.6], paper: ["#ffe4c4", 1.75], fog: "#c9b4c4", near: 3, far: 16, out: "morning" }),
+    pastel: mood({ light: ["#f4e6ff", .28], shade: "#6a78bc", rim: ["#ffd0e0", .8], sky: ["#98a6e6", .24], ground: ["#806070", .26], sun: ["#ffa860", 3.8], paper: ["#ffeef2", 1.65], fog: "#d0c8e4", near: 2.5, far: 15, out: "morning" }),
+    dusk: mood({ light: ["#a8a0e0", .24], shade: "#3a4688", rim: ["#ff9ec0", .7], sky: ["#5a5aa0", .24], ground: ["#3a2a40", .2], sun: ["#ff8fb0", 1.8], paper: ["#c0a0e0", 1.0], fog: "#4a4a80", near: 2, far: 12, out: "dusk", dust: "#ffd0e8" }),
+    night: mood({ light: ["#5a6aa8", .12], shade: "#141c44", rim: ["#7a98d8", .45], sky: ["#22306a", .2], ground: ["#100a1a", .14], sun: ["#9ab8ff", .55], paper: ["#4a68b8", .36], fog: "#0a1230", near: 1, far: 8, out: "night", dust: "#ffe0b0" }),
+    pale: mood({ light: ["#eef2f2", .36], shade: "#8a98aa", rim: ["#ffffff", .6], sky: ["#a8b8c4", .28], ground: ["#7a7268", .24], sun: ["#fff4e0", 2.0], paper: ["#f4f7f8", 1.75], fog: "#c8d4d8", near: 1.5, far: 12, out: "pale" }),
+    gold: mood({ light: ["#ffb070", .28], shade: "#5a2c48", rim: ["#ff9c50", 1.1], sky: ["#8a5060", .18], ground: ["#5a2818", .24], sun: ["#ff9a40", 5], paper: ["#ffb060", 2.1], fog: "#a86048", near: 1.5, far: 12, out: "gold", dust: "#ffd890" }),
+    rose: mood({ light: ["#ffc8b0", .3], shade: "#5a4a90", rim: ["#ff9ec0", 1], sky: ["#8a78b0", .22], ground: ["#4a2a3a", .24], sun: ["#ffc090", 4.2], paper: ["#ffd0c0", 1.9], fog: "#b08aa8", near: 1.5, far: 12, out: "flare", dust: "#ffe0d0" })
   };
 
   /* ---------- per-frame helpers ---------- */
@@ -335,14 +339,14 @@ export async function create({ THREE, scene, camera, back2d, kit, tier, timing }
   function doors(open) {
     for (let k = 0; k < 3; k++) for (let j = 0; j < 4; j++) {
       const z = [0, 1.8, 3.6][k], sgn = j < 2 ? -1 : 1, mid = j === 1 || j === 2, x = mid ? sgn * mix(.45, 1.31, open[k]) : sgn * 1.35;
-      m4.compose(v3.set(x, .9, z + (mid ? -.028 : .006)), q4.identity(), one.set(j < 2 ? 1 : -1, 1, 1)); fusuma.setMatrixAt(k * 4 + j, m4);
+      m4.compose(v3.set(x, .9, z + (mid ? -.028 : .006)), q4.identity(), one.set(1, 1, 1)); fusuma.setMatrixAt(k * 4 + j, m4);
     }
-    one.set(1, 1, 1); fusuma.instanceMatrix.needsUpdate = true;
+    fusuma.instanceMatrix.needsUpdate = true;
   }
   function sun(dx, dy, kind, a = 0) {
     U.uSunD.value.set(dx, dy, 1).normalize();
-    if (kind === "glass") { U.uWinR.value.set(0, .3, 3.6, .9); U.uGrid.value.set(.3, .3, .022, .009) }
-    else if (kind === "slit") { U.uWinR.value.set(a, 0, a + .09, 1.8); U.uGrid.value.set(0, 0, 0, .012) }
+    if (kind === "glass") { U.uWinR.value.set(0, .3, 3.6, .75); U.uGrid.value.set(.3, .225, .022, .009) }
+    else if (kind === "slit") { U.uWinR.value.set(a, 0, a + .14, 1.8); U.uGrid.value.set(0, 0, 0, .012) }
     else if (kind === "gap") { U.uWinR.value.set(a, 0, a + .9, 1.8); U.uGrid.value.set(0, 0, 0, .008) }
     else U.uWinR.value.set(0, 0, 0, 0);
   }
@@ -355,8 +359,8 @@ export async function create({ THREE, scene, camera, back2d, kit, tier, timing }
   }
   const keyDir = (x, y, z) => MOOD.uLightDir.value.set(x * mir, y, z).normalize();
   function lamp(x, y, z, col, k, r) { U.uLampP.value.set(x, y, z); U.uLampC.value.set(col).multiplyScalar(k); U.uLampR.value = r }
-  function motes(c, b, size, lit = .05, k = 1) { const u = dust.userData.material.uniforms; u.uCenter.value.set(...c); u.uBox.value.set(...b); u.uSize.value = size; u.uLitAmb.value = lit; u.uLitK.value = k }
-  function glints(c, b, size, lit = 0, k = 1, col = "#fff6e0", up = .02) { const u = sparks.userData.material.uniforms; u.uCenter.value.set(...c); u.uBox.value.set(...b); u.uSize.value = size; u.uLitAmb.value = lit; u.uLitK.value = k; u.uCol.value.set(col).multiplyScalar(3); u.uCol2.value.set(col).multiplyScalar(2.2) }
+  function motes(c, b, size, op = 1, lit = .03, k = 1, near = .45) { const u = dust.userData.material.uniforms; u.uCenter.value.set(...c); u.uBox.value.set(...b); u.uSize.value = size; u.uOpacity.value = op * DUSTK; u.uLitAmb.value = lit; u.uLitK.value = k; u.uNear.value = near }
+  function glints(c, b, size, op = 1, lit = 0, k = 1, col = "#fff6e0", near = .45) { const u = sparks.userData.material.uniforms; u.uCenter.value.set(...c); u.uBox.value.set(...b); u.uSize.value = size; u.uOpacity.value = op; u.uLitAmb.value = lit; u.uLitK.value = k; u.uNear.value = near; u.uCol.value.set(col).multiplyScalar(3); u.uCol2.value.set(col).multiplyScalar(2.2) }
   /* numerals: k leaves at tk (or never); mode "petal" drifts off glowing, "fall" drops */
   const ORDER = [5, 8, 2, 10, 4, 7, 1, 11, 3, 9, 6], RANK = []; ORDER.forEach((k, i) => RANK[k] = i);
   function clockFace(f, mode) {
@@ -386,65 +390,66 @@ export async function create({ THREE, scene, camera, back2d, kit, tier, timing }
 
   /* ---------- the setups ---------- */
   const SET = {
-    /* honey morning: low by the futon, the pillow with the cord, the shoji glowing, sun through the glass band, dust */
+    /* honey morning: low beside the futon, the pillow with the cord, the shoji glowing behind, sun through the glass band, dust */
     shoji(f, lt, u) {
       applyMood(MOODS.honey); sun(.36, -.4, "glass"); keyDir(-.3, .55, -.8);
-      const p = lerp3([1.0, .3, -.42], [.9, .34, -.78], ease(u * .9 + .05)); p[1] += Math.sin(f.t * .7) * .006;
-      cam(p, lerp3([.1, .2, -2.75], [.05, .24, -2.85], ease(u)), 46, .025);
-      motes([.3, .45, -2.3], [2.4, .9, 2], .011); glints([.3, .4, -2.3], [2, .8, 1.8], .02);
-      const w = proj(-.4, .62, -3.6), pi = proj(.3, .2, -2.47);
-      return { bloom: .95, glow: .45, rays: .55, rayX: w[0], rayY: w[1], leak: .35 + .25 * f.pulse, leakX: .05, leakY: .12, tilt: .55, focus: pi[2], band: .25, exposure: 1.04, sat: 1.04, gain: [1.07, 1, .9], lift: [.05, .035, .07], halation: [1, .6, .42] };
+      const p = lerp3([1.02, .36, -1.7], [.94, .39, -1.92], ease(u * .9 + .05)); p[1] += Math.sin(f.t * .7) * .004;
+      cam(p, lerp3([.16, .2, -2.62], [.12, .22, -2.68], ease(u)), 44, .03);
+      motes([.3, .45, -2.3], [2, .9, 1.6], .004, .9); glints([.3, .4, -2.4], [1.6, .7, 1.2], .012, .8);
+      const w = proj(-.4, .55, -3.6), pi = proj(.3, .18, -2.47);
+      return { bloom: .95, glow: .42, rays: .55, rayX: w[0], rayY: w[1], leak: .3 + .2 * f.pulse, leakX: .05, leakY: .12, tilt: .55, focus: pi[2], band: .25, exposure: 1.02, sat: 1.05, gain: [1.07, 1, .9], lift: [.045, .03, .065], halation: [1, .6, .42] };
     },
     "shoji:wide"(f, lt, u) {
       applyMood(MOODS.pale); sun(.28, -.32, "glass"); keyDir(-.2, .6, -.8);
       cam(lerp3([1.5, 1.28, -.28], [1.38, 1.24, -.34], ease(u)), [-.35, .78, -3.6], 56);
-      motes([0, .6, -2.4], [3.4, 1.2, 2.4], .014); glints([0, .5, -2.4], [3, 1, 2], .025);
+      motes([0, .6, -2.4], [3.4, 1.2, 2.4], .006, .8); glints([0, .5, -2.4], [3, 1, 2], .02, .6);
       const w = proj(-.2, 1.1, -3.6);
-      return { bloom: .8, glow: .55, rays: .35, rayX: w[0], rayY: w[1], exposure: 1.1, sat: .82, gain: [.98, 1.01, 1.03], lift: [.07, .075, .08], threshold: .7, tilt: .2, focus: .45 };
+      return { bloom: .8, glow: .5, rays: .4, rayX: w[0], rayY: w[1], exposure: 1.06, sat: .84, gain: [.98, 1.01, 1.03], lift: [.06, .065, .07], threshold: .7, tilt: .2, focus: .45 };
     },
     "shoji:gold"(f, lt, u) {
       applyMood(MOODS.gold); sun(.62, -.3, "glass"); keyDir(-.4, .4, -.8);
       cam(lerp3([-1.45, .62, -.42], [-1.32, .66, -.52], ease(u)), lerp3([1.3, .9, -3.3], [1.35, .95, -3.25], ease(u)), 52, -.02);
-      motes([.4, .6, -2.4], [3, 1.2, 2.4], .014); glints([.4, .5, -2.4], [3, 1, 2.4], .03, 0, 1.3, "#ffe0a0");
-      const w = proj(-.6, .7, -3.6);
-      return { bloom: 1.05, glow: .5, rays: .8, rayX: w[0], rayY: w[1], leak: .6 + .3 * f.downPulse, leakX: .1, leakY: .2, leakColor: [1, .66, .3], exposure: 1.05, sat: 1.12, gain: [1.1, .98, .82], lift: [.07, .035, .05], halation: [1, .55, .3] };
+      motes([.4, .6, -2.4], [3, 1.2, 2.4], .006, 1); glints([.4, .5, -2.4], [3, 1, 2.4], .022, 1, 0, 1.3, "#ffe0a0");
+      const w = proj(-.6, .6, -3.6);
+      return { bloom: 1.05, glow: .45, rays: .8, rayX: w[0], rayY: w[1], leak: .45 + .25 * f.downPulse, leakX: .05, leakY: .25, leakColor: [1, .6, .28], exposure: .98, sat: 1.1, gain: [1.08, .97, .84], lift: [.045, .02, .04], halation: [1, .55, .3] };
     },
     "shoji:flare"(f, lt, u) {
       applyMood(MOODS.rose); SLIDE[1] = .9; keyDir(-.2, .5, -.8);
       const p = lerp3([.36, .15, -1.98], [.32, .17, -2.06], ease(u)), sp = [-.45, 1.32, -3.6]; dir.set(p[0] - sp[0], p[1] - sp[1], p[2] - sp[2]);
       sun(dir.x / dir.z, dir.y / dir.z, "gap", .9);
       cam(p, lerp3([-.38, .92, -3.6], [-.4, .98, -3.6], ease(u)), 52, -.07);
-      motes([-.2, .6, -2.8], [1.6, 1.2, 1.6], .012); glints([-.2, .6, -2.8], [1.4, 1, 1.4], .025, 0, 1.2, "#ffe8d8");
+      motes([-.2, .6, -2.8], [1.6, 1.2, 1.6], .005, 1); glints([-.2, .6, -2.8], [1.4, 1, 1.4], .02, 1, 0, 1.2, "#ffe8d8");
       const s = proj(sp[0], sp[1], sp[2]); flare.visible = true; flareMat.uniforms.uI.value = 1 + .5 * f.fastPulse;
       const th = Math.tan(camera.fov * Math.PI / 360), nx = s[0] * 2 - 1, ny = 1 - s[1] * 2;
       FLS.forEach((d, i) => flare.setMatrixAt(i, m4.compose(v3.set(nx * d[0] * th * camera.aspect, ny * d[0] * th, -1), q4.identity(), one.set(d[2], d[2], 1))));
       one.set(1, 1, 1); flare.instanceMatrix.needsUpdate = true; flare.position.copy(camera.position); flare.quaternion.copy(camera.quaternion);
-      return { bloom: 1.15, glow: .55, rays: 1.1, rayX: s[0], rayY: s[1], leak: 1.1 + .4 * f.fastPulse, leakX: s[0], leakY: s[1], leakColor: [1, .7, .5], exposure: 1.06, sat: 1.1, gain: [1.06, .98, .94], lift: [.07, .045, .07], halation: [1, .6, .45] };
+      return { bloom: 1.05, glow: .45, rays: .75, rayX: s[0], rayY: s[1], leak: .55 + .25 * f.fastPulse, leakX: s[0], leakY: s[1], leakColor: [1, .7, .5], exposure: 1, sat: 1.1, gain: [1.06, .98, .94], lift: [.06, .04, .065], halation: [1, .6, .45] };
     },
     clock(f, lt, u, mode = "petal") {
       const close = mode === "fall"; applyMood(close ? MOODS.pastel : MOODS.honey); sun(.3, -.42, "glass"); keyDir(-.5, .5, -.7);
       clockFace(f, mode);
       if (close) cam(lerp3([.97, .475, -2.7], [.985, .47, -2.725], ease(u)), [1.17, .44, -3.03], 27);
       else cam(lerp3([.62, .53, -2.3], [.66, .51, -2.37], ease(u)), [1.17, .45, -3.03], 34, .02);
-      motes([1.05, .5, -2.85], [.9, .5, .8], .006); glints([1.08, .48, -2.9], [.5, .35, .4], .012, .02, 1.2, "#ffe8f0");
+      motes([1.05, .5, -2.85], [.8, .5, .7], .0022, .45, .02, 1, .25); glints([1.08, .48, -2.9], [.5, .35, .4], .005, .7, .02, 1.2, "#ffe8f0", .25);
       const c = proj(1.17, .44, -3.03), w = proj(.2, .6, -3.6);
-      return { bloom: .95, glow: .42, rays: .45, rayX: w[0], rayY: w[1], tilt: .65, focus: c[2], band: close ? .16 : .22, exposure: 1.04, sat: close ? .95 : 1.04, gain: close ? [1.04, .98, 1.03] : [1.07, 1, .9], lift: close ? [.08, .06, .1] : [.05, .035, .07] };
+      return { bloom: .95, glow: .4, rays: .45, rayX: w[0], rayY: w[1], tilt: .65, focus: c[2], band: close ? .16 : .22, exposure: 1.02, sat: close ? .95 : 1.04, gain: close ? [1.04, .98, 1.03] : [1.07, 1, .9], lift: close ? [.07, .055, .09] : [.045, .03, .065] };
     },
     "clock:close"(f, lt, u) { return SET.clock(f, lt, u, "fall") },
     desk(f, lt, u, v = "") {
-      const m = v === "cool" ? MOODS.dusk : v === "night" ? MOODS.night : MOODS[v === "warm" ? "honey" : "pastel"]; applyMood(m); keyDir(-.3, .6, -.7);
-      if (v === "night") { sun(.2, -.36, "glass"); lamp(-1.62, .42, -2.55, "#ffb468", 3.2 + .3 * f.pulse, .75); andonMat.uniforms.uEmissive.value.setRGB(2.6, 1.45, .6).multiplyScalar(1 + .06 * Math.sin(f.t * 23) * Math.sin(f.t * 7)); steam.visible = true }
+      const m = v === "cool" ? MOODS.dusk : v === "night" ? MOODS.night : MOODS[v === "warm" ? "honey" : "pastel"]; applyMood(m, v ? 1 : 1.7); keyDir(-.3, .6, -.7);
+      if (v === "night") { sun(.2, -.36, "glass"); lamp(-1.62, .42, -2.55, "#ffb468", 3 + .3 * f.pulse, .7); andonMat.uniforms.uEmissive.value.setRGB(2.4, 1.3, .55).multiplyScalar(1 + .06 * Math.sin(f.t * 23) * Math.sin(f.t * 7)); steam.visible = true }
       else if (v) sun(v === "cool" ? .5 : .3, v === "cool" ? -.26 : -.4, "glass");
-      else { SLIDE[1] = .09; const sw = ease(u * 1.1 - .05) + .15 * f.downPulse; sun(mix(-.95, .45, sw), -.42, "slit", .9) }
-      if (v === "night") cam(lerp3([-.5, .8, -2.58], [-.56, .76, -2.66], ease(u)), [-.95, .38, -3.1], 38);
+      else { SLIDE[1] = .14; const sw = ease(u * 1.1 - .05) + .15 * f.downPulse; sun(mix(-.95, .45, sw), -.42, "slit", .9) }
+      if (v === "night") cam(lerp3([-.5, .8, -2.4], [-.55, .78, -2.47], ease(u)), [-1.25, .36, -2.98], 42);
       else if (v) cam(lerp3([-.5, .64, -2.4], [-.53, .62, -2.45], ease(u)), [-1.06, .37, -3.13], 42);
       else cam(lerp3([-.6, .43, -2.6], [-.67, .425, -2.68], ease(u)), [-1.2, .39, -3.3], 40, .015);
-      motes([-1, .6, -3], [1.4, .8, 1.2], .008, v === "night" ? .0 : .03); glints([-1, .55, -3], [1.2, .6, 1], .015);
+      if (v === "night") { motes([-1.3, .5, -2.7], [.8, .6, .8], .0025, .35, 0, 1, .3); glints([-1.4, .5, -2.6], [.6, .5, .6], .006, .4, 0, 1, "#ffd8a0", .3) }
+      else { motes([-1, .6, -3], [1.4, .8, 1.2], .003, .7, .02, 1, .3); glints([-1, .55, -3], [1.2, .6, 1], .008, .6, 0, 1, "#fff6e0", .3) }
       const n = proj(-1.0, .37, -3.05), w = proj(v ? -.6 : -.85, .6, -3.6), a = proj(-1.62, .42, -2.55);
-      if (v === "night") return { bloom: 1.05, glow: .5, rays: .4, rayX: a[0], rayY: a[1], tilt: .5, focus: n[2], exposure: 1.02, sat: 1.05, gain: [1.08, .98, .92], lift: [.015, .025, .06], halation: [1, .55, .35] };
-      if (v === "cool") return { bloom: .85, glow: .45, rays: .35, rayX: w[0], rayY: w[1], tilt: .45, focus: n[2], exposure: .98, sat: .95, gain: [.92, .96, 1.1], lift: [.04, .04, .09] };
-      if (v === "warm") return { bloom: .9, glow: .42, rays: .45, rayX: w[0], rayY: w[1], tilt: .45, focus: n[2], exposure: 1.05, sat: 1.04, gain: [1.08, 1, .88], lift: [.06, .045, .06] };
-      return { bloom: .9, glow: .4, rays: .5, rayX: w[0], rayY: w[1], tilt: .5, focus: n[2], exposure: 1.02, sat: .98, gain: [1.02, .98, 1.06], lift: [.05, .05, .1] };
+      if (v === "night") return { bloom: 1.05, glow: .45, rays: .4, rayX: a[0], rayY: a[1], tilt: .5, focus: n[2], exposure: 1.02, sat: 1.05, gain: [1.08, .98, .92], lift: [.012, .02, .055], halation: [1, .55, .35] };
+      if (v === "cool") return { bloom: .85, glow: .42, rays: .35, rayX: w[0], rayY: w[1], tilt: .45, focus: n[2], exposure: .98, sat: .95, gain: [.92, .96, 1.1], lift: [.035, .035, .08] };
+      if (v === "warm") return { bloom: .9, glow: .4, rays: .45, rayX: w[0], rayY: w[1], tilt: .45, focus: n[2], exposure: 1.03, sat: 1.04, gain: [1.08, 1, .88], lift: [.05, .04, .055] };
+      return { bloom: .9, glow: .38, rays: .5, rayX: w[0], rayY: w[1], tilt: .5, focus: n[2], exposure: 1, sat: .98, gain: [1.02, .98, 1.06], lift: [.04, .045, .09] };
     },
     "desk:warm"(f, lt, u) { return SET.desk(f, lt, u, "warm") }, "desk:cool"(f, lt, u) { return SET.desk(f, lt, u, "cool") }, "desk:night"(f, lt, u) { return SET.desk(f, lt, u, "night") },
     /* three layers of fusuma shut toward the camera, one per beat; the far room glows until the first one closes */
@@ -452,31 +457,31 @@ export async function create({ THREE, scene, camera, back2d, kit, tier, timing }
       applyMood(MOODS.pastel); sun(.3, -.38, "glass"); keyDir(0, .35, 1); enfilade.forEach(o => o.visible = true);
       const tS = [fastAt(f.shot.t0, 2), fastAt(f.shot.t0, 4), fastAt(f.shot.t0, 5)], open = tS.map(t => slam(f.t, t, .32));
       doors(open); tS.forEach((t, i) => puff(i, f.t, t, [0, 1.8, 3.6][i]));
-      lamp(0, 1.1, -1.4, "#ffd0a8", 2.4 * mix(.3, 1, clamp(open[0])), 3.2);
+      lamp(0, 1.1, -1.4, "#ffd0a8", 2.2 * mix(.25, 1, clamp(open[0])), 3);
       let sh = 0; tS.forEach((t, i) => { const a = f.t - t; if (a > 0) sh += (.002 + i * .002) * Math.sin(a * 70) * Math.exp(-a * 14) });
       cam(lerp3([0, .98, 5.75], [0, .96, 5.3], ease(u)).map((x, i) => i === 1 ? x + sh : x), [0, .9 + sh * .5, -3.6], 42);
-      motes([0, .9, 2.5], [3.4, 1.8, 6], .014, .15); glints([0, .9, 3], [3, 1.6, 4], .03, .25, 1, "#fff0e0");
+      motes([0, .9, 2.5], [3.4, 1.8, 6], .007, .6, .12); glints([0, .9, 3], [3, 1.6, 4], .02, .6, .2, 1, "#fff0e0");
       const w = proj(0, .8, -3.6);
-      return { bloom: .9, glow: .45, rays: .55 * clamp(open[0]), rayX: w[0], rayY: w[1], tilt: .3, focus: .5, exposure: 1.04, sat: .98, gain: [1.04, .99, 1.02], lift: [.06, .05, .09], leak: .2 * f.downPulse };
+      return { bloom: .9, glow: .42, rays: .55 * clamp(open[0]), rayX: w[0], rayY: w[1], tilt: .3, focus: .5, exposure: 1.02, sat: .98, gain: [1.04, .99, 1.02], lift: [.05, .045, .08], leak: .2 * f.downPulse };
     },
     "fusuma:wide"(f, lt, u) {
       applyMood(MOODS.rose); sun(.34, -.36, "glass"); keyDir(0, .4, 1); enfilade.forEach(o => o.visible = true);
       const tS = f.shot.t0 + (f.shot.t1 - f.shot.t0) * .78, o = slam(f.t, tS, .3) * .62; doors([o, 1, 1]); puff(0, f.t, tS, 0); puffs[1].visible = puffs[2].visible = false;
-      lamp(0, 1.1, -1.4, "#ffc8a8", 2.6 * mix(.35, 1, o / .62), 3);
+      lamp(0, 1.1, -1.4, "#ffc8a8", 2.4 * mix(.3, 1, o / .62), 3);
       cam(lerp3([.18, 1.06, 1.6], [.12, 1.03, 1.45], ease(u)), [-.1, .78, -3.6], 50);
-      motes([0, .7, -1.5], [3.2, 1.4, 3.4], .014, .1); glints([0, .7, -1.8], [3, 1.2, 3], .03, .1);
+      motes([0, .7, -1.5], [3.2, 1.4, 3.4], .006, .8, .08); glints([0, .7, -1.8], [3, 1.2, 3], .02, .7, .1);
       const w = proj(0, .8, -3.6);
-      return { bloom: 1, glow: .5, rays: .6 * (o / .62), rayX: w[0], rayY: w[1], exposure: 1.04, sat: 1.08, gain: [1.06, .98, .98], lift: [.06, .035, .075], leak: .3, leakX: .5, leakY: .5 };
+      return { bloom: 1, glow: .45, rays: .6 * (o / .62), rayX: w[0], rayY: w[1], exposure: 1.02, sat: 1.08, gain: [1.06, .98, .98], lift: [.05, .03, .065], leak: .25, leakX: .5, leakY: .5 };
     },
     /* night room, moonlight through the glass; the mirror on the tatami holds the dawn */
     mirror(f, lt, u) {
       applyMood(MOODS.night); sun(.22, -.34, "glass"); keyDir(-.3, .6, -.7); mirror.visible = true;
-      lamp(-.36, .1, -1.6, "#ffc890", 2.4 + .6 * f.hit, .38);
-      cam(lerp3([-.06, .8, -1.16], [-.14, .68, -1.3], ease(u)), [-.36, 0, -1.6], 42, .03);
-      dawn.offset.set(.09 + (camera.position.x + .36) * .2, .09 + (camera.position.z + 1.6) * .2);
-      motes([-.3, .4, -2], [2, .8, 2], .01, .02); glints([-.36, .25, -1.6], [.35, .5, .35], .012, 1, 0, "#ffe2b0");
-      const c = proj(-.36, .015, -1.6);
-      return { bloom: 1.2, glow: .55, rays: .7, rayX: c[0], rayY: c[1], tilt: .45, focus: c[2], exposure: 1.06, sat: 1.08, gain: [.94, .97, 1.1], lift: [.012, .022, .06], halation: [1, .62, .4] };
+      lamp(-.8, .08, -1.4, "#ffc890", 2 + .6 * f.hit, .2);
+      cam(lerp3([-.3, .86, -.6], [-.37, .75, -.78], ease(u)), [-.82, .02, -1.44], 40, .03);
+      dawn.offset.set(.09 + (camera.position.x + .8) * .15, .09 + (camera.position.z + 1.4) * .15);
+      motes([-.6, .4, -2], [2, .8, 2], .005, .5, .02); glints([-.8, .22, -1.4], [.3, .4, .3], .006, 1, 1, 0, "#ffe2b0");
+      const c = proj(-.8, .015, -1.4);
+      return { bloom: 1.15, glow: .5, rays: .65, rayX: c[0], rayY: c[1], tilt: .45, focus: c[2], exposure: 1.04, sat: 1.08, gain: [.94, .97, 1.1], lift: [.01, .018, .05], halation: [1, .62, .4] };
     }
   };
 
