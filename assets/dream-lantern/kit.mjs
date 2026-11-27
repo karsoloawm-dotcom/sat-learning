@@ -146,7 +146,7 @@ const TOON_F = `uniform vec3 uColor,uShade,uLight,uRim,uAmbSky,uAmbGround,uEmiss
 varying vec3 vNw,vWp;varying vec2 vUv;
 void main(){vec3 base=uColor;
 #if defined(USE_COLOR)||defined(USE_INSTANCING_COLOR)
-  base*=vColor;
+  base*=vColor.rgb;
 #endif
   vec4 tx=uMapOn>.5?texture2D(uMap,vUv):vec4(1.);base*=tx.rgb;
   vec3 n=normalize(vNw);if(!gl_FrontFacing)n=-n;
