@@ -17,8 +17,8 @@ export const PALETTE = {
   outro: { sky: ["#3d8fe0", "#66a8eb", "#a9d2f5", "#eef5f0"], light: "#fff6e2", shade: "#7a8fb8", rim: "#ffffff", fog: "#cfe4f2", ambSky: "#9cc6f0", ambGround: "#6a7a5a" }
 };
 /* per-section post defaults; a module's look() overrides any of these for its shot */
-const BASE = { exposure: 1, bloom: .7, threshold: .62, glow: .3, tilt: 0, focus: .5, band: .3, chroma: .5, sat: 1.05, vignette: .4,
-  rays: 0, rayX: .5, rayY: .2, leak: 0, leakX: 1, leakY: .3, lift: [.02, .02, .05], gain: [1, 1, 1], halation: [1, .55, .42], leakColor: [1, .62, .38] };
+const BASE = { exposure: 1, bloom: .8, threshold: .55, glow: .3, tilt: 0, focus: .5, band: .3, chroma: .5, sat: 1.05, vignette: .4,
+  rays: 0, rayX: .5, rayY: .2, leak: 0, leakX: 1, leakY: .3, lift: [.02, .02, .05], gain: [1, 1, 1], halation: [1, .5, .34], leakColor: [1, .62, .38] };
 export const GRADE = {
   intro: { lift: [.012, .02, .06], gain: [1, .96, .92], glow: .32, bloom: .8 },
   verse1: { lift: [.01, .03, .06], gain: [.95, 1, 1.08], sat: 1.1 },
@@ -58,6 +58,7 @@ gl_FragColor=mix(texture2D(tAdd,vUv),s/12.,uMix);}`, { tIn: { value: null }, tAd
   const LOOK = Array.from({ length: 14 }, () => new THREE.Vector4());
   const fin = mat(`uniform sampler2D tA,tM1,tU1,tU2;uniform vec4 uL[14];uniform float uSeam,uTime;uniform vec2 uAsp;varying vec2 vUv;
 float h21(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}
+float vn(float x){float i=floor(x),f=fract(x);return mix(h21(vec2(i,7.)),h21(vec2(i+1.,7.)),f*f*(3.-2.*f));}
 vec3 soft(vec3 c){vec3 k=vec3(.72);return mix(c,k+(1.-k)*(1.-exp(-(c-k)/(1.-k))),step(k,c));}
 vec3 toS(vec3 c){c=clamp(c,0.,1.);return mix(c*12.92,1.055*pow(c,vec3(1./2.4))-.055,step(.0031308,c));}
 void main(){int o=vUv.x<uSeam?0:7;vec4 a=uL[o],b=uL[o+1],c4=uL[o+2],d=uL[o+3],e=uL[o+4],f=uL[o+5],g=uL[o+6];
@@ -66,8 +67,10 @@ void main(){int o=vUv.x<uSeam?0:7;vec4 a=uL[o],b=uL[o+1],c4=uL[o+2],d=uL[o+3],e=
   vec3 m1=texture2D(tM1,uv).rgb,u1=texture2D(tU1,uv).rgb,u2=texture2D(tU2,uv).rgb;
   float tb=b.x*smoothstep(b.z*.5,b.z*.5+.28,abs(uv.y-b.y));col=mix(col,mix(m1,u2,tb),min(1.,tb*1.5));
   col+=u1*a.w*(1.-col/(1.+col));
-  col+=max(u1-a.z,0.)*a.y*mix(vec3(1.),f.rgb,.6);
-  if(c4.z>0.){vec2 dir=(d.xy-uv)/float(RAYS);vec2 p=uv+dir*h21(uv*977.+uTime);vec3 acc=vec3(0.);float w=1.;for(int i=0;i<RAYS;i++){p+=dir;acc+=max(texture2D(tU2,p).rgb-a.z*.7,0.)*w;w*=.9;}col+=acc*c4.z*(1.6/float(RAYS));}
+  vec3 hot=max(m1-a.z,0.)*.35+max(u2-a.z*.8,0.)*1.1+max(u1-a.z*.6,0.)*1.5;col+=hot*a.y*mix(vec3(1.),f.rgb,.75);
+  if(c4.z>0.){vec2 dl=d.xy-uv,dir=dl/float(RAYS);vec2 p=uv+dir*h21(uv*977.+uTime);vec3 acc=vec3(0.);float w=1.;for(int i=0;i<RAYS;i++){p+=dir;acc+=max(texture2D(tU2,p).rgb-a.z*.35,0.)*w;w*=.94;}
+    vec2 la=dl*uAsp;float an=atan(la.y,la.x)*1.5915+3.,sh=vn(an*4.)*vn(an*9.+4.);
+    vec3 rc=mix(vec3(1.),g.rgb,.4);col+=acc*c4.z*(2.6/float(RAYS))*(.45+1.3*sh)*rc+rc*c4.z*.2*exp(-dot(la,la)*14.);}
   vec2 lk=(uv-d.zw)*uAsp;col+=g.rgb*c4.w*exp(-dot(lk,lk)*5.);
   col*=a.x;float l=dot(col,vec3(.2126,.7152,.0722));col=mix(vec3(l),col,c4.x)*e.rgb;
   col=soft(col);vec3 lift=vec3(e.w,f.w,g.w);col=col*(1.-lift)+lift;
@@ -101,7 +104,8 @@ void main(){int o=vUv.x<uSeam?0:7;vec4 a=uL[o],b=uL[o+1],c4=uL[o+2],d=uL[o+3],e=
       SHARED.uViewH.value = vp[3] * k;
       R.setRenderTarget(sceneRT); R.render(scene, camera);
       sceneRT.scissorTest = false; sceneRT.viewport.set(0, 0, pw, ph); sceneRT.scissor.set(0, 0, pw, ph);
-      looks.push({ look, x0: x0 / W, x1: x1 / W });
+      const L = Object.assign({}, look, { rayX: (vp[0] + look.rayX * vp[2]) / W, rayY: (vp[1] + look.rayY * vp[3]) / H, leakX: (vp[0] + look.leakX * vp[2]) / W, leakY: (vp[1] + look.leakY * vp[3]) / H });
+      looks.push({ look: L, x0: x0 / W, x1: x1 / W });
     },
     /* composite the painted back canvas under the 3D, run the post chain to the screen; extra: looks for 2D-only parts, [{look, x0, x1}] in 0..1 */
     end(backCanvas, t, extra) {
@@ -178,8 +182,10 @@ const HZ_V = `attribute vec4 aSeed;uniform float uTime;uniform vec3 uDrift;varyi
 void main(){vUv=uv;vS=aSeed;vec3 c=(modelMatrix*instanceMatrix*vec4(0.,0.,0.,1.)).xyz+uDrift*uTime*(.6+aSeed.y*.8);float s=length(instanceMatrix[0].xyz);
   vec3 r=vec3(viewMatrix[0][0],viewMatrix[1][0],viewMatrix[2][0]),u=vec3(viewMatrix[0][1],viewMatrix[1][1],viewMatrix[2][1]);
   vec3 w=c+(r*position.x*(1.+aSeed.z*.6)+u*position.y)*s;vec4 mv=viewMatrix*vec4(w,1.);vF=smoothstep(s*.25,s*1.2,-mv.z);gl_Position=projectionMatrix*mv;}`;
-const HZ_F = `uniform sampler2D uTex;uniform vec3 uTop,uBot;uniform float uOpacity;varying vec2 vUv;varying vec4 vS;varying float vF;
-void main(){vec2 q=vUv;if(vS.x>.5)q.x=1.-q.x;float a=texture2D(uTex,q).a*uOpacity*vF;if(a<.003)discard;gl_FragColor=vec4(mix(uBot,uTop,smoothstep(.2,.85,vUv.y))*a,a);}`;
+const HZ_F = `uniform sampler2D uTex;uniform vec3 uTop,uBot;uniform float uOpacity,uRimK;varying vec2 vUv;varying vec4 vS;varying float vF;
+void main(){vec2 q=vUv;if(vS.x>.5)q.x=1.-q.x;float a0=texture2D(uTex,q).a,a=a0*uOpacity*vF;if(a<.003)discard;
+  float below=1.-smoothstep(.2,.75,vUv.y),rim=smoothstep(.02,.22,a0)*(1.-smoothstep(.22,.6,a0));
+  gl_FragColor=vec4((mix(uTop,uBot,below)+uBot*rim*uRimK)*a,a);}`;
 const SKY_F = `uniform sampler2D uRamp;uniform vec3 uSunDir,uSunCol;uniform float uSun,uStars,uTime;varying vec3 vD;
 float h21(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}
 void main(){vec3 d=normalize(vD);float y=clamp(d.y,-.2,1.);vec3 c=texture2D(uRamp,vec2(.5,1.-pow(max(y,0.),.6))).rgb;
@@ -191,7 +197,8 @@ void main(){vec3 d=normalize(vD);float y=clamp(d.y,-.2,1.);vec3 c=texture2D(uRam
 /* a soft cloud puff (alpha), painted once per kit */
 function puffCanvas() {
   const c = document.createElement("canvas"); c.width = c.height = 256; const g = c.getContext("2d");
-  for (let i = 0; i < 26; i++) { const x = 128 + (Math.random() - .5) * 120, y = 140 + (Math.random() - .5) * 70, r = 30 + Math.random() * 60, gr = g.createRadialGradient(x, y, 0, x, y, r); gr.addColorStop(0, "rgba(255,255,255,.35)"); gr.addColorStop(1, "rgba(255,255,255,0)"); g.fillStyle = gr; g.fillRect(0, 0, 256, 256) }
+  for (let i = 0; i < 30; i++) { const x = 128 + (Math.random() - .5) * 150, r = 26 + Math.random() * 54, y = 168 - r * (.3 + Math.random() * .9), gr = g.createRadialGradient(x, y, 0, x, y, r); gr.addColorStop(0, "rgba(255,255,255,.4)"); gr.addColorStop(1, "rgba(255,255,255,0)"); g.fillStyle = gr; g.fillRect(0, 0, 256, 256) }
+  g.globalCompositeOperation = "destination-in"; const base = g.createLinearGradient(0, 150, 0, 196); base.addColorStop(0, "#000"); base.addColorStop(1, "rgba(0,0,0,0)"); g.fillStyle = base; g.fillRect(0, 0, 256, 256);
   return c;
 }
 
@@ -238,13 +245,13 @@ export function createKit(THREE, tier, section = "intro") {
     },
     /* a texture painted once with 2D canvas calls: paint(w, h, (g, w, h) => {...}) */
     paint(w, h, fn) { const c = document.createElement("canvas"); c.width = w; c.height = h; fn(c.getContext("2d"), w, h); const t = keep(new THREE.CanvasTexture(c)); t.colorSpace = THREE.SRGBColorSpace; t.userData.canvas = c; return t },
-    /* soft billboard puffs: haze banks, mist, or clouds lit from below (top / bottom colours). Returns an object; call .update(f) */
+    /* soft billboard puffs: haze banks, mist, or cumulus lit from below (top = shaded colour, bottom = the lit underside). Returns an object; call .update(f) */
     haze(o = {}) {
       const P = PALETTE[o.section || section] || PALETTE.intro, n = o.count ?? ({ saver: 16, smooth: 40, ultra: 90 }[tier]), box = o.box || [80, 6, 80], at = o.center || [0, 2, -30];
       if (!puff) { puff = keep(new THREE.CanvasTexture(puffCanvas())); puff.userData.canvas = puff.image }
       const geo = keep(new THREE.PlaneGeometry(1, .62)), seed = new Float32Array(n * 4), M = new THREE.Matrix4();
       const m = keep(new THREE.ShaderMaterial({ vertexShader: HZ_V, fragmentShader: HZ_F, transparent: true, depthWrite: false, blending: o.additive ? THREE.AdditiveBlending : THREE.NormalBlending,
-        uniforms: { uTex: { value: puff }, uTop: { value: C(o.top ?? P.fog) }, uBot: { value: C(o.bottom ?? P.shade) }, uOpacity: { value: o.opacity ?? .6 }, uTime: { value: 0 }, uDrift: { value: new THREE.Vector3(...(o.drift || [.4, 0, 0])) } } }));
+        uniforms: { uTex: { value: puff }, uTop: { value: C(o.top ?? P.shade) }, uBot: { value: C(o.bottom ?? P.light).multiplyScalar(o.bottom ? 1 : 1.25) }, uRimK: { value: o.rim ?? .8 }, uOpacity: { value: o.opacity ?? .6 }, uTime: { value: 0 }, uDrift: { value: new THREE.Vector3(...(o.drift || [.4, 0, 0])) } } }));
       const im = new THREE.InstancedMesh(geo, m, n); im.frustumCulled = false; im.renderOrder = o.renderOrder ?? 2;
       const rnd = mulberry(o.seed ?? 3);
       for (let i = 0; i < n; i++) { const s = (o.size ?? 14) * (.6 + rnd() * .8); M.makeScale(s, s, s).setPosition(at[0] + (rnd() - .5) * box[0], at[1] + (rnd() - .5) * box[1], at[2] + (rnd() - .5) * box[2]); im.setMatrixAt(i, M); seed.set([rnd(), rnd(), rnd(), rnd()], i * 4) }
@@ -266,6 +273,15 @@ export function createKit(THREE, tier, section = "intro") {
       pts.userData.update = f => { m.uniforms.uTime.value = f.t; m.uniforms.uPulse.value = (o.beat ?? 1) * (o.on === "fast" ? f.fastPulse : f.pulse) };
       pts.userData.material = m;
       return pts;
+    },
+    /* paint a cumulus lit from below into a 2D context (for back2d paintings): (g, x, baseY, w, h, topColour, undersideColour, seed) */
+    cloud2d(g, x, y, w, h, top, under, seed = 1) {
+      const r = mulberry(seed), c = document.createElement("canvas"); c.width = Math.max(1, Math.ceil(w)); c.height = Math.max(1, Math.ceil(h)); const k = c.getContext("2d");
+      k.filter = `blur(${Math.max(1, h * .035)}px)`; k.fillStyle = "#fff"; /* soft painted edges where canvas filters exist */
+      for (let i = 0; i < 22; i++) { const rad = h * (.16 + .22 * r()), bx = w * (.14 + .72 * r()), by = h * .78 - rad * (.2 + .9 * r()); k.beginPath(); k.arc(bx, by, rad, 0, 6.3); k.fill() }
+      k.filter = "none"; k.globalCompositeOperation = "destination-in"; const base = k.createLinearGradient(0, h * .66, 0, h * .86); base.addColorStop(0, "#000"); base.addColorStop(1, "rgba(0,0,0,0)"); k.fillStyle = base; k.fillRect(0, 0, w, h);
+      k.globalCompositeOperation = "source-in"; const gr = k.createLinearGradient(0, h * .22, 0, h * .62); gr.addColorStop(0, top); gr.addColorStop(1, under); k.fillStyle = gr; k.fillRect(0, 0, w, h);
+      g.drawImage(c, x - w / 2, y - h * .8); c.width = 0;
     },
     /* call each kit object's per-frame update: kit.tick(f, obj1, obj2, ...) */
     tick(f, ...objs) { for (const o of objs) o && o.userData.update && o.userData.update(f) },
