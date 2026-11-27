@@ -47,7 +47,9 @@ export function createPipeline(THREE, R, tier) {
   quad.frustumCulled = false; qs.add(quad);
   const mat = (frag, uniforms, defines) => new THREE.ShaderMaterial({ vertexShader: FS_V, fragmentShader: frag, uniforms, defines: defines || {}, depthTest: false, depthWrite: false, toneMapped: false });
   const pre = mat(`uniform sampler2D tS,tB;uniform float uHasB;varying vec2 vUv;
-void main(){vec4 s=texture2D(tS,vUv);vec3 b=uHasB>.5?texture2D(tB,vUv).rgb:vec3(0.);gl_FragColor=vec4(s.rgb+b*(1.-s.a),1.);}`, { tS: { value: null }, tB: { value: back }, uHasB: { value: 0 } });
+void main(){vec4 s=texture2D(tS,vUv);vec3 b=uHasB>.5?texture2D(tB,vUv).rgb:vec3(0.),c=s.rgb+b*(1.-s.a);
+/* one NaN or inf pixel from any module would spread through the bloom pyramid as a black blot */
+if(any(isnan(c))||any(isinf(c)))c=b;gl_FragColor=vec4(min(c,vec3(64.)),1.);}`, { tS: { value: null }, tB: { value: back }, uHasB: { value: 0 } });
   const dn = mat(`uniform sampler2D tIn;uniform vec2 uT;varying vec2 vUv;
 void main(){vec4 s=texture2D(tIn,vUv)*4.;s+=texture2D(tIn,vUv-uT);s+=texture2D(tIn,vUv+uT);s+=texture2D(tIn,vUv+vec2(uT.x,-uT.y));s+=texture2D(tIn,vUv-vec2(uT.x,-uT.y));gl_FragColor=s/8.;}`, { tIn: { value: null }, uT: { value: new THREE.Vector2() } });
   const upm = mat(`uniform sampler2D tIn,tAdd;uniform vec2 uT;uniform float uMix;varying vec2 vUv;
@@ -152,7 +154,7 @@ void main(){vec3 base=uColor;
   vec3 n=normalize(vNw);if(!gl_FrontFacing)n=-n;
   float nl=(dot(n,normalize(uLightDir))+uWrap)/(1.+uWrap);float lit=smoothstep(-uSoft,uSoft,nl);
   vec3 c=mix(base*uShade,base*uLight,lit)+base*mix(uAmbGround,uAmbSky,n.y*.5+.5);
-  vec3 v=normalize(cameraPosition-vWp);c+=uRim*pow(1.-max(dot(n,v),0.),uRimPow)*uRimK*(.35+.65*lit);
+  vec3 v=normalize(cameraPosition-vWp);c+=uRim*pow(clamp(1.-dot(n,v),0.,1.),uRimPow)*uRimK*(.35+.65*lit);
   gl_FragColor=vec4(c+uEmissive,uOpacity*tx.a);
 #include <fog_fragment>
 }`;
