@@ -110,19 +110,20 @@ void main(){if(vUv.x<uG0||vUv.x>uG1)discard;vec3 base=uColor*braid(vUv)*vRope.rg
   const railM = T({ color: "#c8392c", rimK: .9, rimPow: 3 }), bambooM = T({ color: "#b9945a" }), capM = T({ color: "#2a1a18", rimK: .5 });
   const paperM = T({ color: "#ffffff", map: washi, shade: new THREE.Color(1.55, .72, .28), light: new THREE.Color(2.1, 1.12, .5), rim: "#ffd6a0", rimK: .8, ambient: .1 });
   const TONED = [cord.mat, fib.mat, wood, lacq, spoolM, windM, threadM, bagM, railM, bambooM, capM];
+  /* LatheGeometry faces outward when the profile runs counter-clockwise (outer surface bottom to top); the profiles below that run the other way are reversed */
   const lathe = (pts, n) => own(new THREE.LatheGeometry(pts.map(([x, y]) => new THREE.Vector2(x, y)), n));
   const LS = pick(32, 56, 80);
 
   /* the marudai: mirror (kagami) on four legs, bobbins (tama) hanging on threads, the braid down the centre with its weight */
   const NB = pick(8, 16, 16), H = NB / 2;
   const maru = new THREE.Group(); root.add(maru);
-  maru.add(new THREE.Mesh(lathe([[.15, -.09], [.15, 0], [.95, 0], [.99, -.012], [1.005, -.045], [.99, -.078], [.95, -.09], [.15, -.09]], LS * 2), lacq));
-  maru.add(new THREE.Mesh(lathe([[.0, -1.66], [1.02, -1.66], [1.06, -1.7], [1.02, -1.76], [0, -1.76]], LS), wood));
+  maru.add(new THREE.Mesh(lathe([[.15, -.09], [.15, 0], [.95, 0], [.99, -.012], [1.005, -.045], [.99, -.078], [.95, -.09], [.15, -.09]].reverse(), LS * 2), lacq));
+  maru.add(new THREE.Mesh(lathe([[.0, -1.66], [1.02, -1.66], [1.06, -1.7], [1.02, -1.76], [0, -1.76]].reverse(), LS), wood));
   const legs = new THREE.InstancedMesh(own(new THREE.CylinderGeometry(.045, .055, 1.6, 10)), wood, 4), M4 = new THREE.Matrix4();
   for (let i = 0; i < 4; i++) legs.setMatrixAt(i, M4.makeTranslation(Math.cos(i * PI / 2 + PI / 4) * .7, -.88, Math.sin(i * PI / 2 + PI / 4) * .7));
   maru.add(legs);
-  const bag = new THREE.Mesh(lathe([[0, 0], [.05, -.01], [.13, -.06], [.16, -.16], [.13, -.27], [.06, -.32], [0, -.33]], 20), bagM); maru.add(bag);
-  const spools = new THREE.InstancedMesh(lathe([[0, .15], [.068, .15], [.074, .135], [.05, .11], [.05, -.11], [.074, -.135], [.068, -.15], [0, -.15]], 16), spoolM, NB);
+  const bag = new THREE.Mesh(lathe([[0, 0], [.05, -.01], [.13, -.06], [.16, -.16], [.13, -.27], [.06, -.32], [0, -.33]].reverse(), 20), bagM); maru.add(bag);
+  const spools = new THREE.InstancedMesh(lathe([[0, .15], [.068, .15], [.074, .135], [.05, .11], [.05, -.11], [.074, -.135], [.068, -.15], [0, -.15]].reverse(), 16), spoolM, NB);
   const winds = new THREE.InstancedMesh(own(new THREE.CylinderGeometry(.064, .064, .2, 14)), windM, NB);
   const threads = new THREE.InstancedMesh(own(new THREE.CylinderGeometry(1, 1, 1, pick(4, 5, 6), 1, true)), threadM, NB * 2);
   for (const m of [spools, winds, threads]) { m.frustumCulled = false; maru.add(m) }
@@ -580,6 +581,7 @@ void main(){if(vUv.x<uG0||vUv.x>uG1)discard;vec3 base=uColor*braid(vUv)*vRope.rg
     update(f) {
       const id = f.shot.var ? f.shot.key + ":" + f.shot.var : f.shot.key;
       (S[id] || S.marudai)(f);
+      if (f.debug) globalThis.__cordDbg = { maru, spools, winds, threads, bag, legs, cord, fib, dust, spark, bokeh, mirror: maru.children[0], base: maru.children[1] }; /* TEMP debug */
       kit.tick(f, ...PARTS);
       for (const r of [cord, fib]) r.U.uTime.value = f.t;
     },
