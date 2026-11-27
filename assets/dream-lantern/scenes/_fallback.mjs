@@ -27,7 +27,7 @@ export async function create({ THREE, scene, camera, back2d, kit, tier, jsm, bas
   const lg = own(new THREE.LatheGeometry(prof, tier === "saver" ? 8 : 14)), pos = lg.attributes.position, col = new Float32Array(pos.count * 3);
   for (let i = 0; i < pos.count; i++) { const y = pos.getY(i), k = .55 + .45 * Math.exp(-y * y * 8), rib = .8 + .2 * Math.cos(y * 60); col[i * 3] = k * rib; col[i * 3 + 1] = k * rib * .86; col[i * 3 + 2] = k * rib * .7 }
   lg.setAttribute("color", new THREE.BufferAttribute(col, 3));
-  const paper = kit.toon({ vertexColors: true, color: "#ffe0b0", emissive: new THREE.Color(1.5, .62, .2), soft: .4, rimK: .8, side: THREE.DoubleSide, fog: false });
+  const paper = kit.toon({ vertexColors: true, color: "#ffe0b0", emissive: new THREE.Color(.7, .28, .07), soft: .4, rimK: .8, side: THREE.DoubleSide, fog: false });
   const M = new THREE.Matrix4(), Q = new THREE.Quaternion(), S = new THREE.Vector3(), P = new THREE.Vector3(), up = new THREE.Vector3(0, 1, 0);
   const float = new THREE.InstancedMesh(lg, paper, N[0]), rise = new THREE.InstancedMesh(lg, paper, N[1]);
   for (let i = 0; i < N[0]; i++) { const r = 5 + 26 * Math.sqrt(rnd()), a = rnd() * 6.283; let x = Math.cos(a) * r, z = Math.sin(a) * r - 4; if (Math.abs(x) < 3 && z < -14 && z > -26) x += 6 * Math.sign(x || 1); M.compose(P.set(x, .3, z), Q.setFromAxisAngle(up, rnd() * 6), S.setScalar(.7 + .5 * rnd())); float.setMatrixAt(i, M) }
@@ -57,7 +57,8 @@ export async function create({ THREE, scene, camera, back2d, kit, tier, jsm, bas
     g.fillStyle = gr; g.fillRect(0, 0, c.width, hz); g.globalAlpha = .7; g.fillStyle = gr2; g.fillRect(0, hz, c.width, H - hz); g.globalAlpha = 1;
     const r = mulberry(sec.length * 31);
     for (let i = 0; i < 260; i++) { const y = r() * hz * .7; g.globalAlpha = (1 - y / (hz * .7)) * r() * .9; g.fillStyle = "#fff"; g.fillRect(r() * c.width, y, 1.5, 1.5) }
-    for (let i = 0; i < 26; i++) { const x = r() * c.width, y = hz * (.45 + r() * .5), rx = 80 + r() * 260, gg = g.createRadialGradient(x, y, 0, x, y, rx); gg.addColorStop(0, "rgba(255,230,220,.16)"); gg.addColorStop(1, "rgba(255,230,220,0)"); g.globalAlpha = 1; g.fillStyle = gg; g.fillRect(x - rx, y - rx * .3, rx * 2, rx * .6) }
+    g.globalAlpha = 1; /* soft cloud bands: round gradients squashed into long ellipses */
+    for (let i = 0; i < 26; i++) { const x = r() * c.width, y = hz * (.45 + r() * .5), rx = 80 + r() * 260, gg = g.createRadialGradient(0, 0, 0, 0, 0, rx); gg.addColorStop(0, "rgba(255,230,220,.16)"); gg.addColorStop(1, "rgba(255,230,220,0)"); g.save(); g.translate(x, y); g.scale(1, .22); g.fillStyle = gg; g.fillRect(-rx, -rx, rx * 2, rx * 2); g.restore() }
     paint.set(sec, c); return c;
   }
   const V = new THREE.Vector3(), V2 = new THREE.Vector3();
@@ -71,7 +72,7 @@ export async function create({ THREE, scene, camera, back2d, kit, tier, jsm, bas
       for (let i = 0; i < N[1]; i++) { const [x, z, ph, sp] = RP[i], y = ((f.t * .6 * sp + ph * 40) % 40), s = .8 * (1 - y / 46); M.compose(P.set(x + Math.sin(f.t * .3 + ph * 9) * 1.2, y + .3, z), Q.setFromAxisAngle(up, f.t * .2 + ph * 6), S.setScalar(Math.max(.01, s))); rise.setMatrixAt(i, M) }
       rise.instanceMatrix.needsUpdate = true;
       world.position.y = Math.sin(f.t * .8) * .03;
-      paper.uniforms.uEmissive.value.setRGB(1.5, .62, .2).multiplyScalar(1 + .35 * f.pulse);
+      paper.uniforms.uEmissive.value.setRGB(.7, .28, .07).multiplyScalar(1 + .4 * f.pulse);
       /* framing: one of five set-ups per shot, a slow drift through it */
       const a = ANG[((f.shot.i * 7 + (f.shot.side === "R" ? 3 : 0)) % ANG.length + ANG.length) % ANG.length], u = f.shot.u, e = u * u * (3 - 2 * u);
       camera.position.set(...a[0]).add(V.set(Math.sin(f.t * .2) * .6 + (e - .5) * 3, Math.sin(f.t * .15) * .2, -(e - .5) * 3));
