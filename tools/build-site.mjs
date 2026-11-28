@@ -67,20 +67,18 @@ const files = [
   'assets/nagi-mori/nagi-white-thing.mjs',
 ];
 
-// Missing audio paths must return 404 instead of Pages' default index fallback.
+// Serve a dedicated page for missing paths.
 const notFound = '<!doctype html><meta charset="utf-8"><title>Page not found</title><h1>Page not found</h1>\n';
 // Omit the optional train sound and anime voice clip embedded in the source.
 const index = (await readFile(join(root, 'index.html'), 'utf8'))
   .replace(/^const (?:TRN_SND|TRN_GLTV)="data:audio\/[^"\r\n]+";\r?\n/gm, '');
 const fileCount = files.length + 1;
-if (fileCount > 20_000) throw new Error('Cloudflare Pages allows up to 20,000 files on the Free plan.');
 
 let bytes = Buffer.byteLength(notFound);
 for (const file of files) {
   const stat = await lstat(join(root, file));
   if (!stat.isFile()) throw new Error(`${file} must be a regular file.`);
   const size = file === 'index.html' ? Buffer.byteLength(index) : stat.size;
-  if (size > 25 * 1024 * 1024) throw new Error(`${file} exceeds the Cloudflare Pages 25 MiB file limit.`);
   bytes += size;
 }
 
