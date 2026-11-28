@@ -275,9 +275,10 @@ export async function create({ THREE, scene, camera, ctx2d, back2d, kit, tier, s
   const haze = kit.haze({ count: hazeCount, box: [200, 3, 51], center: [0, -8.2, -79], size: tier === 'ultra' ? 4.3 : 7.5,
     opacity: .38, drift: [.022, 0, 0], renderOrder: -6, seed: seed + 43 });
   root.add(haze);
-  const tiles = Array.from({ length: 6 }, (_, i) => kit.paint(640, 352, g => {
-    if (i >= 3) { g.translate(640, 0); g.scale(-1, 1) }
-    g.drawImage(image, 0, (i % 3) * 352, 640, 352, 0, 0, 640, 352);
+  const tileScale = tier === 'saver' ? .75 : 1;
+  const tiles = Array.from({ length: 6 }, (_, i) => kit.paint(640 * tileScale, 352 * tileScale, (g, w, h) => {
+    if (i >= 3) { g.translate(w, 0); g.scale(-1, 1) }
+    g.drawImage(image, 0, (i % 3) * 352, 640, 352, 0, 0, w, h);
   }));
   const bands = Array.from({ length: 6 }, (_, i) => {
     const n = [8, 7, 6, 5, 4, 3][i];
@@ -392,8 +393,8 @@ export async function create({ THREE, scene, camera, ctx2d, back2d, kit, tier, s
   const lanternMat = ink(paper, { section: 'chorus1', light: '#fff8dd', shade: '#91625d', rimK: .12, emissive: new THREE.Color(1.5, .62, .2) });
   const lanterns = [0, 1].map(() => { const m = new THREE.Mesh(body, lanternMat); m.renderOrder = 7; root.add(m); return m });
   const halos = lanterns.map(() => { const h = card(blobMap, 7.5, true); h.material.uniforms.uColor.value.setRGB(2.1, 1.05, .38); return h });
-  const bokeh = kit.particles({ kind: 'bokeh', count: { saver: 24, smooth: 70, ultra: 160 }[tier], box: [34, 16, 12], center: [0, 1, -16],
-    size: .55, drift: [.05, .03, 0], wobble: .5, color: '#fff3dc', color2: '#cfe8ff', intensity: .32, twinkle: .6, seed: seed + 77 });
+  const bokeh = kit.particles({ kind: 'bokeh', count: { saver: 16, smooth: 32, ultra: 64 }[tier], box: [34, 16, 12], center: [0, 1, -16],
+    size: .34, drift: [.05, .03, 0], wobble: .5, color: '#fff3dc', color2: '#cfe8ff', intensity: .21, twinkle: .6, seed: seed + 77 });
   bokeh.renderOrder = 9; root.add(bokeh);
   scene.add(root);
 
@@ -534,8 +535,8 @@ export async function create({ THREE, scene, camera, ctx2d, back2d, kit, tier, s
           s.position.set((i - 1.5) * .3 + .06 * Math.sin(f.t * .4 + i), .55 + lift * .55, -.02);
           s.scale.set(1.25 + lift * .5, .62 + lift * .3, 1); s.material.uniforms.uOpacity.value = .9 * Math.sin(Math.PI * lift);
         });
-        place(fireGlow, .66, .62, 24, aspect); fireGlow.scale.setScalar(24 * lens * grow * 3.4);
-        fireGlow.material.uniforms.uColor.value.setRGB(2.2, .55, .1).multiplyScalar(1 + .35 * f.pulse);
+        place(fireGlow, .66, .62, 24, aspect); fireGlow.scale.setScalar(24 * lens * grow * 2.8);
+        fireGlow.material.uniforms.uColor.value.setRGB(1.7, .38, .075).multiplyScalar(1 + .25 * f.pulse);
         place(embers, .66, .46, 22, aspect); embers.scale.setScalar(.7 + grow * 2); kit.tick(f, embers);
       }
       bokeh.visible = day;
@@ -544,15 +545,15 @@ export async function create({ THREE, scene, camera, ctx2d, back2d, kit, tier, s
         const obj = lanterns[i], halo = halos[i];
         obj.visible = halo.visible = day;
         if (day) {
-          place(obj, i ? .885 : .14, (i ? .30 : .40) - lt * .011 + .004 * Math.sin(f.t + i), 26 + 8 * i, aspect);
+          place(obj, i ? .885 : .14, (i ? .14 : .40) - lt * .011 + .004 * Math.sin(f.t + i), 26 + 8 * i, aspect);
           obj.rotation.set(.06, lt * .19 + i, Math.sin(lt * 1.2 + i) * .09);
           obj.scale.setScalar(i ? .59 : .82);
           halo.position.copy(obj.position);
           halo.scale.setScalar(obj.scale.x * (2.5 + .4 * f.pulse));
         }
       }
-      kit.look({ rays: impact ? .47 : twilight ? (variant ? 0 : .34) : .23, rayX, rayY, glow: day ? .12 : .24,
-        bloom: impact ? .90 : .74, threshold: day ? .91 : .57, tilt: .10, focus: .51,
+      kit.look({ rays: impact ? .17 : twilight ? (variant ? 0 : .34) : .23, rayX, rayY, glow: day ? .12 : impact ? .13 : .24,
+        bloom: impact ? .68 : .74, threshold: day ? .91 : impact ? .78 : .57, tilt: .10, focus: .51,
         lift: isNight ? [.003, .006, .017] : impact ? [.004, .007, .018] : twilight ? [.018, .011, .028] : [.008, .015, .024],
         chroma: .12, leak: impact ? .014 + .025 * f.downPulse : 0, leakX: .66, leakY: .70 });
     },
