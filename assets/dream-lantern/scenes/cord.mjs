@@ -30,13 +30,13 @@ void main(){`;
   vec3 cordP=cp+objectNormal*mix(a1.w,a2.w,fr);vRope=mix(pth(i1,rk+3.),pth(i1+1.,rk+3.),fr);`;
   const FH = `uniform float uLen,uOff,uTime,uPulse,uKind,uG0,uG1,uHeadA,uHeadB,uSheen;uniform vec3 uC1,uC2,uC3,uC4,uGlowCol;varying vec4 vRope;float rdg=1.;
 vec3 braid(vec2 q){float a=q.x*uLen+uOff,b=q.y;
-  if(uKind<.5){float s1=fract(a*1.6+b*4.),s2=fract(a*1.6-b*4.);vec3 c=mix(uC1,uC2,step(.55,s1)*step(.55,s2)+step(.92,s1)*.6);
+  if(uKind<.5){float s1=fract(a*1.6+b*4.),s2=fract(a*1.6-b*4.);vec3 c=mix(uC1,uC2,step(.66,s1)*step(.66,s2)+step(.93,s1)*.5);
     float band=fract(a*.11);if(band<.1)c=mix(uC3,uC4,step(.5,fract(a*3.2+b*2.)));else if(band<.13)c=uC2;
     rdg=.5+.5*max(sin(6.2832*(a*3.2+b*8.)),sin(6.2832*(a*3.2-b*8.)));return c;}
   if(uKind<1.5){float s=fract(a*1.3+b)*3.;rdg=sin(fract(s)*3.1416);return s<1.?uC1:s<2.?uC2:uC3;}
   rdg=.78+.22*sin(6.2832*(a*9.+b*3.));return uC1;}
 void main(){if(vUv.x<uG0||vUv.x>uG1)discard;vec3 base=uColor*braid(vUv)*vRope.rgb;`;
-  const FL = `uRimK*(.35+.65*lit);c*=mix(.55,1.,rdg);c+=uLight*pow(rdg,8.)*uSheen*lit;
+  const FL = `uRimK*(.35+.65*lit);c*=mix(.5,1.,rdg);c+=mix(base,uLight,.3)*pow(rdg,16.)*uSheen*lit*2.;
   c+=uGlowCol*(exp(-pow((fract(vUv.x*3.-uTime*.35)-.5)*14.,2.))*uPulse+vRope.w+(1.-smoothstep(uG0,uG0+.03,vUv.x))*uHeadA+smoothstep(uG1-.03,uG1,vUv.x)*uHeadB);`;
   function patch(m, key, a, b) { if (!m[key].includes(a)) throw new Error("cord: kit.toon shader changed (" + a + ")"); m[key] = m[key].replace(a, b) }
   function rope(strands, seg, radial) {
@@ -49,7 +49,7 @@ void main(){if(vUv.x<uG0||vUv.x>uG1)discard;vec3 base=uColor*braid(vUv)*vRope.rg
       if (i < seg && j < radial) { const b = v + radial + 1; idx.push(v, b, v + 1, b, b + 1, v + 1) }
     }
     const geo = own(new THREE.BufferGeometry()); geo.setAttribute("position", new THREE.BufferAttribute(pos, 3)); geo.setAttribute("uv", new THREE.BufferAttribute(uv, 2)); geo.setIndex(idx);
-    const mat = kit.toon({ color: "#ffffff", side: THREE.DoubleSide, soft: .2, wrap: .3, rimK: .7, rimPow: 2.5 });
+    const mat = kit.toon({ color: "#ffffff", side: THREE.DoubleSide, soft: .2, wrap: .3, rimK: .4, rimPow: 4.5 });
     patch(mat, "vertexShader", "void main(){", VH); patch(mat, "vertexShader", "#include <beginnormal_vertex>", VN); patch(mat, "vertexShader", "#include <begin_vertex>", "vec3 transformed=cordP;");
     patch(mat, "fragmentShader", "void main(){vec3 base=uColor;", FH); patch(mat, "fragmentShader", "uRimK*(.35+.65*lit);", FL);
     const U = mat.uniforms, C = c => ({ value: new THREE.Color(c) });
@@ -106,9 +106,11 @@ void main(){if(vUv.x<uG0||vUv.x>uG1)discard;vec3 base=uColor*braid(vUv)*vRope.rg
   });
   const T = o => kit.toon(Object.assign({ soft: .25, rimK: .6 }, o));
   const wood = T({ color: "#ffffff", map: grain }), lacq = T({ color: "#6b2a1e", rimPow: 4, rimK: .8 }), spoolM = T({ color: "#e0b27a", map: grain });
-  const windM = T({ color: "#ffffff" }), threadM = T({ color: "#ffffff", rimK: 1, rimPow: 2 }), bagM = T({ color: "#5c3462" });
+  const silk = kit.paint(64, 256, (g, w, h) => { g.fillStyle = "#ffffff"; g.fillRect(0, 0, w, h); for (let y = 0; y < h; y += 2) { g.fillStyle = `rgba(0,0,0,${y % 4 ? .06 : .22})`; g.fillRect(0, y, w, 1) } }); /* wound silk */
+  const windM = T({ color: "#ffffff", map: silk, rimK: .5, rimPow: 3 }), threadM = T({ color: "#ffffff", rimK: .4, rimPow: 3.5 }), bagM = T({ color: "#5c3462" });
   const railM = T({ color: "#c8392c", rimK: .9, rimPow: 3 }), bambooM = T({ color: "#b9945a" }), capM = T({ color: "#2a1a18", rimK: .5 });
-  const paperM = T({ color: "#ffffff", map: washi, shade: new THREE.Color(1.55, .72, .28), light: new THREE.Color(2.1, 1.12, .5), rim: "#ffd6a0", rimK: .8, ambient: .1 });
+  const paperM = T({ color: "#ffffff", map: washi, shade: new THREE.Color(1.3, .6, .22), light: new THREE.Color(1.75, .92, .42), rim: "#ffb070", rimK: .5, ambient: .1 });
+  patch(paperM, "fragmentShader", "uRimK*(.35+.65*lit);", "uRimK*(.35+.65*lit);c*=mix(vec3(.8,.34,.12),vec3(1.15,1.05,.95),pow(max(dot(n,v),0.),.8));"); /* light through paper: hot where it faces you, orange at the edges */
   const TONED = [cord.mat, fib.mat, wood, lacq, spoolM, windM, threadM, bagM, railM, bambooM, capM];
   /* LatheGeometry faces outward when the profile runs counter-clockwise (outer surface bottom to top); the profiles below that run the other way are reversed */
   const lathe = (pts, n) => own(new THREE.LatheGeometry(pts.map(([x, y]) => new THREE.Vector2(x, y)), n));
@@ -179,7 +181,12 @@ void main(){if(vUv.x<uG0||vUv.x>uG1)discard;vec3 base=uColor*braid(vUv)*vRope.rg
     for (let i = 0; i < 6; i++) C.push([x + (r() * 2 - 1) * cw * .42, y, ch * (.18 + r() * .14)]);
     const pass = (c, dx, dy, s) => { g.fillStyle = c; g.beginPath(); for (const [px, py, pr] of C) { g.moveTo(px + dx + pr * s, py + dy); g.arc(px + dx, py + dy, pr * s, 0, TAU) } g.fill() };
     g.save(); g.beginPath(); g.rect(x - cw, y - ch * 3, cw * 2, ch * 3.16); g.clip();
-    pass(sh, 0, 0, 1); pass(mid, -ch * .03, -ch * .07, .87); pass(lit, -ch * .07, -ch * .15, .66); g.restore();
+    blur(g, ch * .05); pass(sh, 0, 0, 1);
+    blur(g, ch * .025); pass(mid, -ch * .03, -ch * .07, .88);
+    blur(g, ch * .012); for (const [px, py, pr] of C) { /* each puff lit from the upper left, a crisp bright crown fading into the body */
+      const gr = g.createRadialGradient(px - pr * .35, py - pr * .45, 0, px - pr * .1, py - pr * .15, pr * .8); gr.addColorStop(0, rgba(lit, 1)); gr.addColorStop(.55, rgba(lit, .85)); gr.addColorStop(1, rgba(lit, 0));
+      g.fillStyle = gr; g.beginPath(); g.arc(px - ch * .05, py - ch * .12, pr * .8, 0, TAU); g.fill() }
+    blur(g, 0); g.restore();
   }
   function shafts(g, r, x, y, a0, a1, n, len, c, a) {
     g.save(); g.globalCompositeOperation = "lighter";
@@ -192,10 +199,10 @@ void main(){if(vUv.x<uG0||vUv.x>uG1)discard;vec3 base=uColor*braid(vUv)*vRope.rg
   }
   const PAINT = {
     blush(g, w, h, r) { /* pre-chorus: periwinkle to blush, a cream sun, pink wisps */
-      vg(g, w, h, ["#a7b5ec", "#c4c2f1", "#ecd0ea", "#ffe0dc", "#fff0e6"]);
-      blob(g, w * .84, h * .1, w * .55, "#fff1e4", .9); blob(g, w * .84, h * .1, w * .12, "#ffffff", 1);
+      vg(g, w, h, ["#93a6ea", "#b2b4ef", "#e2bfe4", "#f8cdd8", "#ffdcd2"]);
+      blob(g, w * .84, h * .1, w * .38, "#fff1e4", .8); blob(g, w * .84, h * .1, w * .08, "#ffffff", 1);
       blur(g, w * .004); for (let i = 0; i < 14; i++) { g.save(); g.translate(w * r(), h * (.45 + r() * .5)); g.scale(1, .12 + r() * .1); blob(g, 0, 0, w * (.12 + r() * .2), r() < .5 ? "#fff6f8" : "#f6cfe2", .35 + r() * .3); g.restore() }
-      blur(g, w * .0012); for (let i = 0; i < 4; i++) cloud(g, r, w * (.1 + r() * .8), h * (.86 + r() * .1), w * (.16 + r() * .14), h * (.1 + r() * .06), "#fff5f4", "#f3d8e8", "#c9b7e3");
+      blur(g, w * .0012); for (let i = 0; i < 4; i++) cloud(g, r, w * (.08 + i * .28 + r() * .06), h * (.97 + r() * .05), w * (.2 + r() * .14), h * (.16 + r() * .08), "#fff7f4", "#f4d2e4", "#b9a6dc");
       blur(g, 0); shafts(g, r, w * .84, h * .1, PI * .55, PI * 1.0, 9, w * 1.1, "#fff4e8", .08);
     },
     peri(g, w, h, r) { /* the loop: periwinkle sky over a pink-lit cloud sea */
@@ -222,7 +229,7 @@ void main(){if(vUv.x<uG0||vUv.x>uG1)discard;vec3 base=uColor*braid(vUv)*vRope.rg
       g.fillStyle = "#8d7f4e"; g.fillRect(0, 0, w, h);
       const mw = w * .42, mh = mw / 2;
       for (let my = -mh; my < h + mh; my += mh) for (let mx = -mw * (my / mh % 2 ? .5 : 0); mx < w; mx += mw) {
-        g.fillStyle = `rgb(${130 + r() * 14},${120 + r() * 12},${70 + r() * 10})`; g.fillRect(mx, my, mw, mh);
+        g.fillStyle = `rgb(${158 + r() * 14},${134 + r() * 12},${76 + r() * 10})`; g.fillRect(mx, my, mw, mh);
         g.strokeStyle = "rgba(60,50,20,.18)"; g.lineWidth = 1; for (let k = 0; k < mw; k += 3) { g.beginPath(); g.moveTo(mx + k, my); g.lineTo(mx + k, my + mh); g.stroke() }
         g.fillStyle = "#26301e"; g.fillRect(mx, my, mw, h * .012); g.fillRect(mx, my + mh - h * .012, mw, h * .012);
       }
@@ -295,11 +302,11 @@ void main(){if(vUv.x<uG0||vUv.x>uG1)discard;vec3 base=uColor*braid(vUv)*vRope.rg
     gold: ["#ffc878", "#3a2018", "#ffd890", "#a06030", "#1a0c08", [-.2, .25, -1]],
     high: ["#ffffff", "#b4a6e0", "#ffffff", "#ece6ff", "#b8a8d0", [.3, .7, .6]],
     morning: ["#fff6e2", "#6f86b8", "#ffffff", "#a8ccf0", "#6a7a5a", [.6, .65, .45]],
-    shrine: ["#ffd08a", "#4a2650", "#ffc060", "#8a5030", "#180a10", [.1, 1, .3]]
+    shrine: ["#ffe0b0", "#3a2048", "#ffb060", "#8a5030", "#180a10", [.35, .8, .5]]
   };
   function tone(k, lk = 1) {
     const [li, sh, rim, sk, gr, dir] = TONES[k];
-    for (const m of TONED) { const u = m.uniforms; u.uLight.value.set(li).multiplyScalar(lk); u.uShade.value.set(sh); u.uRim.value.set(rim); u.uAmbSky.value.set(sk).multiplyScalar(.35); u.uAmbGround.value.set(gr).multiplyScalar(.35); u.uLightDir.value.set(...dir).normalize() }
+    for (const m of TONED) { const u = m.uniforms, a = m === cord.mat || m === fib.mat || m === threadM ? .15 : .35; u.uLight.value.set(li).multiplyScalar(lk); u.uShade.value.set(sh); u.uRim.value.set(rim); u.uAmbSky.value.set(sk).multiplyScalar(a); u.uAmbGround.value.set(gr).multiplyScalar(a); u.uLightDir.value.set(...dir).normalize() }
   }
   const OBJ = { cord: cord.mesh, fib: fib.mesh, maru, lan, rail, rings, clouds };
   function show(...on) { for (const k in OBJ) OBJ[k].visible = on.includes(k); for (const p of PARTS) p.visible = false }
@@ -326,9 +333,10 @@ void main(){if(vUv.x<uG0||vUv.x>uG1)discard;vec3 base=uColor*braid(vUv)*vRope.rg
     [.78, .32, -4.2], [.15, .92, -4.3], [-1.0, 1.18, -4.2], [-2.2, 1.45, -4.0], [-3.6, 2.15, -3.8], [-5.3, 3.0, -3.6]].map(a => new V3(...a)), false, "centripetal");
   const RELL = REL.getLength();
   /* the loop track: from beside the camera out into a vertical loop over the cloud sea */
-  const LOOP = new THREE.CatmullRomCurve3([[.95, -1.25, 1.2], [.75, -.95, -1.0], [.45, -.45, -3.4], [.15, .2, -5.8], [-.15, 1.35, -7.9], [-.2, 3.1, -8.6], [-.05, 4.5, -7.5], [.25, 4.35, -5.8],
-    [.55, 2.85, -5.3], [.85, 1.25, -6.5], [1.25, .45, -9.4], [1.7, .2, -13], [2.4, .45, -18.5]].map(a => new V3(...a)), false, "centripetal");
-  const LOOPL = LOOP.getLength();
+  const LOOP = new THREE.CatmullRomCurve3([[1.05, -1.25, 1.2], [.85, -1.0, -1.0], [.55, -.85, -3.6], [.3, -.82, -6.0],
+    ...Array.from({ length: 9 }, (_, i) => { const a = (-90 + i * 45) * PI / 180; return [.2 + 1.9 * Math.cos(a), 1.1 + 1.9 * Math.sin(a), -7.6 - .14 * i] }),
+    [1.6, -1.2, -10.5], [3.2, -1.0, -15], [5.5, -.3, -22]].map(a => new V3(...a)), false, "centripetal");
+  const LOOPL = LOOP.getLength(), LOOPC = new V3(.2, 1.1, -8);
   /* the bow, in the knot's frame (x along the bar, y up, z toward the viewer): tail, wrap, left loop, right loop, cover, tail */
   const BOW = [[-.11, -.6, .03], [-.075, -.35, .06], [-.035, -.12, .075], [-.012, -.055, .062], [-.004, .0, .066], [.0, .06, .012], [.008, .01, -.06], [.014, -.058, -.01], [.02, -.03, .055],
     [-.08, .05, .072], [-.25, .155, .05], [-.345, .05, .02], [-.28, -.085, .04], [-.12, -.06, .08], [0, -.01, .092],
@@ -358,7 +366,7 @@ void main(){if(vUv.x<uG0||vUv.x>uG1)discard;vec3 base=uColor*braid(vUv)*vRope.rg
   const mq = new THREE.Quaternion(), mY = new V3(0, 1, 0), ma = new V3(), mb = new V3(), mc = new V3(), mdir = new V3(), msc = new V3(), mcol = new THREE.Color(), C0 = new V3(0, .055, 0);
   function seg(i, A, B, r) { mdir.subVectors(B, A); const l = mdir.length(); if (l > 1e-6) mq.setFromUnitVectors(mY, mdir.multiplyScalar(1 / l)); ma.addVectors(A, B).multiplyScalar(.5); threads.setMatrixAt(i, M4.compose(ma, mq, msc.set(r, Math.max(l, 1e-4), r))) }
   const hangAt = (th, k, t, out) => out.set(Math.cos(th) * 1.045 + .012 * Math.sin(t * 1.9 + k), -.3 - .1 * (k % 2) + .01 * Math.sin(t * 2.3 + k * 2), Math.sin(th) * 1.045 + .012 * Math.cos(t * 1.7 + k));
-  function marudai(f, look, rot = 0, glowThread = 0) {
+  function marudai(f, look, rot = 0, glowThread = 0, tr = .0085) {
     const cols = MCOL[look], b = Math.floor(f.beat), e = eo(f.beatPhase / .55), pA = ((b % H) + H) % H, pB = (pA + (H >> 1)) % H, t = f.t;
     for (let k = 0; k < NB; k++) {
       const kk = k % H, th = (k + .5) / NB * TAU + rot;
@@ -371,7 +379,7 @@ void main(){if(vUv.x<uG0||vUv.x>uG1)discard;vec3 base=uColor*braid(vUv)*vRope.rg
       /* the thread: braid point -> over the rim -> bobbin (or straight to a lifted bobbin) */
       const rr = Math.hypot(mb.x, mb.z);
       if (rr > .99 && mb.y < .01) mc.set(mb.x / rr * .995, .006, mb.z / rr * .995); else mc.copy(mb);
-      seg(k * 2, C0, mc, .0085); seg(k * 2 + 1, mc, mb, .0085);
+      seg(k * 2, C0, mc, tr); seg(k * 2 + 1, mc, mb, tr);
       spools.setMatrixAt(k, M4.makeTranslation(mb.x, mb.y - .15, mb.z)); winds.setMatrixAt(k, M4.makeTranslation(mb.x, mb.y - .15, mb.z));
       mcol.set(cols[kk % cols.length]); if (look === "indigo" && kk === 0) mcol.multiplyScalar(1.6 + glowThread);
       threads.setColorAt(k * 2, mcol); threads.setColorAt(k * 2 + 1, mcol); winds.setColorAt(k, mcol);
@@ -403,23 +411,16 @@ void main(){if(vUv.x<uG0||vUv.x>uG1)discard;vec3 base=uColor*braid(vUv)*vRope.rg
       pset(spark, { c: [0, 0, -4], b: [8, 5, 3], col: "#ffd8b0", col2: "#ffc0dc", size: .05, op: .7 + 1.2 * (j1 + j2) });
       pset(bokeh, { c: [0, 0, -2.3], b: [6, 3.6, 1.6], col: "#fff0f4", col2: "#ffd8e8", size: .32, op: .22, i: 1.1 });
       pset(dust, { c: [0, 0, -3.5], b: [8, 5, 3], col: "#fff4e8", size: .025, op: .8 });
-      for (const [tj, A] of JOLT) { /* anime smear lines along the pull, crisp, for a moment after each jolt */
-        const a = jl(t, tj, .08); if (a < .02) continue;
-        ctx2d.save(); ctx2d.lineCap = "round"; ctx2d.strokeStyle = `rgba(255,244,250,${.55 * a})`;
-        for (let i = 0; i < 7; i++) { const o = (i - 3) * f.H * .035 * (A > .2 ? 1.6 : 1), cx = f.W * (.42 + .05 * hash(i + tj)), cy = f.H * (.48 + .04 * hash(i * 3 + tj)), L = f.W * (.12 + .2 * hash(i * 7 + tj));
-          ctx2d.lineWidth = f.dpr * (.8 + 1.6 * hash(i + 9)); ctx2d.beginPath(); ctx2d.moveTo(cx + o * .5 + L * .87 * .3, cy + o * .87 + L * .5 * .3); ctx2d.lineTo(cx + o * .5 - L * .87, cy + o * .87 - L * .5); ctx2d.stroke() }
-        ctx2d.restore();
-      }
       kit.look(grade("pre", { rays: .38, rayX: .84, rayY: .1, leak: .5 * j1 + 1.1 * j2, leakX: .9, leakY: .2, tilt: .15 }));
     },
     "sky:loop"(f) { /* match on the cord: it loops across a periwinkle sky over a cloud sea; the camera rides along it */
-      const t = f.t, u = f.shot.u, xc = .012 + .16 * eio(cl((f.shot.lt + .1) / 2.2));
+      const t = f.t, u = f.shot.u, xc = .01 + .13 * eio(cl((f.shot.lt + .1) / 2.2));
       show("cord", "clouds"); tone("pastel", 1.05); fogc("#e6dcf2", 8, 46);
       cover("peri", f, 1.12, -.4 + .5 * u, .3 - .4 * u);
       cord.look(Object.assign({}, KUMI, { len: LOOPL / 1.1, pulse: .3 + 1.1 * f.pulse, glowK: 1.3 }));
       cord.set(0, (s, v) => { LOOP.getPoint(s, v); const w = ss(0, .25, s); v.x += w * .1 * Math.sin(s * 9 + t * 1.3); v.y += w * .08 * Math.cos(s * 7 + t * 1.1) }, .085);
-      trk(LOOP, LOOPL, xc, tv); trk(LOOP, LOOPL, xc + .1, tv2);
-      cam(tv.x + .55, tv.y + .42, tv.z + .25, tv2.x, tv2.y + .3, tv2.z, 52, -.08 + .04 * Math.sin(t * .8));
+      trk(LOOP, LOOPL, xc, tv); trk(LOOP, LOOPL, xc + .12, tv2); tv2.lerp(LOOPC, .6);
+      cam(tv.x + .45, tv.y + .5, tv.z + .9, tv2.x, tv2.y, tv2.z, 50, -.06 + .04 * Math.sin(t * .8));
       kit.tick(f, clouds);
       pset(spark, { c: [0, 2, -7], b: [12, 9, 14], col: "#fff0d8", col2: "#ffd0e8", size: .06, op: .8 });
       pset(bokeh, { c: [tv.x, tv.y, tv.z - 2], b: [7, 5, 4], col: "#ffffff", col2: "#f0d8ff", size: .3, op: .18, i: 1.1 });
@@ -454,28 +455,28 @@ void main(){if(vUv.x<uG0||vUv.x>uG1)discard;vec3 base=uColor*braid(vUv)*vRope.rg
     },
     "marudai:pastel"(f) { /* extreme close: strands passing into the braid point, pastel peach light */
       const t = f.t, lt = f.shot.lt, az = .9 + .25 * lt;
-      show("maru", "cord"); tone("peach", 1.15); fogc("#f6d0c8", 1.2, 6); cover("peach", f, 1.12, -.3 + .4 * lt, 0);
-      marudai(f, "pastel");
-      cam(Math.cos(az) * .52, .2 - .03 * lt, Math.sin(az) * .52, 0, .05, 0, 30);
+      show("maru", "cord"); tone("peach", .95); fogc("#f6d0c8", 1.2, 6); cover("peach", f, 1.12, -.3 + .4 * lt, 0);
+      marudai(f, "pastel", .2 * lt, 0, .004);
+      cam(Math.cos(az) * .24, .3 - .03 * lt, Math.sin(az) * .24, 0, .05, 0, 34);
       pset(bokeh, { c: [Math.cos(az) * .3, .14, Math.sin(az) * .3], b: [.5, .3, .5], col: "#fff4ea", col2: "#ffd8e0", size: .05, op: .25, i: 1.2 });
-      pset(spark, { c: [0, .1, 0], b: [.7, .4, .7], col: "#fff0e0", size: .012, op: 1 });
-      kit.look(grade("c2", { exposure: 1.12, glow: .58, sat: .9, lift: [.09, .065, .07], gain: [1.06, .98, .95], tilt: .9, focus: .5, band: .2, leak: .35, leakX: .1, leakY: .15 }));
+      pset(spark, { c: [0, .12, 0], b: [.7, .3, .7], col: "#fff0e0", size: .006, op: .8 });
+      kit.look(grade("c2", { exposure: 1.03, glow: .5, sat: .95, lift: [.08, .06, .065], gain: [1.06, .98, .95], tilt: .9, focus: .5, band: .2, leak: .35, leakX: .1, leakY: .15 }));
     },
     "marudai:indigo"(f) { /* a pale thread through dark indigo strands */
       const t = f.t, lt = f.shot.lt, az = 2.2 + .18 * lt;
-      show("maru", "cord"); tone("night", 1.0); fogc("#0c1236", 1.5, 7); cover("indigo", f, 1.1, .3 - .4 * lt, 0);
-      marudai(f, "indigo", 0, f.pulse);
-      cam(Math.cos(az) * .85, .1, Math.sin(az) * .85, 0, .04, 0, 28);
-      pset(spark, { c: [0, .1, 0], b: [1.4, .5, 1.4], col: "#c8d8ff", col2: "#a090ff", size: .014, op: .9 });
+      show("maru", "cord"); tone("night", .55); fogc("#0c1236", 1.5, 7); cover("indigo", f, 1.1, .3 - .4 * lt, 0);
+      marudai(f, "indigo", -.15 * lt, f.pulse, .0045);
+      cam(Math.cos(az) * .36, .26, Math.sin(az) * .36, 0, .04, 0, 30);
+      pset(spark, { c: [0, .1, 0], b: [1, .3, 1], col: "#c8d8ff", col2: "#a090ff", size: .006, op: .7 });
       pset(bokeh, { c: [Math.cos(az) * .5, .1, Math.sin(az) * .5], b: [.8, .4, .8], col: "#7f8fff", col2: "#b090ff", size: .06, op: .2 });
       kit.look(grade("night", { tilt: .75, focus: .5, band: .2, rays: .25, rayX: .5, rayY: .5 }));
     },
     "marudai:raking"(f) { /* low raking angle along taut amber threads in gold light */
       const t = f.t, lt = f.shot.lt, az = 4.0 - .12 * lt;
-      show("maru", "cord"); tone("gold", 1.4); fogc("#2a180c", 2, 8); cover("gold", f, 1.1, -.2 + .3 * lt, 0);
-      marudai(f, "gold");
-      cam(Math.cos(az) * 1.3, .075 + .02 * lt, Math.sin(az) * 1.3, 0, .05, 0, 36);
-      pset(dust, { c: [0, .3, 0], b: [2.4, .8, 2.4], col: "#ffd890", size: .014, op: 1 });
+      show("maru", "cord"); tone("gold", 1.2); fogc("#2a180c", 2, 8); cover("gold", f, 1.1, -.2 + .3 * lt, 0);
+      marudai(f, "gold", .1 * lt, 0, .005);
+      cam(Math.cos(az) * 1.75, .16 + .02 * lt, Math.sin(az) * 1.75, 0, .03, 0, 30);
+      pset(dust, { c: [0, .3, 0], b: [2.4, .8, 2.4], col: "#ffd890", size: .008, op: .6 });
       const [rx, ry] = scr(0, .06, 0);
       kit.look(grade("c2", { exposure: 1.04, bloom: 1.05, threshold: .55, glow: .5, sat: 1.1, lift: [.05, .03, .01], gain: [1.12, 1, .8], rays: .75, rayX: rx, rayY: ry, tilt: .6, focus: .5, band: .25 }));
     },
@@ -486,7 +487,7 @@ void main(){if(vUv.x<uG0||vUv.x>uG1)discard;vec3 base=uColor*braid(vUv)*vRope.rg
       lan.updateMatrixWorld(); bo.set(0, .74, 0).applyMatrix4(lan.matrixWorld); bx.set(1, 0, 0).transformDirection(lan.matrixWorld); by.set(0, 1, 0).transformDirection(lan.matrixWorld); bz.crossVectors(bx, by);
       bow(k, 1.12 - .12 * cin, t, .25, .5); cord.look(Object.assign({}, KUMI, { len: 9, pulse: .2 + .8 * f.pulse, glowK: 1.3 }));
       bowSet(.62, .016, .9 * jl(t, tb, .2));
-      cam(.32 - .1 * u, -.28, 1.55 - .25 * eio(u), 0, -.38, 0, 40);
+      cam(.34 - .1 * u, -.3, 1.85 - .3 * eio(u), 0, -.45, 0, 40);
       pset(dust, { c: [0, -.4, .3], b: [2, 1.6, 1.4], col: "#ffe0b0", size: .012, op: 1 });
       pset(bokeh, { c: [0, -.3, .9], b: [1.4, 1, .5], col: "#ffd8a0", size: .07, op: .16, i: 1.2 });
       const [rx, ry] = scr(0, -1.0, 0);
@@ -510,7 +511,7 @@ void main(){if(vUv.x<uG0||vUv.x>uG1)discard;vec3 base=uColor*braid(vUv)*vRope.rg
       show("fib"); tone("high", 1.1); fogc("#f4f0fa", 4, 20); cover("lav", f, 1.1, -.2 + .3 * u, 0);
       strands(f, (i, s, v) => {
         const z = -2.6 - 2.8 * hash(i + 1), ph = hash(i + 5) * TAU, o = (i - (FIB - 1) / 2) * spread;
-        v.set(mix(-4.8, 4.8, s), mix(-2.1, 2.3, s) + o + .35 * Math.sin(s * 3.2 + ph + t * .9), z + .3 * Math.cos(s * 2.5 + ph * 1.3 + t * .7));
+        v.set(mix(-4.8, 4.8, s), mix(-2.1, 2.3, s) + o + (.4 + .35 * hash(i + 9)) * Math.sin(s * (2.6 + 1.6 * hash(i + 7)) + ph + t * .9), z + .5 * Math.cos(s * 2.5 + ph * 1.3 + t * .7));
       });
       cam(.05 * Math.sin(t * .6), .04 * Math.cos(t * .5), 0, 0, 0, -4, 44, .05);
       pset(fleck, { c: [0, 0, -3.5], b: [9, 6, 4], col: "#9ff0d2", col2: "#ffd070", size: .07, op: .9, i: 1.1 });
@@ -531,7 +532,7 @@ void main(){if(vUv.x<uG0||vUv.x>uG1)discard;vec3 base=uColor*braid(vUv)*vRope.rg
       ctx2d.save(); ctx2d.lineCap = "round";
       for (let i = 0; i < n; i++) {
         const h1 = hash(i * 1.3 + 2), h2 = hash(i * 2.7 + 5), x = h1 * f.W, len = (.06 + .22 * h2) * f.H * Math.min(2, v * .4), y = (((h2 * Hh - lt * f.H * v * (.6 + h2)) % Hh) + Hh) % Hh - f.H * .3;
-        ctx2d.strokeStyle = `rgba(${h1 < .3 ? "196,176,240" : "255,255,255"},${.25 + .35 * h2})`; ctx2d.lineWidth = f.dpr * (.6 + 1.8 * hash(i + 31));
+        ctx2d.strokeStyle = `rgba(${h1 < .55 ? "168,140,232" : "236,150,190"},${.3 + .4 * h2})`; ctx2d.lineWidth = f.dpr * (.6 + 1.8 * hash(i + 31));
         ctx2d.beginPath(); ctx2d.moveTo(x, y); ctx2d.lineTo(x, y + len); ctx2d.stroke();
       }
       ctx2d.restore();
@@ -539,22 +540,23 @@ void main(){if(vUv.x<uG0||vUv.x>uG1)discard;vec3 base=uColor*braid(vUv)*vRope.rg
     },
     "drift:indigo"(f) { /* a slow indigo float: a red loop passes a small suspended lantern */
       const t = f.t, lt = f.shot.lt, cx = -1.15 + 1.5 * (lt + .3) / 1.2, ro = .35 + .22 * lt, c = Math.cos(ro), sn = Math.sin(ro);
-      show("cord", "fib", "lan"); tone("night", 1.05); fogc("#0c1236", 3, 14); cover("indigo", f, 1.1, -.3 + .3 * lt, .1);
+      show("cord", "fib", "lan"); tone("night", 1.05); fogc("#0c1236", 3, 14);
+      { const u = cord.U; u.uLight.value.set("#ffa890").multiplyScalar(1.3); u.uShade.value.set("#3a1238"); u.uRim.value.set("#ff9a70"); u.uLightDir.value.set(.6, .3, -.4).normalize() } /* the red loop is lit by the lantern */ cover("indigo", f, 1.1, -.3 + .3 * lt, .1);
       lan.position.set(.62, .28 + .03 * Math.sin(t * 1.4), -3.3); lan.scale.setScalar(.3); lan.rotation.set(0, t * .3, .05 * Math.sin(t * 1.1));
       cord.look(Object.assign({}, KUMI, { len: 12, pulse: .3 + f.pulse, glowK: 1.3 }));
       cord.set(0, (s, v) => { const p = mix(-1.15 * PI, 1.15 * PI, s), x = .3 * p - .55 * Math.sin(p), y = -.46 * Math.cos(p); v.set(cx + x * c - y * sn, -.05 + x * sn + y * c + .04 * Math.sin(t + s * 4), -2.3 + .25 * Math.sin(p * .5)) }, .045);
       for (let i = 1; i < FIB; i++) fib.hide(i);
       fib.look({ kind: 2, len: 30, sheen: .2, cols: SILK }); fib.set(0, (s, v) => v.set(.62, mix(.28 + .03 * Math.sin(t * 1.4) + .16, 3.2, s), -3.3), .005, "#e8dccc");
       cam(.04 * Math.sin(t * .4), .03 * Math.cos(t * .5), 0, .1, .05, -3, 42);
-      pset(bokeh, { c: [0, 0, -4.5], b: [8, 5, 4], col: "#6f86ff", col2: "#a07cff", size: .35, op: .3 });
+      pset(bokeh, { c: [0, 0, -4.5], b: [8, 5, 4], col: "#6f86ff", col2: "#a07cff", size: .3, op: .18 });
       pset(spark, { c: [0, 0, -3.5], b: [6, 4, 3], col: "#d8e4ff", col2: "#ffd8a0", size: .03, op: .7 });
       const [rx, ry] = scr(.62, .28, -3.3);
       kit.look(grade("night", { rays: .45, rayX: rx, rayY: ry, tilt: .3, focus: .5, band: .45 }));
     },
     "bell"(f) { /* a thick braided bell rope swings; the bell, out of frame above, rings in gold waves on the beat */
       const t = f.t, ph = f.beat, top = BELL, len = 6.4;
-      show("cord", "rings"); tone("shrine", 1.25); fogc("#1c0e10", 4, 18); cover("shrine", f, 1.1, .2 * Math.sin(PI * ph) * .5, -.3);
-      cord.look({ kind: 1, len: 7, sheen: .45, cols: ["#c41e2c", "#f6efe2", "#5c3a90", "#f6efe2"], pulse: .3 + .6 * f.pulse, glowK: 1.1, glowCol: "#ffc070" });
+      show("cord", "rings"); tone("shrine", 1.0); fogc("#1c0e10", 4, 18); cover("shrine", f, 1.1, .2 * Math.sin(PI * ph) * .5, -.3);
+      cord.look({ kind: 1, len: 15, sheen: .5, cols: ["#b8182a", "#5a2e8c", "#e8d8bc", "#e8d8bc"], pulse: .3 + .6 * f.pulse, glowK: 1.1, glowCol: "#ffc070" });
       let x = top.x, y = top.y, z = top.z, ls = 0;
       cord.set(0, (s, v) => { /* integrate down the rope; each point lags the swing a little more, so it bends like a heavy rope */
         if (s === 0) { x = top.x; y = top.y; z = top.z; ls = 0 }
