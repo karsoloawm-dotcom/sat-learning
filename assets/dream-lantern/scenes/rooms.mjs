@@ -306,7 +306,7 @@ export async function create({ THREE, scene, camera, back2d, kit, tier, timing }
   const DUSTK = [3, 1.4, .6][Q]; /* the same look with fewer motes on lower tiers */
   const dust = litPoints({ kind: "dust", count: px(300, 1500, 5000), center: [0, .5, -2], box: [2, 1, 2], size: .01, drift: [.004, .012, .002], wobble: .03, color: "#fff2d8", color2: "#ffd8b0", intensity: 2.2, twinkle: .6 });
   const sparks = litPoints({ kind: "spark", count: px(60, 200, 600), center: [0, .5, -2], box: [2, 1, 2], size: .03, drift: [0, .02, 0], wobble: .04, color: "#fff6e0", intensity: 3, on: "fast", beat: 2, twinkle: .8 });
-  const steam = kit.particles({ kind: "glow", count: px(16, 28, 48), center: [-.74, .55, -3.16], box: [.04, .32, .04], size: .03, drift: [0, .07, 0], wobble: .018, color: "#fff4ea", intensity: .16, twinkle: .3, beat: 0 });
+  const steam = kit.particles({ kind: "glow", count: px(16, 28, 48), center: [-.74, .55, -3.16], box: [.04, .32, .04], size: .038, drift: [0, .07, 0], wobble: .018, color: "#fff4ea", intensity: .22, twinkle: .3, beat: 0 });
   root.add(dust, sparks, steam); dust.renderOrder = sparks.renderOrder = 6;
   const puffs = [0, 1, 2].map(i => { const h = kit.haze({ count: 7, center: [0, 0, 0], box: [.3, 1.5, .12], size: .5, opacity: 0, drift: [0, .05, 0], seed: 11 + i, top: "#fff0e0", bottom: "#e8d8f0", additive: true }); root.add(h); return h });
   /* flare: in camera space, only for the flare shot */
@@ -447,7 +447,7 @@ export async function create({ THREE, scene, camera, back2d, kit, tier, timing }
       if (v === "night") { sun(.2, -.36, "paper"); lamp(-1.62, .42, -2.55, "#ffb468", 3 + .3 * f.pulse, .7); andonMat.uniforms.uEmissive.value.setRGB(2.4, 1.3, .55).multiplyScalar(1 + .06 * Math.sin(f.t * 23) * Math.sin(f.t * 7)); steam.visible = true }
       else if (v) sun(v === "cool" ? .5 : .3, v === "cool" ? -.26 : -.4, "paper");
       else { SLIDE[1] = .14; const sw = ease(u * 1.1 - .05) + .15 * f.downPulse; sun(mix(-.95, .45, sw), -.42, "slit", .9) }
-      if (v === "night") cam(lerp3([-.5, .8, -2.4], [-.55, .78, -2.47], ease(u)), [-1.25, .36, -2.98], 42);
+      if (v === "night") cam(lerp3([-.5, .8, -2.4], [-.55, .78, -2.47], ease(u)), [-1.15, .36, -2.98], 45);
       else if (v) cam(lerp3([-.5, .64, -2.4], [-.53, .62, -2.45], ease(u)), [-1.06, .37, -3.13], 42);
       else cam(lerp3([-.6, .43, -2.6], [-.67, .425, -2.68], ease(u)), [-1.2, .39, -3.3], 40, .015);
       if (v === "night") { motes([-1.3, .5, -2.7], [.8, .6, .8], .0025, .35, 0, 1, .3); glints([-1.4, .5, -2.6], [.6, .5, .6], .006, .4, 0, 1, "#ffd8a0", .3) }
