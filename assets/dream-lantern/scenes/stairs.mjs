@@ -34,6 +34,9 @@ export async function create({ THREE, scene, camera, ctx2d, back2d, kit, tier, t
   const inst = (g, m, n) => { const im = new THREE.InstancedMesh(g, m, n); INST.push(im); return im };
 
   /* ---------- geometry helpers: parts merged into one mesh (vertex colours), so a set costs few draw calls ---------- */
+  const unitBox = new THREE.BoxGeometry(1, 1, 1);
+  const unitRods = new Map();
+  const mergeSources = new Set([unitBox]);
   function merge(parts) {
     let nv = 0, ni = 0;
     for (const p of parts) { const n = p.g.attributes.position.count; nv += n; ni += p.g.index ? p.g.index.count : n }
@@ -50,7 +53,8 @@ export async function create({ THREE, scene, camera, ctx2d, back2d, kit, tier, t
         col[o] = c.r; col[o + 1] = c.g; col[o + 2] = c.b;
       }
       if (g.index) for (let i = 0; i < g.index.count; i++) idx[oi + i] = g.index.getX(i) + ov; else for (let i = 0; i < n; i++) idx[oi + i] = ov + i;
-      ov += n; oi += g.index ? g.index.count : n; g.dispose();
+      ov += n; oi += g.index ? g.index.count : n;
+      if (!mergeSources.has(g)) g.dispose();
     }
     const out = new THREE.BufferGeometry();
     out.setAttribute("position", new THREE.BufferAttribute(pos, 3)); out.setAttribute("normal", new THREE.BufferAttribute(nor, 3));
@@ -58,8 +62,19 @@ export async function create({ THREE, scene, camera, ctx2d, back2d, kit, tier, t
     return geo(out);
   }
   const at = (x, y, z, ry = 0, s = ONE) => new THREE.Matrix4().compose(V(x, y, z), new THREE.Quaternion().setFromAxisAngle(UP, ry), s);
-  const rod = (a, b, r, color, seg = 6) => { const d = b.clone().sub(a), l = d.length(); return { g: new THREE.CylinderGeometry(r, r, l, seg, 1), m: new THREE.Matrix4().compose(a.clone().add(b).multiplyScalar(.5), new THREE.Quaternion().setFromUnitVectors(UP, d.normalize()), ONE), color } };
-  const box = (x, y, z, w, h, d, color, us, vs, ry = 0) => ({ g: new THREE.BoxGeometry(w, h, d), m: at(x, y, z, ry), color, us, vs });
+  function rod(a, b, r, color, segments = 6) {
+    if (!unitRods.has(segments)) {
+      const geometry = new THREE.CylinderGeometry(1, 1, 1, segments, 1);
+      unitRods.set(segments, geometry);
+      mergeSources.add(geometry);
+    }
+    const direction = b.clone().sub(a);
+    const scale = V(r, direction.length(), r);
+    const center = a.clone().add(b).multiplyScalar(.5);
+    const rotation = new THREE.Quaternion().setFromUnitVectors(UP, direction.normalize());
+    return { g: unitRods.get(segments), m: new THREE.Matrix4().compose(center, rotation, scale), color };
+  }
+  const box = (x, y, z, w, h, d, color, us, vs, ry = 0) => ({ g: unitBox, m: at(x, y, z, ry, V(w, h, d)), color, us, vs });
   const wire = (a, b, sag, color) => { const mid = a.clone().add(b).multiplyScalar(.5); mid.y -= sag * 2; return { g: new THREE.TubeGeometry(new THREE.QuadraticBezierCurve3(a, mid, b), 12, .018, 3, false), color } };
   function prism() { /* a gable roof over a unit footprint, ridge along z */
     const p = [-.5, 0, .5, .5, 0, .5, 0, 1, .5, .5, 0, -.5, -.5, 0, -.5, 0, 1, -.5, -.5, 0, .5, 0, 1, .5, 0, 1, -.5, -.5, 0, .5, 0, 1, -.5, -.5, 0, -.5,
@@ -73,7 +88,16 @@ export async function create({ THREE, scene, camera, ctx2d, back2d, kit, tier, t
   }
 
   /* ---------- painted textures ---------- */
-  const speckle = (g, w, h, n, cols, s = 2) => { for (let i = 0; i < n; i++) { g.fillStyle = cols[i % cols.length]; const r = s * (.4 + R()); g.fillRect(R() * w, R() * h, r, r) } };
+  function speckle(g, w, h, n, colors, size = 2) {
+    for (let i = 0; i < n; i++) {
+      const r = size * (.4 + R());
+      const x = R() * w, y = R() * h;
+      // Keep the seeded layout while thinning fine grain in saver.
+      if (TQ === 0 && i % 5 !== 0) continue;
+      g.fillStyle = colors[i % colors.length];
+      g.fillRect(x, y, r, r);
+    }
+  }
   const tread = paint(512, 128, (g, w, h) => {
     g.fillStyle = "#ddd5c6"; g.fillRect(0, 0, w, h);
     for (let i = 0; i < 60; i++) { const x = R() * w, y = R() * h, r = 8 + R() * 30, gr = g.createRadialGradient(x, y, 0, x, y, r); gr.addColorStop(0, R() < .5 ? "rgba(170,160,145,.25)" : "rgba(250,246,236,.35)"); gr.addColorStop(1, "rgba(0,0,0,0)"); g.fillStyle = gr; g.fillRect(x - r, y - r, 2 * r, 2 * r) }
@@ -463,6 +487,10 @@ export async function create({ THREE, scene, camera, ctx2d, back2d, kit, tier, t
   }
 
   /* ---------- light: the sun (a bloom source in 3D), haze, dust, sparkles, bokeh ---------- */
+  for (const geometry of mergeSources) geometry.dispose();
+  mergeSources.clear();
+  unitRods.clear();
+
   const sun = new THREE.Mesh(geo(new THREE.PlaneGeometry(1, 1)), bmat(new THREE.MeshBasicMaterial({ map: sunTex, color: new THREE.Color(7, 6.3, 5.2), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false })));
   sun.renderOrder = -5; root.add(sun);
   const haze = kit.haze({ section: SEC, count: q(12, 26, 44), center: [0, 18, 300], box: [700, 18, 420], size: 110, top: "#ffffff", bottom: "#d8e6f0", opacity: .3, drift: [.6, 0, 0], seed: seed + 4 });
