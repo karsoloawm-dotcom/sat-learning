@@ -208,12 +208,10 @@ async function boot(s) {
       made.then(inst => { if (gone() && !m.inst) { m.inst = inst; disposeMod(m) } }, () => { }); /* a create that finishes after we gave up on it */
       m.inst = await timeout(made, 8000, id + ".create");
       if (gone()) { disposeMod(m); return m }
-      /* compile the shaders now, not on the cut */
+      /* Compile ahead of the cut. Three's async polling outlives a disposed renderer. */
       R.setRenderTarget(pipe.target);
-      const cp = R.compileAsync ? R.compileAsync(m.scene, m.cam) : Promise.resolve(R.compile(m.scene, m.cam));
-      R.setRenderTarget(null);
-      await timeout(cp, 8000, "compiling " + id);
-      if (gone()) { disposeMod(m); return m }
+      try { R.compile(m.scene, m.cam) }
+      finally { R.setRenderTarget(null) }
       m.st = "ok";
     } catch (e) { fail(m, e) }
     return m;
