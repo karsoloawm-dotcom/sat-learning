@@ -313,15 +313,23 @@ export async function create({ THREE: T, scene, camera, back2d, kit, tier, seed 
     g.strokeStyle="#c16e61";g.lineWidth=2.6;g.beginPath();g.moveTo(100,201);g.bezierCurveTo(98,213,121,219,106,234);g.stroke();
     polygon(g,"#c97765",[[107,229],[114,232],[110,252],[106,260],[105,244],[101,251]]);
   }
-  const paper = paintMaterial(192,288,lanternArt,{opacity:.70, rimK:0, shade:"#ffd5a1", emissive:new T.Color(.42,.22,.06)});
+  const lanternMap = kit.paint(192,288,lanternArt);
+  const paper = material({map:lanternMap, opacity:.96, rimK:0, shade:"#ffd5a1", emissive:new T.Color(.42,.22,.06)});
   paper.depthWrite=false;
-  if (!saver) place(ghost,card,paper,"#ffedd2",0,0,0,.81,1.24,1);
+  const reflection = material({map:lanternMap, opacity:.44, rimK:0, shade:"#edc7a3", emissive:new T.Color(.18,.09,.03)});
+  reflection.depthWrite=false;
+  if (!saver) {
+    const echo = material({map:lanternMap, opacity:.16, rimK:0, shade:"#9bb7c0", emissive:new T.Color(.08,.07,.04)});
+    echo.depthWrite=false;
+    place(ghost,card,echo,"#d1e2e3",.034,.017,-.01,.81,1.24,1);
+    place(ghost,card,reflection,"#ffe6cc",0,0,0,.81,1.24,1);
+  }
   const cord = paintMaterial(160,192,(g,w,h)=>{
     g.scale(w/160,h/192);
-    for (const [color,lw] of [["#692d51",9],["#e6444c",6],["#ffba6c",1.6]]) {
-      g.strokeStyle=color;g.lineWidth=lw;g.lineCap="round";g.setLineDash(lw<2?[4,4]:[]);
-      g.beginPath();g.moveTo(66,13);g.bezierCurveTo(86,48,109,109,70,111);
-      g.bezierCurveTo(21,108,64,53,80,91);g.bezierCurveTo(95,119,55,134,71,173);g.stroke();
+    for (const [color,lw] of [["#56263d",17],["#ef3b47",12],["#ffc17b",2.5]]) {
+      g.strokeStyle=color;g.lineWidth=lw;g.lineCap="round";g.setLineDash(lw<3?[4,4]:[]);
+      g.beginPath();g.moveTo(53,17);g.bezierCurveTo(91,46,125,108,73,111);
+      g.bezierCurveTo(20,111,61,51,86,88);g.bezierCurveTo(112,127,52,140,78,172);g.stroke();
     }
   },{opacity:.98,rimK:0,emissive:new T.Color(.22,.03,.02)});
   cord.depthWrite=false;
@@ -505,18 +513,17 @@ export async function create({ THREE: T, scene, camera, back2d, kit, tier, seed 
         frameCamera(f,.22+focus+sway,1.53+sway,camZ,focus,1.62,0,close?40:43);
         ghost.position.set(.47+.025*Math.sin(f.t*1.8),1.59+.024*Math.sin(f.t*2),.245);
         ghost.rotation.z=.04*Math.sin(f.t*1.9);
-        paper.uniforms.uOpacity.value=close?.86:dark?.52:.61;
+        reflection.uniforms.uOpacity.value=close?.64:dark?.40:.45;
         kit.tick(f,windowDust);
         kit.look({bloom:close?.7:.55,glow:dark?.12:.24,rays:dark?.01:.22,rayX:.72,rayY:.33,
           leak:dark?.004:close?.13:.045,leakX:.73,leakY:.26,tilt:.12,focus:.51,
-          exposure:dark?.52:.90,sat:close?.42:1.01,gain:close?[1.17,.91,.65]:[.97,1,.99]});
+          exposure:dark?.48+.18*f.downPulse:.90,sat:close?.42:1.01,gain:close?[1.17,.91,.65]:[.97,1,.99]});
       } else if(key==="passing") {
         landscape(f,day,.36+.12*lt,-.10);
         fog.color.set("#c4d2cd");fog.near=12;fog.far=46;
         nearTrain.position.set(-5.45+(lt-.67)*4.6,.0,0);
         farTrain.position.set(5.82-(lt-.67)*5.0,1.34,-4.4);
         trainGlass.uniforms.uEmissive.value.setRGB(.03+f.fastPulse*.23,.06+f.fastPulse*.22,.08+f.fastPulse*.17);
-        paper.uniforms.uOpacity.value=.96;
         frameCamera(f,3.1,1.44+sway,10.2,0,1.58,-1.2,41);
         kit.tick(f,passingDust);
         kit.look({rays:.19,rayX:.20,rayY:.33,leak:.065+f.fastPulse*.04,leakX:.16,leakY:.35,glow:.24,tilt:.14,focus:.51});
@@ -530,7 +537,7 @@ export async function create({ THREE: T, scene, camera, back2d, kit, tier, seed 
         else frameCamera(f,.05,.75,3.8-lt*.77,-.12,.98,-15,57);
         for(let i=0;i<2;i++){
           const on=(Math.floor(f.beat)%2)===i;
-          lamps[i].uniforms.uEmissive.value.setRGB(on?2.9:.06,on?.19:.016,on?.035:.02);
+          lamps[i].uniforms.uEmissive.value.setRGB(on?2.6:.06,on?.065:.016,on?.035:.02);
         }
         meadowMat.uniforms.uColor.value.set(dusk?"#e6bb94":"#ffffff");
         grassMat.uniforms.uColor.value.set(dusk?"#f6cb99":"#ffffff");
