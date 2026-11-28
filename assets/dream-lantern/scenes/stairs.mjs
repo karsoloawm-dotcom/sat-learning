@@ -20,7 +20,16 @@ export async function create({ THREE, scene, camera, ctx2d, back2d, kit, tier, t
   const canvas = (w, h) => { const c = document.createElement("canvas"); c.width = w; c.height = h; CANV.push(c); return c };
   const scratch = (w, h) => { const c = document.createElement("canvas"); c.width = w; c.height = h; return c };
   const TOONS = [];
-  const toon = o => { const m = kit.toon(Object.assign({ section: SEC }, o)); TOONS.push(m); return m };
+  function toon({ map, ...options }) {
+    const material = kit.toon({ section: SEC, ...options });
+    if (map) {
+      // Bind the kit-owned texture directly. UniformsUtils.merge clones maps.
+      material.uniforms.uMap.value = map;
+      material.uniforms.uMapOn.value = 1;
+    }
+    TOONS.push(material);
+    return material;
+  }
   const paint = (w, h, fn, rep) => { const t = kit.paint(w, h, fn); if (rep) t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 4; return t };
   const inst = (g, m, n) => { const im = new THREE.InstancedMesh(g, m, n); INST.push(im); return im };
 
