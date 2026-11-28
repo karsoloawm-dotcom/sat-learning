@@ -1,10 +1,10 @@
 /* Dream Lantern v2 scene module "rooms" (plan 8.5): morning rooms.
-   One small tatami room, built in 3D and painted on canvas (tatami, plaster, wood grain, shoji with a glass band, fusuma
+   One small tatami room, built in 3D and painted on canvas (tatami, plaster, wood grain, shoji paper, fusuma
    with gold mist), with props: a futon and pillow with the cord coiled on it, a bedside shelf with a handless twin-bell
    clock, a low desk with books and an open notebook, an andon, a hand mirror, and two more rooms of sliding doors behind.
-   Light is the hero: kit.toon() is extended with sunlight that comes through the shoji's glass band (soft-edged lattice
+   Light is the hero: kit.toon() is extended with sunlight filtered through the shoji (soft-edged lattice
    patches on everything it reaches, blocked by the futon, desk and shelf) and a lamp; the beams are ray-marched volumes;
-   dust is lit only inside them; the paper panes glow in HDR so the post blooms them. The garden seen through the glass is
+   dust catches the light inside them; the paper panes glow in HDR so the post blooms them. The garden beyond the shoji is
    painted on back2d. Each setup is a camera, a mood (light, grade, fog) and a few props; update(f) is pure in f. */
 
 /* sunlight through the shoji (the window is the plane z = uWinO.z, light travels along uSunD), box occluders, one lamp */
@@ -27,7 +27,7 @@ void main(){vec3 rd=vL-uCamL+1e-6,iv=1./rd,t0=-uCamL*iv,t1=(1.-uCamL)*iv,mn=min(
   if((!gl_FrontFacing&&en>0.)||b<=a)discard;
   float acc=0.,j=h21(gl_FragCoord.xy+fract(uTime));
   for(int i=0;i<STEPS;i++){vec3 p=uCamL+rd*mix(a,b,(float(i)+j)/float(STEPS));vec3 q=uBoxO+vec3(p.xy*uSize.xy,0.)+uSunD*(p.z*uSize.z);
-    acc+=winLit(q)*step(0.,q.y)*pow(1.-p.z,1.4)*(.72+.28*sin(q.x*29.+q.y*11.+uTime*.6)*sin(q.z*17.-q.y*5.-uTime*.4));}
+    acc+=winLit(q)*step(0.,q.y)*smoothstep(0.,.25,p.z)*pow(1.-p.z,1.4)*(.72+.28*sin(q.x*29.+q.y*11.+uTime*.6)*sin(q.z*17.-q.y*5.-uTime*.4));}
   gl_FragColor=vec4(uCol*acc/float(STEPS)*(b-a)*length(vW-cameraPosition),0.);}`;
 /* clock numerals: instanced quads into a 4x3 atlas; ink on the face, then glowing petals when they leave */
 const NUM_V = "attribute vec2 aCell;attribute vec2 aFx;varying vec2 vUv,vFx;void main(){vUv=(uv+aCell)/vec2(4.,3.);vFx=aFx;gl_Position=projectionMatrix*modelViewMatrix*instanceMatrix*vec4(position,1.);}";
@@ -54,7 +54,7 @@ export async function create({ THREE, scene, camera, back2d, kit, tier, timing }
     uLampP: { value: new V3() }, uLampC: { value: new THREE.Color() }, uLampR: { value: 1 }, uMir: { value: 1 }, uOccA: { value: [far(), far(), far(), far()] }, uOccB: { value: [far(), far(), far(), far()] } };
   const MOOD = { uLight: { value: new THREE.Color() }, uShade: { value: new THREE.Color() }, uRim: { value: new THREE.Color() }, uAmbSky: { value: new THREE.Color() }, uAmbGround: { value: new THREE.Color() }, uLightDir: { value: new V3(0, 1, 0) } };
   /* occluders (room space): futon with pillow, desk, shelf, and everything beyond the room's back wall */
-  [[-.26, 0, -2.78, .88, .22, -.58], [-1.5, 0, -3.33, -.6, .36, -2.87], [1.0, 0, -3.21, 1.5, .34, -2.89], [-9, -9, .03, 9, 9, 99]].forEach((b, i) => { U.uOccA.value[i].set(b[0], b[1], b[2]); U.uOccB.value[i].set(b[3], b[4], b[5]) });
+  [[-.24, 0, -2.76, .86, .085, -.6], [-1.5, 0, -3.33, -.6, .36, -2.87], [1.0, 0, -3.21, 1.5, .34, -2.89], [-9, -9, .03, 9, 9, 99]].forEach((b, i) => { U.uOccA.value[i].set(b[0], b[1], b[2]); U.uOccB.value[i].set(b[3], b[4], b[5]) });
   /* kit.toon() plus the room's sun and lamp; every room material shares one mood */
   function toon(o) {
     const m = kit.toon(Object.assign({ section: "prechorus" }, o)), fs = m.fragmentShader;
@@ -95,14 +95,13 @@ export async function create({ THREE, scene, camera, back2d, kit, tier, timing }
     for (let i = 0; i < 700; i++) { g.fillStyle = rnd() < .5 ? `rgba(150,118,82,${.03 + rnd() * .05})` : `rgba(255,248,230,${.03 + rnd() * .06})`; g.beginPath(); g.arc(rnd() * w, rnd() * h, (1 + rnd() * 12) * w / 512, 0, 7); g.fill() }
     for (let i = 0; i < 1400; i++) { g.fillStyle = `rgba(110,80,50,${.15 + rnd() * .2})`; g.fillRect(rnd() * w, rnd() * h, 1, 1) }
   }, true);
-  const SW = px(160, 224, 320), paper = tex(SW, SW * 1.47 / .87, (g, w, h) => { /* paper above, glass below (transparent: the garden on back2d shows through), kumiko lattice */
+  const SW = px(160, 224, 320), paper = tex(SW, SW * 1.47 / .87, (g, w, h) => { /* washi on a dense yokoshige kumiko lattice */
     const k = w / .87, Y = y => h - (y - .3) * k, bw = Math.max(2, .017 * k);
-    const pg = g.createLinearGradient(0, 0, 0, Y(.92)); pg.addColorStop(0, "#fffaf2"); pg.addColorStop(1, "#fff2e2"); g.fillStyle = pg; g.fillRect(0, 0, w, Y(.79));
-    for (let i = 0; i < 220; i++) { const x = rnd() * w, y = rnd() * Y(.79); g.strokeStyle = `rgba(205,182,150,${.05 + rnd() * .09})`; g.lineWidth = .6 + rnd(); g.beginPath(); g.moveTo(x, y); g.quadraticCurveTo(x + (rnd() - .5) * 18, y + (rnd() - .5) * 18, x + (rnd() - .5) * 26, y + (rnd() - .5) * 26); g.stroke() }
+    const pg = g.createLinearGradient(0, 0, 0, h); pg.addColorStop(0, "#fffaf2"); pg.addColorStop(1, "#fff0de"); g.fillStyle = pg; g.fillRect(0, 0, w, h);
+    for (let i = 0; i < 220; i++) { const x = rnd() * w, y = rnd() * h; g.strokeStyle = `rgba(205,182,150,${.05 + rnd() * .09})`; g.lineWidth = .6 + rnd(); g.beginPath(); g.moveTo(x, y); g.quadraticCurveTo(x + (rnd() - .5) * 18, y + (rnd() - .5) * 18, x + (rnd() - .5) * 26, y + (rnd() - .5) * 26); g.stroke() }
     g.fillStyle = "#2c2018";
     for (const u of [1 / 3, 2 / 3]) g.fillRect(u * w - bw / 2, 0, bw, h);
-    for (let r = 1; r < 8; r++) g.fillRect(0, Y(.79 + r * .1225) - bw * .4, w, bw * .8);
-    g.fillRect(0, Y(.525) - bw / 2, w, bw); g.fillRect(0, Y(.79), w, Y(.75) - Y(.79));
+    for (let r = 1; r < 12; r++) g.fillRect(0, Y(.3 + r * .1225) - bw * .4, w, bw * .8);
   });
   const FW = px(192, 320, 448), fusumaTex = tex(FW, FW * 2, (g, w, h) => { /* blush paper, periwinkle ink-wash hills, champagne-gold clouds, gold leaf */
     const k = w / .9, bg = g.createLinearGradient(0, 0, 0, h); bg.addColorStop(0, "#f7efe2"); bg.addColorStop(.6, "#f2e5d6"); bg.addColorStop(1, "#ead9cf"); g.fillStyle = bg; g.fillRect(0, 0, w, h);
@@ -168,7 +167,7 @@ export async function create({ THREE, scene, camera, back2d, kit, tier, timing }
   });
   const shadowTex = tex(64, 64, (g, w) => blob(g, w / 2, w / 2, w / 2, "rgba(0,0,0,1)"));
 
-  /* the garden seen through the glass, painted once per mood on small canvases and blitted to back2d */
+  /* the garden beyond the shoji, painted once per mood and blitted to back2d */
   const OW = px(480, 640, 640);
   function outdoor(top, mid, low, leaf, sunX, sunY, sunCol) {
     const c = document.createElement("canvas"); c.width = OW; c.height = OW * 9 / 16 | 0; cans.push(c); const g = c.getContext("2d"), w = c.width, h = c.height;
@@ -241,8 +240,8 @@ export async function create({ THREE, scene, camera, back2d, kit, tier, timing }
   const floorPart = (z0, z1) => { const g = new THREE.PlaneGeometry(3.6, z1 - z0); g.rotateX(-Math.PI / 2); return part(g, 0, 0, (z0 + z1) / 2, "#ffffff", { uv: [1, (z1 - z0) / 3.6] }) };
   fl.push(floorPart(-3.6, 0), floorPart(0, 1.8), floorPart(1.8, 3.6), floorPart(3.6, 5.9));
   const floorMesh = mesh(merge(fl), floorMat);
-  /* shoji: four panels (two tracks), a wooden frame (toon) and the paper (HDR glow, glass cut out) per panel, instanced */
-  const fr = [box(.03, 1.8, .03, -.435, .9, .012, WOOD), box(.03, 1.8, .03, .435, .9, .012, WOOD), box(.9, .03, .03, 0, 1.785, .012, WOOD), box(.9, .04, .03, 0, .77, .012, WOOD), box(.9, .3, .022, 0, .15, .01, "#d9bb94", { tm: .6 })];
+  /* shoji: four panels on two tracks, with instanced timber frames and glowing washi */
+  const fr = [box(.03, 1.8, .03, -.435, .9, .012, WOOD), box(.03, 1.8, .03, .435, .9, .012, WOOD), box(.9, .03, .03, 0, 1.785, .012, WOOD), box(.9, .3, .022, 0, .15, .01, "#d9bb94", { tm: .6 })];
   const shojiFrame = new THREE.InstancedMesh(merge(fr), woodMat, 4), paperMat = M(new THREE.MeshBasicMaterial({ map: paper, alphaTest: .5, fog: false, color: new THREE.Color(2.4, 2.2, 1.9) }));
   const pg = G(new THREE.PlaneGeometry(.87, 1.47)); pg.translate(0, 1.035, 0);
   const shojiPaper = new THREE.InstancedMesh(pg, paperMat, 4);
@@ -258,8 +257,8 @@ export async function create({ THREE, scene, camera, back2d, kit, tier, timing }
   mesh(merge([part(soft(1.12, .12, 1.25, .055, seg, rum), .33, .15, -1.18, "#ffffff", { uv: [2.2, 2.4] }), part(soft(1.12, .05, .3, .025, seg), .33, .228, -1.72, "#f4f2ff", { rx: .05, uv: [2.2, .6] })]), coverMat);
   const cordPts = [[.08, .2, -2.43], [.16, .202, -2.52], [.3, .2, -2.56], [.42, .198, -2.48], [.38, .2, -2.38], [.24, .204, -2.37], [.17, .206, -2.46], [.26, .21, -2.52], [.37, .206, -2.47], [.33, .203, -2.41], [.5, .19, -2.35], [.57, .14, -2.31], [.6, .1, -2.22], [.66, .094, -2.08], [.62, .092, -1.98], [.7, .091, -1.92]].map(p => new V3(...p));
   const cordCurve = new THREE.CatmullRomCurve3(cordPts, false, "centripetal");
-  const cord = mesh(G(new THREE.TubeGeometry(cordCurve, px(70, 140, 220), .0058, px(5, 7, 9), false)), toon({ map: cordTex, rimK: .5, rim: "#ffb0a0", emissive: new THREE.Color(.12, .01, .01), soft: .3 }));
-  cordTex.repeat.set(cordCurve.getLength() / .02, 1);
+  const cord = mesh(G(new THREE.TubeGeometry(cordCurve, px(70, 140, 220), .0042, px(5, 7, 9), false)), toon({ map: cordTex, rimK: .5, rim: "#ffb0a0", emissive: new THREE.Color(.12, .01, .01), soft: .3 }));
+  cordTex.repeat.set(cordCurve.getLength() / .016, 1);
   /* bedside shelf with the handless clock (twin bells), books */
   const clock = new THREE.Group(); clock.position.set(1.17, .437, -3.03); clock.rotation.y = -.55; root.add(clock);
   const brass = "#d9a650", cream = "#f2e7d2", bellG = () => new THREE.SphereGeometry(.033, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2);
@@ -310,7 +309,7 @@ export async function create({ THREE, scene, camera, back2d, kit, tier, timing }
   const FLN = 8, flGeo = G(new THREE.PlaneGeometry(1, 1)), flK = new Float32Array(FLN);
   const FLS = [[1, 2, .22, "#fff2dc", 3], [.62, 0, .07, "#ffd6a0", .5], [.36, 1, .16, "#a0e0ff", .35], [.12, 0, .05, "#c8ffb0", .45], [-.2, 1, .26, "#ffb0e0", .3], [-.5, 0, .1, "#90b0ff", .45], [-.85, 0, .18, "#ffcf90", .3], [-1.25, 1, .34, "#d0a0ff", .22]];
   FLS.forEach((s, i) => flK[i] = s[1]); flGeo.setAttribute("aK", new THREE.InstancedBufferAttribute(flK, 1));
-  const flare = new THREE.InstancedMesh(flGeo, flareMat, FLN); FLS.forEach((s, i) => flare.setColorAt(i, C(s[3], s[4]))); flare.frustumCulled = false; flare.renderOrder = 50; insts.push(flare); scene.add(flare);
+  const flare = new THREE.InstancedMesh(flGeo, flareMat, FLN); FLS.forEach((s, i) => flare.setColorAt(i, C(s[3], s[4]))); flare.frustumCulled = false; flare.renderOrder = 50; insts.push(flare); root.add(flare);
   const enfilade = []; /* hidden outside the door shots */
 
   /* ---------- moods: light, shade, rim, ambient sky/ground, sun, paper glow, fog, the garden ---------- */
@@ -329,8 +328,11 @@ export async function create({ THREE, scene, camera, back2d, kit, tier, timing }
   const FA = timing.fast && timing.fast.length ? timing.fast : timing.beats;
   const fastAt = (t0, k) => { let lo = 0, hi = FA.length; while (lo < hi) { const m = (lo + hi) >> 1; if (FA[m] < t0 - .03) lo = m + 1; else hi = m } return FA[lo + k] ?? t0 + k * .337 };
   const prj = new V3(), inv = new THREE.Matrix4(), dir = new V3();
-  let side = "F", mir = 1;
-  function proj(x, y, z) { prj.set(x * mir, y, z).applyMatrix4(root.matrixWorld).project(camera); let rx = (prj.x + 1) / 2; if (side === "L") rx *= .5; else if (side === "R") rx = .5 + rx * .5; /* shortcut: assumes the seam at the middle; the look is per half anyway */ return [rx, (1 - prj.y) / 2, (prj.y + 1) / 2, prj.z < 1] }
+  let mir = 1;
+  function proj(x, y, z) {
+    prj.set(x, y, z).applyMatrix4(root.matrixWorld).project(camera);
+    return [(prj.x + 1) / 2, (1 - prj.y) / 2, (prj.y + 1) / 2];
+  }
   function cam(p, t, fov, roll = 0) { camera.position.set(p[0] * mir, p[1], p[2]); camera.up.set(0, 1, 0); camera.lookAt(t[0] * mir, t[1], t[2]); if (roll) camera.rotateZ(roll * mir); camera.fov = fov; camera.updateProjectionMatrix(); camera.updateMatrixWorld() }
   const lerp3 = (a, b, u) => [mix(a[0], b[0], u), mix(a[1], b[1], u), mix(a[2], b[2], u)];
   const SLIDE = [0, 0, 0, 0];
@@ -345,7 +347,7 @@ export async function create({ THREE, scene, camera, back2d, kit, tier, timing }
   }
   function sun(dx, dy, kind, a = 0) {
     U.uSunD.value.set(dx, dy, 1).normalize();
-    if (kind === "glass") { U.uWinR.value.set(0, .3, 3.6, .75); U.uGrid.value.set(.3, .225, .022, .009) }
+    if (kind === "paper") { U.uWinR.value.set(0, .3, 3.6, .75); U.uGrid.value.set(.3, .1225, .02, .01) }
     else if (kind === "slit") { U.uWinR.value.set(a, 0, a + .14, 1.8); U.uGrid.value.set(0, 0, 0, .012) }
     else if (kind === "gap") { U.uWinR.value.set(a, 0, a + .9, 1.8); U.uGrid.value.set(0, 0, 0, .008) }
     else U.uWinR.value.set(0, 0, 0, 0);
@@ -390,9 +392,9 @@ export async function create({ THREE, scene, camera, back2d, kit, tier, timing }
 
   /* ---------- the setups ---------- */
   const SET = {
-    /* honey morning: low beside the futon, the pillow with the cord, the shoji glowing behind, sun through the glass band, dust */
+    /* honey morning: low beside the futon, the pillow with the cord, the shoji glowing behind, sun through the washi, dust */
     shoji(f, lt, u) {
-      applyMood(MOODS.honey); sun(.36, -.4, "glass"); keyDir(-.3, .55, -.8);
+      applyMood(MOODS.honey); sun(.36, -.4, "paper"); keyDir(-.3, .55, -.8);
       const p = lerp3([1.02, .36, -1.7], [.94, .39, -1.92], ease(u * .9 + .05)); p[1] += Math.sin(f.t * .7) * .004;
       cam(p, lerp3([.16, .2, -2.62], [.12, .22, -2.68], ease(u)), 44, .03);
       motes([.3, .45, -2.3], [2, .9, 1.6], .004, .9); glints([.3, .4, -2.4], [1.6, .7, 1.2], .012, .8);
@@ -400,14 +402,14 @@ export async function create({ THREE, scene, camera, back2d, kit, tier, timing }
       return { bloom: .95, glow: .42, rays: .55, rayX: w[0], rayY: w[1], leak: .3 + .2 * f.pulse, leakX: .05, leakY: .12, tilt: .55, focus: pi[2], band: .25, exposure: 1.02, sat: 1.05, gain: [1.07, 1, .9], lift: [.045, .03, .065], halation: [1, .6, .42] };
     },
     "shoji:wide"(f, lt, u) {
-      applyMood(MOODS.pale); sun(.28, -.32, "glass"); keyDir(-.2, .6, -.8);
+      applyMood(MOODS.pale); sun(.28, -.32, "paper"); keyDir(-.2, .6, -.8);
       cam(lerp3([1.5, 1.28, -.28], [1.38, 1.24, -.34], ease(u)), [-.35, .78, -3.6], 56);
       motes([0, .6, -2.4], [3.4, 1.2, 2.4], .006, .8); glints([0, .5, -2.4], [3, 1, 2], .02, .6);
       const w = proj(-.2, 1.1, -3.6);
       return { bloom: .8, glow: .5, rays: .4, rayX: w[0], rayY: w[1], exposure: 1.06, sat: .84, gain: [.98, 1.01, 1.03], lift: [.06, .065, .07], threshold: .7, tilt: .2, focus: .45 };
     },
     "shoji:gold"(f, lt, u) {
-      applyMood(MOODS.gold); sun(.62, -.3, "glass"); keyDir(-.4, .4, -.8);
+      applyMood(MOODS.gold); sun(.62, -.3, "paper"); keyDir(-.4, .4, -.8);
       cam(lerp3([-1.45, .62, -.42], [-1.32, .66, -.52], ease(u)), lerp3([1.3, .9, -3.3], [1.35, .95, -3.25], ease(u)), 52, -.02);
       motes([.4, .6, -2.4], [3, 1.2, 2.4], .006, 1); glints([.4, .5, -2.4], [3, 1, 2.4], .022, 1, 0, 1.3, "#ffe0a0");
       const w = proj(-.6, .6, -3.6);
@@ -426,7 +428,7 @@ export async function create({ THREE, scene, camera, back2d, kit, tier, timing }
       return { bloom: 1.05, glow: .45, rays: .75, rayX: s[0], rayY: s[1], leak: .55 + .25 * f.fastPulse, leakX: s[0], leakY: s[1], leakColor: [1, .7, .5], exposure: 1, sat: 1.1, gain: [1.06, .98, .94], lift: [.06, .04, .065], halation: [1, .6, .45] };
     },
     clock(f, lt, u, mode = "petal") {
-      const close = mode === "fall"; applyMood(close ? MOODS.pastel : MOODS.honey); sun(.3, -.42, "glass"); keyDir(-.5, .5, -.7);
+      const close = mode === "fall"; applyMood(close ? MOODS.pastel : MOODS.honey); sun(.3, -.42, "paper"); keyDir(-.5, .5, -.7);
       clockFace(f, mode);
       if (close) cam(lerp3([.97, .475, -2.7], [.985, .47, -2.725], ease(u)), [1.17, .44, -3.03], 27);
       else cam(lerp3([.62, .53, -2.3], [.66, .51, -2.37], ease(u)), [1.17, .45, -3.03], 34, .02);
@@ -437,8 +439,8 @@ export async function create({ THREE, scene, camera, back2d, kit, tier, timing }
     "clock:close"(f, lt, u) { return SET.clock(f, lt, u, "fall") },
     desk(f, lt, u, v = "") {
       const m = v === "cool" ? MOODS.dusk : v === "night" ? MOODS.night : MOODS[v === "warm" ? "honey" : "pastel"]; applyMood(m, v ? 1 : 1.7); keyDir(-.3, .6, -.7);
-      if (v === "night") { sun(.2, -.36, "glass"); lamp(-1.62, .42, -2.55, "#ffb468", 3 + .3 * f.pulse, .7); andonMat.uniforms.uEmissive.value.setRGB(2.4, 1.3, .55).multiplyScalar(1 + .06 * Math.sin(f.t * 23) * Math.sin(f.t * 7)); steam.visible = true }
-      else if (v) sun(v === "cool" ? .5 : .3, v === "cool" ? -.26 : -.4, "glass");
+      if (v === "night") { sun(.2, -.36, "paper"); lamp(-1.62, .42, -2.55, "#ffb468", 3 + .3 * f.pulse, .7); andonMat.uniforms.uEmissive.value.setRGB(2.4, 1.3, .55).multiplyScalar(1 + .06 * Math.sin(f.t * 23) * Math.sin(f.t * 7)); steam.visible = true }
+      else if (v) sun(v === "cool" ? .5 : .3, v === "cool" ? -.26 : -.4, "paper");
       else { SLIDE[1] = .14; const sw = ease(u * 1.1 - .05) + .15 * f.downPulse; sun(mix(-.95, .45, sw), -.42, "slit", .9) }
       if (v === "night") cam(lerp3([-.5, .8, -2.4], [-.55, .78, -2.47], ease(u)), [-1.25, .36, -2.98], 42);
       else if (v) cam(lerp3([-.5, .64, -2.4], [-.53, .62, -2.45], ease(u)), [-1.06, .37, -3.13], 42);
@@ -454,7 +456,7 @@ export async function create({ THREE, scene, camera, back2d, kit, tier, timing }
     "desk:warm"(f, lt, u) { return SET.desk(f, lt, u, "warm") }, "desk:cool"(f, lt, u) { return SET.desk(f, lt, u, "cool") }, "desk:night"(f, lt, u) { return SET.desk(f, lt, u, "night") },
     /* three layers of fusuma shut toward the camera, one per beat; the far room glows until the first one closes */
     fusuma(f, lt, u) {
-      applyMood(MOODS.pastel); sun(.3, -.38, "glass"); keyDir(0, .35, 1); enfilade.forEach(o => o.visible = true);
+      applyMood(MOODS.pastel); sun(.3, -.38, "paper"); keyDir(0, .35, 1); enfilade.forEach(o => o.visible = true);
       const tS = [fastAt(f.shot.t0, 2), fastAt(f.shot.t0, 4), fastAt(f.shot.t0, 5)], open = tS.map(t => slam(f.t, t, .32));
       doors(open); tS.forEach((t, i) => puff(i, f.t, t, [0, 1.8, 3.6][i]));
       lamp(0, 1.1, -1.4, "#ffd0a8", 2.2 * mix(.25, 1, clamp(open[0])), 3);
@@ -465,7 +467,7 @@ export async function create({ THREE, scene, camera, back2d, kit, tier, timing }
       return { bloom: .9, glow: .42, rays: .55 * clamp(open[0]), rayX: w[0], rayY: w[1], tilt: .3, focus: .5, exposure: 1.02, sat: .98, gain: [1.04, .99, 1.02], lift: [.05, .045, .08], leak: .2 * f.downPulse };
     },
     "fusuma:wide"(f, lt, u) {
-      applyMood(MOODS.rose); sun(.34, -.36, "glass"); keyDir(0, .4, 1); enfilade.forEach(o => o.visible = true);
+      applyMood(MOODS.rose); sun(.34, -.36, "paper"); keyDir(0, .4, 1); enfilade.forEach(o => o.visible = true);
       const tS = f.shot.t0 + (f.shot.t1 - f.shot.t0) * .78, o = slam(f.t, tS, .3) * .62; doors([o, 1, 1]); puff(0, f.t, tS, 0); puffs[1].visible = puffs[2].visible = false;
       lamp(0, 1.1, -1.4, "#ffc8a8", 2.4 * mix(.3, 1, o / .62), 3);
       cam(lerp3([.18, 1.06, 1.6], [.12, 1.03, 1.45], ease(u)), [-.1, .78, -3.6], 50);
@@ -473,9 +475,9 @@ export async function create({ THREE, scene, camera, back2d, kit, tier, timing }
       const w = proj(0, .8, -3.6);
       return { bloom: 1, glow: .45, rays: .6 * (o / .62), rayX: w[0], rayY: w[1], exposure: 1.02, sat: 1.08, gain: [1.06, .98, .98], lift: [.05, .03, .065], leak: .25, leakX: .5, leakY: .5 };
     },
-    /* night room, moonlight through the glass; the mirror on the tatami holds the dawn */
+    /* night room, moonlight through the paper; the mirror on the tatami holds the dawn */
     mirror(f, lt, u) {
-      applyMood(MOODS.night); sun(.22, -.34, "glass"); keyDir(-.3, .6, -.7); mirror.visible = true;
+      applyMood(MOODS.night); sun(.22, -.34, "paper"); keyDir(-.3, .6, -.7); mirror.visible = true;
       lamp(-.8, .08, -1.4, "#ffc890", 2 + .6 * f.hit, .2);
       cam(lerp3([-.3, .86, -.6], [-.37, .75, -.78], ease(u)), [-.82, .02, -1.44], 40, .03);
       dawn.offset.set(.09 + (camera.position.x + .8) * .15, .09 + (camera.position.z + 1.4) * .15);
@@ -488,7 +490,7 @@ export async function create({ THREE, scene, camera, back2d, kit, tier, timing }
   enfilade.push(fusuma, ...puffs);
   return {
     update(f) {
-      side = f.shot.side || "F"; const key = f.shot.key + (f.shot.var ? ":" + f.shot.var : ""), fn = SET[key] || SET[f.shot.key] || SET.shoji;
+      const side = f.shot.side || "F", key = f.shot.key + (f.shot.var ? ":" + f.shot.var : ""), fn = SET[key] || SET[f.shot.key] || SET.shoji;
       mir = key === "desk:cool" && side === "R" ? -1 : 1; root.scale.x = mir; U.uMir.value = mir;
       const len = Math.max(.1, f.shot.t1 - f.shot.t0), lt = f.shot.lt, u = clamp(lt / len);
       /* defaults, then the setup changes what it needs */
@@ -502,14 +504,18 @@ export async function create({ THREE, scene, camera, back2d, kit, tier, timing }
       shaft.visible = w > 0; shaft.matrix.makeBasis(v3.set(w, 0, 0), new V3(0, h, 0), dir.copy(D).multiplyScalar(L)).setPosition(-1.8 + R.x, R.y, -3.6); shaft.matrixWorldNeedsUpdate = true;
       root.updateMatrixWorld(true);
       const su = shaftMat.uniforms; su.uSize.value.set(w, h, L); su.uBoxO.value.set(-1.8 + R.x, R.y, -3.6); su.uTime.value = f.t;
-      su.uCol.value.copy(U.uSunC.value).multiplyScalar(.075 * (1 + .25 * f.pulse)); su.uCamL.value.copy(camera.position).applyMatrix4(inv.copy(shaft.matrixWorld).invert());
+      su.uCol.value.copy(U.uSunC.value).multiplyScalar(.2 * (1 + .25 * f.pulse)); su.uCamL.value.copy(camera.position).applyMatrix4(inv.copy(shaft.matrixWorld).invert());
       kit.tick(f, dust, sparks, steam);
       drawOut(f, garden, camera.position.x * .2);
+      if (side !== "F") {
+        const offset = back2d.getTransform().e, width = back2d.canvas.width;
+        look.rayX = (offset + f.W * look.rayX) / width;
+      }
       kit.look(look);
     },
-    setVisible(on) { root.visible = on; if (!on) flare.visible = false },
+    setVisible(on) { root.visible = on },
     dispose() {
-      scene.remove(root, flare); scene.fog = null;
+      scene.remove(root); scene.fog = null;
       for (const im of insts) im.dispose(); for (const g of geos) g.dispose(); for (const m of mats) m.dispose(); for (const c of cans) c.width = 0;
       geos.length = mats.length = insts.length = cans.length = 0; /* kit materials, paintings and particles: kit.dispose() */
     }
