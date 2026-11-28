@@ -52,7 +52,7 @@ function paperTile(kit, rnd) {
     for (let i = 0; i < pixels.data.length; i += 4) {
       const value = rnd() < .48 ? 25 : 255;
       pixels.data[i] = pixels.data[i + 1] = pixels.data[i + 2] = value;
-      pixels.data[i + 3] = rnd() * 32;
+      pixels.data[i + 3] = rnd() * 52;
     }
     g.putImageData(pixels, 0, 0);
     for (let i = 0; i < 185; i++) {
@@ -60,7 +60,7 @@ function paperTile(kit, rnd) {
       const fiber = new Path2D();
       fiber.moveTo(x, y);
       fiber.quadraticCurveTo(x + 2, y + 3, x + 4 + rnd() * 7, y + rnd() * 5);
-      strokePath(g, fiber, i % 2 ? "#fff9e539" : "#32243e35", .4 + rnd() * .4);
+      strokePath(g, fiber, i % 2 ? "#fff9e54c" : "#32243e47", .4 + rnd() * .5);
     }
   }).image;
 }
@@ -85,8 +85,13 @@ function wallPainting(g, p, rnd) {
   wash(g, 192, 399, 231, 153, "#33406e", .65);
 
   // Cool light skims across translucent paper at an angle. The joints interrupt it.
-  fillPath(g, new Path2D("M966 8 L967 169 L36 516 L363 294 Z"), "#9bd8ff19");
-  fillPath(g, new Path2D("M961 67 L961 135 L253 459 L578 257 Z"), "#d6f2ff20");
+  const rake = g.createLinearGradient(304, 240, 466, 433);
+  rake.addColorStop(0, "#91ddff00");
+  rake.addColorStop(.43, "#91ddff08");
+  rake.addColorStop(.74, "#b2ebff30");
+  rake.addColorStop(1, "#91ddff04");
+  fillPath(g, new Path2D("M966 -22 L967 130 C613 268 341 394 0 538 L0 394 C354 242 658 161 966 -22 Z"), rake);
+  fillPath(g, new Path2D("M961 77 L961 102 C652 239 470 293 207 434 C461 276 689 218 961 77 Z"), "#d6f2ff13");
   for (let i = 0; i < slats.length; i++) {
     const x = slats[i];
     if (i < slats.length - 1) {
@@ -98,7 +103,14 @@ function wallPainting(g, p, rnd) {
   }
   fillPath(g, new Path2D("M0 95 L960 68 v4 L0 102 Z M0 506 L960 484 v14 L0 523 Z"), "#111b36a3");
   strokePath(g, new Path2D("M0 102 L960 73 M0 504 L960 482"), "#bdecff4d", 1.2);
-  for (let i = 0; i < 140; i++) {
+  const sweep = new Path2D();
+  for (let i = 0; i < 98; i++) {
+    const x = rnd() * WIDTH, y = 370 - x * .29 + rnd() * 136, len = 7 + rnd() * 37;
+    sweep.moveTo(x, y);
+    sweep.quadraticCurveTo(x + len * .28, y - len * .05, x + len, y - len * .36);
+  }
+  strokePath(g, sweep, "#abd9f81e", .8);
+  for (let i = 0; i < 114; i++) {
     const x = 54 + rnd() * 856, y = 85 + rnd() * 389, a = rnd() * .14;
     g.fillStyle = `rgba(211,241,255,${a})`;
     g.fillRect(x, y, 1 + rnd() * 2.8, .45 + rnd() * .8);
@@ -143,6 +155,13 @@ function platformPainting(g, p, rnd) {
   g.translate(1, 1.6);
   strokePath(g, seams, "#f6d5b23b", 1);
   g.translate(-1, -1.6);
+  const paving = new Path2D();
+  for (let i = 0; i < 92; i++) {
+    const x = rnd() * WIDTH, y = 328 + rnd() * 12 - 19 * x / WIDTH;
+    paving.moveTo(x, y);
+    paving.lineTo(x + 3 + rnd() * 7, y - .6);
+  }
+  strokePath(g, paving, "#ffd0a694", 1.2);
 }
 
 const CREST = [[0, 455], [92, 450], [175, 428], [256, 421], [338, 408], [400, 401], [450, 408],
@@ -158,15 +177,20 @@ function crestAt(x) {
 function cloudBank(g, rnd, x, y, w, h, underside, crest) {
   const rim = new Path2D();
   rim.moveTo(x, y);
-  for (let i = 0; i < 7; i++) {
-    const a = x + w * i / 7, step = w / 7;
-    const peak = h * (.35 + rnd() * .55) * Math.sin(Math.PI * (i + 1) / 8);
-    rim.bezierCurveTo(a + step * .12, y - peak, a + step * .62, y - peak * 1.3, a + step, y);
+  let a = x, b = y;
+  for (let i = 1; i <= 5; i++) {
+    const next = i === 5 ? x + w : x + (i + rnd() * .55) * w / 5;
+    const step = next - a;
+    const rise = h * (.15 + rnd() * .58);
+    const level = i === 5 ? y : y - h * Math.sin(Math.PI * i / 5) * (.18 + rnd() * .53);
+    rim.bezierCurveTo(a + step * .27, b - rise, next - step * .31, level - rise, next, level);
+    a = next;
+    b = level;
   }
   const body = new Path2D(rim);
   body.bezierCurveTo(x + w * .8, y + h, x + w * .14, y + h * .66, x, y);
   fillPath(g, body, gradient(g, y - h, y + h * .55, [[0, crest], [.51, crest.slice(0, 7) + "8c"], [1, underside]]));
-  strokePath(g, rim, crest.slice(0, 7) + "83", .75);
+  strokePath(g, rim, crest.slice(0, 7) + "4e", .65);
 }
 
 function ridgePainting(g, p, rnd) {
@@ -174,14 +198,15 @@ function ridgePainting(g, p, rnd) {
   g.fillRect(0, 0, WIDTH, HEIGHT);
   wash(g, 480, 321, 485, 205, "#ffd3a8", .64);
   wash(g, 488, 315, 241, 105, "#fff3dc", .9);
-  for (let row = 0; row < 6; row++) {
-    for (let i = 0; i < 12; i++) {
-      const x = i * 88 - 80 + rnd() * 75, y = 215 + row * 34 + rnd() * 18;
+  for (let row = 0; row < 7; row++) {
+    for (let i = 0; i < 14; i++) {
+      const x = i * 76 - 98 + rnd() * 137, y = 233 + row * 25 + (rnd() - .5) * (16 + 5 * row);
       const warm = x > 225 && x < 650;
-      cloudBank(g, rnd, x, y, 91 + rnd() * (119 + row * 22), 9 + row * 1.8 + rnd() * 14,
-        row < 3 ? "#a66e9d22" : "#625d8b48", warm ? "#ffdeb487" : "#f0afd55b");
+      cloudBank(g, rnd, x, y, 55 + rnd() * (137 + row * 28), 4 + row * 2 + rnd() * 16,
+        row < 3 ? "#a66e9d22" : "#625d8b56", warm ? "#ffdeb4a0" : "#f0afd56b");
     }
   }
+  wash(g, 505, 299, 277, 51, "#ffedc9", .48);
   fillPath(g, new Path2D("M0 385 L67 375 L105 367 L158 374 L228 367 L284 390 L341 395 L403 414 L0 483 Z"), "#63587789");
   fillPath(g, new Path2D("M960 360 L904 350 L849 371 L816 375 L769 392 L727 397 L665 435 L960 496 Z"), "#634e728e");
   const peak = new Path2D();
@@ -204,12 +229,22 @@ function ridgePainting(g, p, rnd) {
   strokePath(g, flecks, "#e9a49a2d", .9);
   strokePath(g, light, "#f9bb874a", 1.1);
   const grass = new Path2D();
-  for (let i = 0; i < 69; i++) {
-    const x = rnd() * WIDTH, y = crestAt(x) + 1;
-    grass.moveTo(x, y);
-    grass.quadraticCurveTo(x + 3, y - 2, x + 1 + rnd() * 8, y - 2 - rnd() * 7);
+  const seedHeads = new Path2D();
+  for (let i = 0; i < 39; i++) {
+    const origin = rnd() * WIDTH;
+    for (let j = 0; j < 4; j++) {
+      const x = origin + rnd() * 11, y = crestAt(x) + rnd() * 6;
+      const tipX = x + 1 + rnd() * 9, tipY = y - 3 - rnd() ** 2 * 17;
+      grass.moveTo(x, y);
+      grass.quadraticCurveTo(x + 2.5, tipY + 4, tipX, tipY);
+      if (j === 0) {
+        seedHeads.moveTo(tipX - 2, tipY + 1);
+        seedHeads.lineTo(tipX + 2, tipY - 2);
+      }
+    }
   }
   strokePath(g, grass, "#4d3a58", 1.1);
+  strokePath(g, seedHeads, "#e7b6a477", .75);
 }
 
 function whipPainting(g, p) {
@@ -231,6 +266,8 @@ function whipPainting(g, p) {
   for (const [path, color] of folds) fillPath(g, new Path2D(path), color);
   strokePath(g, new Path2D("M-18 285 C283 170 558 346 979 199 M0 202 C270 78 503 382 960 302"), "#ffdfb4b8", 1.65);
   strokePath(g, new Path2D("M-10 350 C214 268 298 405 592 340 S758 282 976 269 M-4 399 C320 267 467 556 979 397"), "#e1afd4a3", 1.45);
+  strokePath(g, new Path2D("M-5 329 C239 202 421 209 535 294 C634 370 517 385 478 351 C419 299 629 239 969 259"), "#ffd2b376", 1.65);
+  strokePath(g, new Path2D("M-4 124 C269 53 247 163 401 186 C527 205 735 152 970 166 M-12 485 C209 330 270 508 533 469"), "#efe0ff58", .95);
 }
 
 function speedPainting(g, rnd, count) {
@@ -266,8 +303,8 @@ function crowdPainting(g, p, rnd) {
 
 // The silhouettes share an ankle anchor. A and B have different outlines and
 // proportions, with small negative spaces between their arms and bodies.
-const FIGURE_A = "M-4 -99 C-15 -95 -14 -81 -7 -75 L-9 -71 C-17 -67 -20 -58 -19 -43 L-16 -30 L-12 -30 L-12 -44 L-10 -52 L-10 -31 L-8 -21 L-12 -4 L-14 -1 Q-13 2 -4 0 L0 -20 L3 -30 L7 -17 L8 0 Q13 2 18 0 L14 -4 L13 -27 L11 -38 L12 -55 L16 -46 L19 -33 L23 -35 L22 -53 Q20 -66 9 -70 L5 -73 L7 -77 Q11 -82 10 -88 Q8 -100 -4 -99 Z";
-const FIGURE_B = "M2 -100 C-7 -102 -15 -94 -14 -85 Q-20 -78 -18 -68 Q-11 -70 -7 -77 L-4 -75 L-6 -70 Q-17 -67 -20 -55 L-23 -38 L-19 -36 L-13 -50 L-11 -57 L-10 -45 L-16 -26 L-7 -24 L-8 -14 L-10 -2 L-13 1 L-3 1 L1 -22 L4 -22 L9 -1 L17 1 L18 -1 L14 -5 L12 -25 L17 -28 L10 -46 L9 -55 L13 -46 L16 -35 L20 -34 L21 -39 L18 -55 Q16 -66 5 -71 L5 -76 C16 -82 14 -98 2 -100 Z";
+const FIGURE_A = "M-7 -99 Q-2 -103 7 -99 L9 -94 L8 -90 L11 -87 L9 -85 L8 -82 L3 -81 L3 -76 Q14 -73 15 -61 L19 -42 L21 -35 L17 -32 L14 -37 L10 -51 L9 -59 L8 -43 L12 -26 L7 -25 L7 -18 L12 -4 L19 -2 L19 1 L6 1 L2 -6 L-1 -24 L-4 -26 L-7 -12 L-8 -3 L-4 -1 L-5 1 L-16 1 L-15 -6 L-14 -23 L-17 -24 L-12 -46 L-12 -58 L-16 -50 L-18 -38 L-17 -32 L-20 -31 L-23 -36 L-22 -48 L-18 -67 Q-16 -73 -6 -76 L-5 -80 Q-12 -84 -10 -94 L-11 -97 Z";
+const FIGURE_B = "M-7 -97 Q0 -103 7 -99 Q11 -96 10 -90 L13 -87 L11 -85 L10 -81 L4 -80 L3 -76 Q13 -72 14 -61 L20 -45 L24 -41 L22 -37 L18 -38 L14 -45 L8 -56 L8 -43 Q13 -34 15 -26 L8 -23 L8 -19 L13 -4 L19 -2 L20 1 L8 1 L3 -6 L0 -22 L-3 -22 L-7 -5 L-4 -2 L-3 1 L-14 1 L-14 -3 L-11 -15 L-11 -23 L-18 -24 Q-17 -34 -11 -47 L-12 -58 L-16 -49 L-19 -34 L-24 -35 L-22 -49 Q-20 -70 -9 -74 Q-13 -76 -10 -82 Q-13 -78 -21 -76 Q-25 -75 -27 -69 Q-29 -80 -20 -85 L-12 -87 Q-13 -93 -7 -97 Z";
 const PAIR = [new Path2D(FIGURE_A), new Path2D(FIGURE_B)];
 
 function figure(g, x, y, scale, dir, type, color, rim, lean = 0, stride = 0) {
@@ -275,7 +312,7 @@ function figure(g, x, y, scale, dir, type, color, rim, lean = 0, stride = 0) {
   g.translate(x, y);
   g.transform(scale * dir, 0, scale * lean, scale * (1 + stride), 0, 0);
   fillPath(g, PAIR[type], color);
-  if (rim) strokePath(g, PAIR[type], rim, .54);
+  if (rim) strokePath(g, PAIR[type], rim, .48);
   g.restore();
 }
 
@@ -295,12 +332,13 @@ function cord(g, fromX, fromY, toX, toY, sag, flutter, scale = 1) {
 }
 
 function makeCrowd(rnd) {
-  const rows = [[23, .25, .46, .35, "#9290ad"], [16, .49, .67, .82, "#706b8d"], [10, .85, .91, 1.67, "#4e4b6b"]];
-  return rows.map(([count, size, floor, depth, color]) => Array.from({ length: count }, (_, i) => ({
-    x: (i + rnd() * .53) / (count - 1), y: (floor + rnd() * .075) * HEIGHT,
-    size: size * (.78 + rnd() * .36), phase: rnd() * TAU, depth, color,
-    dir: rnd() < .42 ? 1 : -1, type: i % 2
+  const rows = [[21, .29, .43, .34, "#9591ad"], [17, .52, .63, .82, "#79718e"], [11, .88, .83, 1.28, "#655e7e"]];
+  const cuts = rows.flatMap(([count, size, floor, depth, color]) => Array.from({ length: count }, (_, i) => ({
+    x: (i + rnd() * 1.9 - .95) / (count - 1), y: (floor + (rnd() - .15) * .15) * HEIGHT,
+    size: size * (.65 + rnd() * .65), phase: rnd() * TAU, depth, color,
+    dir: rnd() < .42 ? 1 : -1, type: rnd() < .41 ? 1 : 0
   })));
+  return cuts.sort((a, b) => a.y - b.y);
 }
 
 export async function create({ THREE, scene, camera, ctx2d, back2d, kit, tier, seed }) {
@@ -434,14 +472,12 @@ export async function create({ THREE, scene, camera, ctx2d, back2d, kit, tier, s
   }
 
   function paintCrowd(f, g, subjectScale) {
-    for (const row of crowd) {
-      for (const cut of row) {
-        const swing = Math.sin(f.fast * Math.PI + cut.phase);
-        const walk = (f.shot.u - .5) * cut.dir * cut.depth * 47;
-        const y = cut.y - Math.abs(swing) * cut.depth * 2;
-        figure(g, cut.x * WIDTH + walk, y, cut.size * (1.19 + .23 * subjectScale), cut.dir, cut.type,
-          cut.color, "#e2cfe543", .054 * swing);
-      }
+    for (const cut of crowd) {
+      const swing = Math.sin(f.fast * Math.PI + cut.phase);
+      const walk = (f.shot.u - .5) * cut.dir * cut.depth * 47;
+      const y = cut.y - Math.abs(swing) * cut.depth * 2;
+      figure(g, cut.x * WIDTH + walk, y, cut.size * (1.19 + .23 * subjectScale), cut.dir, cut.type,
+        cut.color, "#e2cfe543", .054 * swing);
     }
     const x = 515 + ease(f.shot.u) * 89;
     const a = 2.57 * subjectScale, y = 489 - f.fastPulse * 2.8;
