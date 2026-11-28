@@ -516,6 +516,7 @@ export async function create({ THREE, scene, camera, back2d, kit, tier, timing }
         const offset = back2d.getTransform().e, width = back2d.canvas.width;
         // Keep rays from sampling across the split when the window is outside this half.
         look.rayX = (offset + f.W * clamp(look.rayX, .02, .98)) / width;
+        look.raySpace = "frame";
       }
       kit.look(look);
     },
