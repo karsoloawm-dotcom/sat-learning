@@ -509,7 +509,8 @@ export async function create({ THREE, scene, camera, back2d, kit, tier, timing }
       drawOut(f, garden, camera.position.x * .2);
       if (side !== "F") {
         const offset = back2d.getTransform().e, width = back2d.canvas.width;
-        look.rayX = (offset + f.W * look.rayX) / width;
+        // Keep rays from sampling across the split when the window is outside this half.
+        look.rayX = (offset + f.W * clamp(look.rayX, .02, .98)) / width;
       }
       kit.look(look);
     },
