@@ -17,7 +17,9 @@ export async function create({ THREE, scene, camera, ctx2d, back2d, kit, tier })
     st.forEach((col, i) => gr.addColorStop(i / (st.length - 1), col));
     g.fillStyle = gr; g.fillRect(0, 0, c.width, c.height);
     for (let i = 0; i < 160; i++) { const y = Math.random() * c.height * .55; g.globalAlpha = (1 - y / (c.height * .55)) * Math.random() * .9; g.fillStyle = "#fff"; g.fillRect(Math.random() * c.width, y, 1.4, 1.4) }
-    g.globalAlpha = 1; paint.set(sec, c); return c;
+    g.globalAlpha = 1; const P = kit.palette(sec); /* a few cumulus near the horizon, lit from below */
+    for (let i = 0; i < 4; i++) kit.cloud2d(g, c.width * (.12 + i * .26), c.height * (.72 + .05 * (i % 2)), c.width * .34, c.height * .24, P.shade, P.light, i + 1);
+    paint.set(sec, c); return c;
   }
   const group = new THREE.Group(); scene.add(group);
   /* a paper lantern: lathe body, toon-shaded paper, lit from inside (HDR emissive, so it blooms) */
@@ -33,13 +35,13 @@ export async function create({ THREE, scene, camera, ctx2d, back2d, kit, tier })
       const img = painting(f.section), drift = Math.sin(f.t * .1) * .03 * f.W;
       back2d.drawImage(img, drift - f.W * .05, 0, f.W * 1.1, f.H); /* cover the viewport, whatever its aspect */
       const top = kit.palette(f.section);
-      clouds.userData.material.uniforms.uTop.value.set(top.light); clouds.userData.material.uniforms.uBot.value.set(top.shade);
+      clouds.userData.material.uniforms.uTop.value.set(top.shade); clouds.userData.material.uniforms.uBot.value.set(top.light).multiplyScalar(1.25);
       lantern.position.y = Math.sin(f.beat * Math.PI * .5) * .12 + f.downPulse * .1;
       lantern.rotation.y = f.t * .3; lantern.scale.setScalar(1 + f.pulse * .05);
       /* a slow, floating camera: drift and ease, never snap */
       camera.position.set(Math.sin(f.t * .21) * .4, .2 + Math.sin(f.t * .17) * .15, 0); camera.lookAt(0, 0, -6); camera.fov = 45;
       kit.tick(f, clouds, sparks);
-      kit.look({ rays: .5, rayX: .5, rayY: .5, glow: .35 });
+      kit.look({ rays: .3, rayX: .5, rayY: .5, glow: .35 });
       if (f.debug) { ctx2d.fillStyle = "#fff"; ctx2d.font = `${14 * f.dpr}px system-ui`; ctx2d.fillText(`${f.shot.key}${f.shot.var ? ":" + f.shot.var : ""} ${f.shot.side || ""}`, 12 * f.dpr, f.H - 14 * f.dpr) }
     },
     setVisible(on) { group.visible = on },
