@@ -40,6 +40,18 @@ void main(){if(vUv.x<uG0||vUv.x>uG1)discard;vec3 base=uColor*braid(vUv)*vRope.rg
   float wave=(fract(vUv.x*3.-uTime*.35)-.5)*14.;
   c+=uGlowCol*(exp(-wave*wave)*uPulse+vRope.w+(1.-smoothstep(uG0,uG0+.03,vUv.x))*uHeadA+smoothstep(uG1-.03,uG1,vUv.x)*uHeadB);`;
   function patch(m, key, a, b) { if (!m[key].includes(a)) throw new Error("cord: kit.toon shader changed (" + a + ")"); m[key] = m[key].replace(a, b) }
+  function toon(options) {
+    const { map, ...shading } = options;
+    const m = kit.toon(shading);
+    // Use the kit-owned texture directly. UniformsUtils.merge clones texture uniforms.
+    if (map) {
+      m.uniforms.uMap.value = map;
+      m.uniforms.uMapOn.value = 1;
+    }
+    // Guard the rim term against a negative pow base on older versions of the kit.
+    m.fragmentShader = m.fragmentShader.replace("1.-max(dot(n,v),0.)", "clamp(1.-dot(n,v),0.,1.)");
+    return m;
+  }
   function rope(strands, seg, radial) {
     const rows = 4 * strands, data = new Float32Array(NP * rows * 4);
     const tex = own(new THREE.DataTexture(data, NP, rows, THREE.RGBAFormat, THREE.FloatType));
@@ -50,7 +62,7 @@ void main(){if(vUv.x<uG0||vUv.x>uG1)discard;vec3 base=uColor*braid(vUv)*vRope.rg
       if (i < seg && j < radial) { const b = v + radial + 1; idx.push(v, b, v + 1, b, b + 1, v + 1) }
     }
     const geo = own(new THREE.BufferGeometry()); geo.setAttribute("position", new THREE.BufferAttribute(pos, 3)); geo.setAttribute("uv", new THREE.BufferAttribute(uv, 2)); geo.setIndex(idx);
-    const mat = kit.toon({ color: "#ffffff", side: THREE.DoubleSide, soft: .2, wrap: .3, rimK: .4, rimPow: 4.5 });
+    const mat = toon({ color: "#ffffff", side: THREE.DoubleSide, soft: .2, wrap: .3, rimK: .4, rimPow: 4.5 });
     patch(mat, "vertexShader", "void main(){", VH); patch(mat, "vertexShader", "#include <beginnormal_vertex>", VN); patch(mat, "vertexShader", "#include <begin_vertex>", "vec3 transformed=cordP;");
     patch(mat, "fragmentShader", "void main(){vec3 base=uColor;", FH); patch(mat, "fragmentShader", "uRimK*(.35+.65*lit);", FL);
     const U = mat.uniforms, C = c => ({ value: new THREE.Color(c) });
@@ -105,7 +117,7 @@ void main(){if(vUv.x<uG0||vUv.x>uG1)discard;vec3 base=uColor*braid(vUv)*vRope.rg
     for (let i = 0; i < 260; i++) { g.strokeStyle = `rgba(255,255,255,${.2 + r() * .4})`; g.lineWidth = .6; g.beginPath(); const x = r() * w, y = r() * h, a = r() * TAU, l = 4 + r() * 16; g.moveTo(x, y); g.lineTo(x + Math.cos(a) * l, y + Math.sin(a) * l); g.stroke() }
     for (let i = 1; i < 10; i++) { const y = i / 10 * h; g.fillStyle = "rgba(120,60,30,.55)"; g.fillRect(0, y - 1.6, w, 3.2); g.fillStyle = "rgba(255,200,140,.4)"; g.fillRect(0, y + 1.6, w, 1.5) }
   });
-  const T = o => kit.toon(Object.assign({ soft: .25, rimK: .6 }, o));
+  const T = o => toon(Object.assign({ soft: .25, rimK: .6 }, o));
   const wood = T({ color: "#ffffff", map: grain }), lacq = T({ color: "#6b2a1e", rimPow: 4, rimK: .8 }), spoolM = T({ color: "#e0b27a", map: grain });
   const silk = kit.paint(64, 256, (g, w, h) => { g.fillStyle = "#ffffff"; g.fillRect(0, 0, w, h); for (let y = 0; y < h; y += 2) { g.fillStyle = `rgba(0,0,0,${y % 4 ? .06 : .22})`; g.fillRect(0, y, w, 1) } }); /* wound silk */
   const windM = T({ color: "#ffffff", map: silk, rimK: .5, rimPow: 3 }), threadM = T({ color: "#ffffff", rimK: .4, rimPow: 3.5 }), bagM = T({ color: "#5c3462" });
@@ -279,13 +291,14 @@ void main(){if(vUv.x<uG0||vUv.x>uG1)discard;vec3 base=uColor*braid(vUv)*vRope.rg
       bokehs(g, r, 34, 0, 0, w, h, ["#ffcf80", "#ffa850", "#fff0c8"], w * .006, w * .04, .45);
     }
   };
-  function painting(k) {
-    let c = paints.get(k);
-    if (!c) { c = document.createElement("canvas"); c.width = PW; c.height = PH; PAINT[k](c.getContext("2d"), PW, PH, rng(seed * 977 + k.length * 131 + k.charCodeAt(0))); paints.set(k, c) }
-    return c;
+  for (const [key, paint] of Object.entries(PAINT)) {
+    const canvas = document.createElement("canvas");
+    canvas.width = PW; canvas.height = PH;
+    paint(canvas.getContext("2d"), PW, PH, rng(seed * 977 + key.length * 131 + key.charCodeAt(0)));
+    paints.set(key, canvas);
   }
   function cover(k, f, zoom = 1.08, dx = 0, dy = 0) { /* fill the viewport whatever its aspect; dx, dy in -1..1 slide within the margin */
-    const img = painting(k), s = Math.max(f.W / img.width, f.H / img.height) * zoom, w = img.width * s, h = img.height * s;
+    const img = paints.get(k), s = Math.max(f.W / img.width, f.H / img.height) * zoom, w = img.width * s, h = img.height * s;
     back2d.drawImage(img, (f.W - w) / 2 * (1 + cl(dx, -1, 1)), (f.H - h) / 2 * (1 + cl(dy, -1, 1)), w, h);
   }
 
@@ -527,7 +540,9 @@ void main(){if(vUv.x<uG0||vUv.x>uG1)discard;vec3 base=uColor*braid(vUv)*vRope.rg
       const n = pick(36, 70, 110), v = 1.2 + 4 * Math.abs(lt), Hh = f.H * 1.6; /* speed lines: crisp, streaming up past the falling camera */
       ctx2d.save(); ctx2d.lineCap = "round";
       for (let i = 0; i < n; i++) {
-        const h1 = hash(i * 1.3 + 2), h2 = hash(i * 2.7 + 5), x = h1 * f.W, len = (.06 + .22 * h2) * f.H * Math.min(2, v * .4), y = (((h2 * Hh - lt * f.H * v * (.6 + h2)) % Hh) + Hh) % Hh - f.H * .3;
+        const h1 = hash(i * 1.3 + 2), h2 = hash(i * 2.7 + 5), h3 = hash(i * 4.1 + 17);
+        const x = h1 * f.W, len = (.06 + .22 * h2) * f.H * Math.min(2, v * .4);
+        const y = (((h3 * Hh - lt * f.H * v * (.6 + h2)) % Hh) + Hh) % Hh - f.H * .3;
         ctx2d.strokeStyle = `rgba(${h1 < .55 ? "168,140,232" : "236,150,190"},${.3 + .4 * h2})`; ctx2d.lineWidth = f.dpr * (.6 + 1.8 * hash(i + 31));
         ctx2d.beginPath(); ctx2d.moveTo(x, y); ctx2d.lineTo(x, y + len); ctx2d.stroke();
       }
