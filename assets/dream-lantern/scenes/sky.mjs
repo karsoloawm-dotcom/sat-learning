@@ -59,9 +59,9 @@ const skies = {
     mist: '#ffd3b6', sun: '#ffce95', power: .19
   },
   fire: {
-    sky: ['#010613', '#081226', '#0c1b32', '#263047', '#604354'],
-    far: ['#343346', '#98756e'], middle: ['#222638', '#785859'], near: ['#101b2d', '#4d404b'],
-    mist: '#866b73', sun: '#ff9146', power: .10
+    sky: ['#010512', '#04102a', '#0a1d3e', '#1c3050', '#4a3a52'],
+    far: ['#1a2440', '#c27a52'], middle: ['#121a32', '#8a5248'], near: ['#0a1226', '#3c3448'],
+    mist: '#6a4c58', sun: '#ff9146', power: .10
   }
 };
 
@@ -229,7 +229,7 @@ export async function create({ THREE, scene, camera, ctx2d, back2d, kit, tier, s
     img.src = new URL('./sky/' + name + '.webp', import.meta.url).href;
     await img.decode(); return img;
   }));
-  const root = new THREE.Group(), owned = [], rnd = random(seed + 264);
+  const root = new THREE.Group(), owned = [], rnd = random(seed + 264), dark = new THREE.Color();
   const quality = { saver: [16, 150, 768], smooth: [240, 500, 1024], ultra: [1024, 1500, 1280] }[tier];
   const [hazeCount, tailCount, paperWidth] = quality;
   const geometry = g => (owned.push(g), g);
@@ -257,6 +257,16 @@ export async function create({ THREE, scene, camera, ctx2d, back2d, kit, tier, s
   const cirrus = card(kit.paint(768, 320, (g, w, h) => paintCirrus(g, w, h, rnd)), -8);
   const deck = card(kit.paint(960, 320, (g, w, h) => {
     g.drawImage(deckImage, 0, 0, w, h);
+    // The atlas's farthest rows are separate strips; squash and stretch them back into one soft band of distance.
+    const band = h * .45, smear = document.createElement('canvas'), s = smear.getContext('2d');
+    smear.width = w; smear.height = band; s.imageSmoothingQuality = 'high';
+    s.drawImage(deckImage, 0, 0, deckImage.width, deckImage.height * .45, 0, 0, w, 10);
+    s.drawImage(smear, 0, 0, w, 10, 0, 0, w, band);
+    s.globalCompositeOperation = 'destination-in';
+    const keepTop = s.createLinearGradient(0, 0, 0, band);
+    keepTop.addColorStop(0, '#fff'); keepTop.addColorStop(.55, '#fffa'); keepTop.addColorStop(1, 'transparent');
+    s.fillStyle = keepTop; s.fillRect(0, 0, w, band);
+    g.drawImage(smear, 0, 0); smear.width = 0;
     g.globalCompositeOperation = 'destination-in';
     const fade = g.createLinearGradient(0, 0, 0, h);
     fade.addColorStop(0, 'transparent'); fade.addColorStop(.08, '#fffb'); fade.addColorStop(.16, '#fff');
@@ -281,7 +291,8 @@ export async function create({ THREE, scene, camera, ctx2d, back2d, kit, tier, s
     const cacheKey = name + ':' + aspect;
     if (recipes.has(cacheKey)) return recipes.get(cacheKey);
     const rows = [], day = name === 'day', night = name === 'night';
-    const rng = random(seed + { day: 99, night: 151, teal: 37, indigo: 48, split: 192, approach: 281, fire: 61 }[name] || seed + 22);
+    // dawn and dusk differ so the split reads as two places, not a copied half
+    const rng = random(seed + ({ day: 99, night: 151, teal: 37, indigo: 48, split: 192, approach: 281, fire: 61, dawn: 71, dusk: 83 }[name] ?? 22));
     for (let row = 0; row < bands.length; row++) {
       const n = bands[row].count, z = [112, 84, 60, 42, 29, 18][row];
       const height = lens * z, width = height * aspect;
@@ -299,9 +310,8 @@ export async function create({ THREE, scene, camera, ctx2d, back2d, kit, tier, s
         } else if (name === 'teal' || name === 'indigo') {
           const slope = name === 'teal' ? x - .5 : .5 - x;
           y += .08 + slope * .26;
-          if (row === 3) { y = (name === 'teal' ? .02 : -.16) + slope * .32; h *= .60; }
         } else if (name === 'split') {
-          y += Math.sin(x * 8.4 + row * .37) * .06 - .045;
+          y += (Math.sin(x * 8.4 + row * .37) * .06 - .045) * row / 5;
         } else if (night) {
           y -= Math.cos(x * 6 + row * .7) * row * .008;
         }
@@ -346,19 +356,28 @@ export async function create({ THREE, scene, camera, ctx2d, back2d, kit, tier, s
   const beam = card(beamMap, -3, true), sundog = card(haloMap, -2, true);
   const ridge = card(kit.paint(paperWidth, Math.round(paperWidth * .5625), (g, w, h) => paintSummit(g, w, h, rnd)), 10);
   const pylon = card(kit.paint(paperWidth, Math.round(paperWidth * .5625), (g, w, h) => paintGrid(g, w, h, rnd)), 10);
-  const flame = new THREE.Group(), fireGlow = card(haloMap, 7, true);
-  for (let i = 0; i < 7; i++) {
-    const lobe = card(tiles[i % 3], 7 + i * .025);
-    const a = i * 2.4;
-    lobe.position.set(Math.cos(a) * .25 * Math.sqrt(i / 6), Math.sin(a) * .15 + .08, 0);
-    lobe.scale.set(.67 - .045 * i, .66 - .035 * i, 1);
-    lobe.material.uniforms.uColor.value.setRGB(3.9, .86, .052);
-    lobe.material.uniforms.uEmissive.value.setRGB(.65, .075, .024);
-    flame.add(lobe);
+  // A soft disc: fire, lantern halos and the sun's bloom, without the comet corona's star points.
+  const blobMap = kit.paint(128, 128, (g, w) => {
+    const r = g.createRadialGradient(w / 2, w / 2, 0, w / 2, w / 2, w / 2);
+    for (const [p, a] of [[0, 1], [.22, .62], [.5, .2], [.78, .04], [1, 0]]) r.addColorStop(p, 'rgba(255,255,255,' + a + ')');
+    g.fillStyle = r; g.fillRect(0, 0, w, w);
+  });
+  // The fire: smoke turned upside down so its painted light falls on the underside, then a boiling dome of HDR light.
+  const flame = new THREE.Group(), fireGlow = card(blobMap, 6.4, true), smoke = [], fireball = [];
+  for (let i = 0; i < 4; i++) {
+    const puff = card(tiles[(i + 1) % 3], 6.5 + i * .01);
+    puff.rotation.z = Math.PI; puff.material.uniforms.uEmissive.value.set('#120a1c');
+    puff.material.uniforms.uColor.value.set('#ff8a44').sub(dark.set('#120a1c'));
+    flame.add(puff); smoke.push(puff);
+  }
+  for (let i = 0; i < 9; i++) {
+    const b = card(blobMap, 7 + i * .01, true), core = i === 0;
+    b.material.uniforms.uColor.value.setRGB(core ? 4.2 : 2.6, core ? 2.7 : .95 - i * .05, core ? 1.3 : .2);
+    flame.add(b); fireball.push(b);
   }
   root.add(flame);
-  const embers = kit.particles({ count: Math.floor(tailCount * .4), kind: 'spark', center: [0,0,0], box: [9, 7, 2],
-    color: '#ffb148', color2: '#fff0b6', size: .077, drift: [.15,.52,0], on: 'fast', intensity: 3, seed: seed + 12 });
+  const embers = kit.particles({ count: Math.floor(tailCount * .3), kind: 'spark', center: [0, 0, 0], box: [2.6, 7, 1.4],
+    color: '#ffb148', color2: '#fff0b6', size: .07, drift: [.06, .85, 0], wobble: .45, on: 'fast', intensity: 3, seed: seed + 12 });
   embers.renderOrder = 8; root.add(embers);
   const paper = kit.paint(128, 128, (g, w, h) => {
     const gr = g.createLinearGradient(0, 0, 0, h);
@@ -369,12 +388,16 @@ export async function create({ THREE, scene, camera, ctx2d, back2d, kit, tier, s
   });
   const body = geometry(new THREE.LatheGeometry([[0,-.44],[.20,-.44],[.33,-.35],[.40,.04],[.32,.37],[.20,.45],[0,.45]]
     .map(([x,y]) => new THREE.Vector2(x,y)), 12));
-  const lanternMat = ink(paper, { section: 'chorus1', light: '#fff8dd', shade: '#91625d', rimK: .12 });
+  // Lit from inside: HDR emissive paper, and a warm halo so each tiny lantern blooms even at the frame edge.
+  const lanternMat = ink(paper, { section: 'chorus1', light: '#fff8dd', shade: '#91625d', rimK: .12, emissive: new THREE.Color(1.5, .62, .2) });
   const lanterns = [0, 1].map(() => { const m = new THREE.Mesh(body, lanternMat); m.renderOrder = 7; root.add(m); return m });
+  const halos = lanterns.map(() => { const h = card(blobMap, 7.5, true); h.material.uniforms.uColor.value.setRGB(2.1, 1.05, .38); return h });
+  const bokeh = kit.particles({ kind: 'bokeh', count: { saver: 24, smooth: 70, ultra: 160 }[tier], box: [34, 16, 12], center: [0, 1, -16],
+    size: .55, drift: [.05, .03, 0], wobble: .5, color: '#fff3dc', color2: '#cfe8ff', intensity: .32, twinkle: .6, seed: seed + 77 });
+  bokeh.renderOrder = 9; root.add(bokeh);
   scene.add(root);
 
   const du = dome.material.uniforms;
-  const dark = new THREE.Color();
   let lastName = '', lastAspect = 0;
   function dressClouds(name, aspect) {
     if (name === lastName && aspect === lastAspect) return;
@@ -388,7 +411,8 @@ export async function create({ THREE, scene, camera, ctx2d, back2d, kit, tier, s
       rows[i].forEach((mat, j) => m.setMatrixAt(j, mat)); m.instanceMatrix.needsUpdate = true;
     });
     du.uRamp.value = ramps[name]; du.uSunCol.value.set(p.sun); du.uSun.value = p.power;
-    haze.material.uniforms.uTop.value.set(p.mist); haze.material.uniforms.uBot.value.set(p.far[0]);
+    // The horizon haze carries the low light, so it glows rather than banding dark across the distance.
+    haze.material.uniforms.uTop.value.set(p.far[0]).lerp(dark.set(p.mist), .6); haze.material.uniforms.uBot.value.set(p.mist);
     cirrus.material.uniforms.uColor.value.set(p.mist);
     deck.material.uniforms.uColor.value.set(p.middle[1]).multiplyScalar(.75);
     deck.material.uniforms.uEmissive.value.set(p.middle[0]);
@@ -434,7 +458,8 @@ export async function create({ THREE, scene, camera, ctx2d, back2d, kit, tier, s
       dressClouds(name, aspect);
       camera.fov = approach ? mix(47, 42, ease(u)) : name === 'split' ? mix(44, 48, ease(u)) : 46;
       const glide = name === 'night' ? 1.9 : .34;
-      camera.position.set(twilight ? 0 : .24 * Math.sin(lt * .47) * glide,
+      const track = name === 'teal' ? mix(-1.5, 1.5, ease(u)) : 0;
+      camera.position.set(twilight ? 0 : track + .24 * Math.sin(lt * .47) * glide,
         twilight ? 0 : .055 * Math.sin(lt * .68), twilight ? 0 : -.23 * lt * glide);
       camera.rotation.set(0, 0, 0);
       dome.position.copy(camera.position);
@@ -486,7 +511,7 @@ export async function create({ THREE, scene, camera, ctx2d, back2d, kit, tier, s
         beam.material.uniforms.uColor.value.setRGB(2.4, .73, 1.02).multiplyScalar(.84 + .31 * f.downPulse);
         place(sundog, lightX, .602, 76, aspect); sundog.scale.setScalar(76 * lens * .28);
         sundog.material.uniforms.uColor.value.setRGB(3, 1.14, .75);
-        rayX = .5;
+        rayX = lightX;
       }
       ridge.visible = name === 'twilight'; pylon.visible = flame.visible = fireGlow.visible = embers.visible = impact;
       const cutout = impact ? pylon : ridge;
@@ -495,22 +520,38 @@ export async function create({ THREE, scene, camera, ctx2d, back2d, kit, tier, s
         cutout.scale.set(13 * lens * Math.max(aspect * 1.07, 1.06), 13 * lens * 1.04, 1);
       }
       if (impact) {
+        // The fireball steps up on each beat after the flash and breathes on the downbeat.
         const stepped = Math.max(0, Math.floor(f.beat) - impactStart);
         const grow = .15 + .11 * ease(u) + .038 * Math.min(3, stepped) + .025 * f.downPulse;
-        place(flame, .66, .745 - grow * .25, 23, aspect); flame.scale.set(23 * lens * grow, 23 * lens * grow * 1.75, 1);
-        place(fireGlow, .66, .707, 24, aspect); fireGlow.scale.setScalar(24 * lens * grow * 2.05);
-        fireGlow.material.uniforms.uColor.value.setRGB(3.4, .73, .095);
-        place(embers, .66, .53, 22, aspect); kit.tick(f, embers);
+        place(flame, .66, .64, 23, aspect); flame.scale.setScalar(23 * lens * grow);
+        fireball.forEach((b, i) => {
+          const a = Math.PI * (i - .5) / 7, r = i ? .34 : 0, boil = Math.sin(f.t * (1.3 + i * .21) + i * 2.1);
+          b.position.set(Math.cos(a) * r * 1.15, Math.sin(a) * r * .8 + .06 + .025 * boil, .01 * i);
+          b.scale.setScalar((i ? .62 : 1.05) * (1 + .07 * boil + .1 * f.pulse));
+        });
+        smoke.forEach((s, i) => {
+          const lift = (f.t * .05 + i * .25) % 1;
+          s.position.set((i - 1.5) * .3 + .06 * Math.sin(f.t * .4 + i), .55 + lift * .55, -.02);
+          s.scale.set(1.25 + lift * .5, .62 + lift * .3, 1); s.material.uniforms.uOpacity.value = .9 * Math.sin(Math.PI * lift);
+        });
+        place(fireGlow, .66, .62, 24, aspect); fireGlow.scale.setScalar(24 * lens * grow * 3.4);
+        fireGlow.material.uniforms.uColor.value.setRGB(2.2, .55, .1).multiplyScalar(1 + .35 * f.pulse);
+        place(embers, .66, .46, 22, aspect); embers.scale.setScalar(.7 + grow * 2); kit.tick(f, embers);
       }
+      bokeh.visible = day;
+      if (day) kit.tick(f, bokeh);
       for (let i = 0; i < lanterns.length; i++) {
-        const obj = lanterns[i]; obj.visible = day;
+        const obj = lanterns[i], halo = halos[i];
+        obj.visible = halo.visible = day;
         if (day) {
           place(obj, i ? .885 : .14, (i ? .30 : .40) - lt * .011 + .004 * Math.sin(f.t + i), 26 + 8 * i, aspect);
           obj.rotation.set(.06, lt * .19 + i, Math.sin(lt * 1.2 + i) * .09);
           obj.scale.setScalar(i ? .59 : .82);
+          halo.position.copy(obj.position);
+          halo.scale.setScalar(obj.scale.x * (2.5 + .4 * f.pulse));
         }
       }
-      kit.look({ rays: impact ? .47 : twilight ? .34 : .23, rayX, rayY, glow: day ? .12 : .24,
+      kit.look({ rays: impact ? .47 : twilight ? (variant ? 0 : .34) : .23, rayX, rayY, glow: day ? .12 : .24,
         bloom: impact ? .90 : .74, threshold: day ? .91 : .57, tilt: .10, focus: .51,
         lift: isNight ? [.003, .006, .017] : impact ? [.004, .007, .018] : twilight ? [.018, .011, .028] : [.008, .015, .024],
         chroma: .12, leak: impact ? .014 + .025 * f.downPulse : 0, leakX: .66, leakY: .70 });
