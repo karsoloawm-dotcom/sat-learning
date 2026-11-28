@@ -71,6 +71,7 @@ const files = [
 const notFound = '<!doctype html><meta charset="utf-8"><title>Page not found</title><h1>Page not found</h1>\n';
 // Omit the optional train sound and anime voice clip embedded in the source.
 const index = (await readFile(join(root, 'index.html'), 'utf8'))
+  .replace('const hosted = false; // The static build ships without optional sound files.', 'const hosted = true;')
   .replace(/^const (?:TRN_SND|TRN_GLTV)="data:audio\/[^"\r\n]+";\r?\n/gm, '');
 const fileCount = files.length + 1;
 if (fileCount > 20_000) throw new Error('Cloudflare Pages allows up to 20,000 files on the Free plan.');

@@ -74,9 +74,7 @@ async function boot(s) {
   el.innerHTML = `<canvas class="dl-3d" style="${CV}"></canvas><canvas class="dl-2d" style="${CV}"></canvas>
 <div class="dl-hud" style="position:absolute;inset:0;pointer-events:none;font:500 13px ${SANS};color:#f6ead8">
  <button class="dl-x" type="button" style="pointer-events:auto;position:absolute;top:14px;right:14px;width:40px;height:40px;border-radius:50%;border:1px solid #fff3;background:#0007;color:#fff;font-size:18px;cursor:pointer">✕</button>
- <div class="dl-song" style="pointer-events:auto;position:absolute;left:14px;bottom:14px;display:flex;gap:8px;align-items:center;opacity:.85">
-  <button class="dl-pick" type="button" hidden style="border:1px solid #fff4;background:#0008;color:#fff;border-radius:999px;padding:7px 12px;font:inherit;cursor:pointer"></button>
-  <input class="dl-file" type="file" accept="audio/*,video/mp4,video/webm" hidden>
+ <div class="dl-song" style="position:absolute;left:14px;bottom:14px;opacity:.85">
   <span class="dl-st" aria-live="polite" style="text-shadow:0 1px 3px #000"></span>
  </div>
  <button class="dl-go" type="button" hidden style="pointer-events:auto;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);border:1px solid #fff6;background:#000a;color:#fff;border-radius:999px;padding:14px 22px;font:600 16px ${SANS};cursor:pointer"></button>
@@ -86,8 +84,7 @@ async function boot(s) {
   const $ = q => el.querySelector(q), cvB = document.createElement("canvas"), cv3 = $(".dl-3d"), cv2 = $(".dl-2d"), bg = cvB.getContext("2d"), g = cv2.getContext("2d");
   $(".dl-x").setAttribute("aria-label", L(["Close", "Đóng", "閉じる"]));
   $(".dl-x").onclick = () => stop();
-  const st = $(".dl-st"), pick = $(".dl-pick"), file = $(".dl-file"), go = $(".dl-go");
-  pick.textContent = "🎵 " + L(["Load your copy of the song", "Chọn bài hát của bạn", "手元の曲を読み込む"]);
+  const st = $(".dl-st"), go = $(".dl-go");
   const onKey = e => { if (e.key === "Escape") { e.preventDefault(); stop() } };
   addEventListener("keydown", onKey, true);
   s.off = [() => removeEventListener("keydown", onKey, true), () => TR.clear()];
@@ -117,7 +114,7 @@ async function boot(s) {
   const ES = typeof EggSound !== "undefined" ? EggSound : null;
   const mine = () => { try { const sl = ES && ES.eggSlot(); return !!sl && sl.indexOf("egg_dreamlantern") === 0 } catch (e) { return false } };
   function useShared(a) { /* the Sounds panel's element: read it, never tear it down (EggSound owns it) */
-    clk.audio = a; clk.shared = true; clk.lastAt = -1; pick.hidden = true;
+    clk.audio = a; clk.shared = true; clk.lastAt = -1;
     const end = () => { if (clk.audio === a) stop() }; a.addEventListener("ended", end); s.off.push(() => a.removeEventListener("ended", end));
     st.textContent = "♪ Dream Lantern"; setTimeout(() => { if (st.textContent === "♪ Dream Lantern") st.textContent = "" }, 6000);
   }
@@ -128,7 +125,7 @@ async function boot(s) {
     clk.url = own ? url : null;
     const a = new Audio(); a.preload = "auto"; a.src = url; clk.audio = a; clk.lastAt = -1;
     a.addEventListener("ended", () => { if (clk.audio === a) stop() });
-    pick.hidden = true; go.hidden = true;
+    go.hidden = true;
     st.textContent = "♪ " + label;
     a.play().then(() => { setTimeout(() => { if (st.textContent === "♪ " + label) st.textContent = "" }, 6000) }).catch(() => {
       if (clk.audio !== a) return;
@@ -136,11 +133,9 @@ async function boot(s) {
       go.onclick = () => { go.hidden = true; a.play().catch(() => { }) };
     });
   }
-  file.onchange = () => { const f = file.files && file.files[0]; if (f) useAudio(URL.createObjectURL(f), f.name, true) };
-  pick.onclick = () => file.click();
   const findLocal = async () => {
     /* the song is gitignored, so it can only exist where the site is served from this machine: do not probe (and 404) anywhere else */
-    if (!/^(localhost|127.|[::1]|0.0.0.0)/.test(location.hostname) && location.protocol !== "file:") return null;
+    if (ES?.hosted || (!/^(localhost|127\.|\[::1\]|0\.0\.0\.0)/.test(location.hostname) && location.protocol !== "file:")) return null;
     for (const ext of ["m4a", "mp3", "ogg", "wav"]) {
       try { const r = await fetch(BASE + "../local/dream-lantern." + ext, { method: "HEAD", cache: "no-store" }); if (r.ok) return BASE + "../local/dream-lantern." + ext } catch (e) { }
     }
@@ -237,16 +232,17 @@ async function boot(s) {
   /* a slot without a file stays set but never plays: give it 2.5 s, as the other films do */
   const waitSlot = async () => { for (let k = 0; k < 25 && !s.dead && mine(); k++) { const a = ES.eggAudio(); if (a && !a.paused && a.currentTime > .01) return a; await new Promise(r => setTimeout(r, 100)) } return null };
   const fb = async () => { if ((await spawn(FALLBACK)).st !== "ok") { FALLBACK = "_template"; await spawn(FALLBACK) } };
-  const [, local, shared] = await Promise.all([fb(), findLocal(), waitSlot()]);
+  const [, shared] = await Promise.all([fb(), waitSlot()]);
   if (s.dead) return;
   if (shared) useShared(shared);
   else {
     if (mine()) ES.egg(null);
+    const local = await findLocal();
     /* load it into memory first: a plain static server may not allow range requests, and then the song cannot be seeked */
     const blob = local ? await fetch(local).then(r => r.ok ? r.blob() : null).catch(() => null) : null;
     if (s.dead) return;
     if (blob) useAudio(URL.createObjectURL(blob), L(["Dream Lantern (local file)", "Dream Lantern (tệp trên máy)", "夢灯籠（ローカルファイル）"]), true);
-    else { pick.hidden = false; st.textContent = L(["♪ No song file found: playing silently. Add one under Sounds → Dream Lantern.", "♪ Không tìm thấy bài hát: đang chạy không tiếng. Thêm bài trong Âm thanh → Dream Lantern.", "♪ 曲が見つからないため無音で再生中。サウンド → Dream Lantern で追加できます。"]) }
+    else ES?.songNotice(el, true, stop);
   }
   clk.held = false; clk.t0 = performance.now() / 1000;
 
