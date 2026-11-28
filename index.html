@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.min.js"}}</script></head><body>
+<!doctype html><html><head><link rel="icon" href="data:,"><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.min.js"}}</script></head><body>
 <div id="boot" role="status" aria-live="polite" tabindex="-1" style="position:fixed;inset:0;z-index:100;background:#0b1030"><div class="bt-card"><b class="bt-h">片割れ時</b><p class="bt-txt">Loading songs…</p><div class="bt-bar" aria-hidden="true"><span class="bt-fill"></span></div><p class="bt-n"></p><button class="bt-skip" type="button" hidden>Skip</button></div></div>
 <title>Katawaredoki Vocab</title>
 <link rel="icon" href="data:,">
@@ -739,7 +739,16 @@ html.lowfx .chip,html.lowfx .ritem,html.lowfx .btn,html.lowfx .langs,html.lowfx 
 .sc-time.set{border-color:rgba(255,214,150,.6);box-shadow:0 0 0 1px rgba(255,214,150,.25) inset}
 .clockmenu{position:fixed;z-index:31;padding:14px;box-sizing:border-box;border-radius:18px;background:rgba(14,16,44,.97);border:1px solid var(--line);box-shadow:0 24px 50px -16px rgba(0,0,0,.8);display:flex;flex-direction:column;gap:10px;max-height:calc(100vh - 24px);overflow:auto}
 .clockmenu[hidden]{display:none}
-.sndmenu{gap:6px}
+.sndmenu,.sn-settings{gap:6px}
+.sn-settings{display:flex;flex-direction:column}
+.sn-import{display:grid;gap:8px;padding:12px;border:1px dashed var(--line);border-radius:12px}
+.sn-import.is-dragging{outline:2px solid #ffd2a8}
+.sn-import ul{margin:0;padding:0;list-style:none;display:grid;gap:8px}
+.sn-import li{display:grid;gap:4px;font-size:13px;overflow-wrap:anywhere}
+.sn-import select{max-width:100%;color-scheme:dark;font:inherit}
+.sn-import button[aria-disabled="true"]{opacity:.55;cursor:wait}
+.sn-missing{position:absolute;left:12px;bottom:12px;z-index:2;display:flex;align-items:center;gap:8px;max-width:calc(100% - 24px);padding:6px 10px;border-radius:12px;background:#111e;color:#fff;font:13px system-ui;cursor:auto}
+.sn-missing[hidden]{display:none}
 .fbmenu textarea{width:100%;min-height:96px;resize:vertical;box-sizing:border-box;border-radius:10px;border:1px solid rgba(255,255,255,.18);background:rgba(0,0,0,.25);color:inherit;font:inherit;padding:10px}
 .fbmenu .fb-row{display:flex;gap:8px;align-items:center;justify-content:space-between}
 .fbmenu .fb-list{display:flex;flex-direction:column;gap:6px;max-height:42vh;overflow:auto}
@@ -1807,7 +1816,7 @@ const Search=(()=>{
   document.addEventListener("click",e=>{if(Sky.cam.dragged())return;if(viewing()&&!box.contains(e.target)&&!e.target.closest("#kb")&&!Sky.tap(e.clientX,e.clientY))skyview(false)});
   function setPlaceholder(){inp.placeholder=T("search_ph");if(anime)headerText();labels()}
   try{const e=sessionStorage.getItem("kwd:etoast");if(e){sessionStorage.removeItem("kwd:etoast");setTimeout(()=>say(T(e==="on"?"easy_on":"easy_off")),700)}}catch(e){}
-  return {anime:()=>ANIME,setPlaceholder,say:m=>say(m),focus:()=>inp.focus(),header:id=>setHeader(id),exitView:()=>{if(viewing())skyview(false)},enterView:()=>{box.hidden=false;skyview(true)}};
+  return {anime:()=>ANIME,eggAliases:ALIAS,setPlaceholder,say:m=>say(m),focus:()=>inp.focus(),header:id=>setHeader(id),exitView:()=>{if(viewing())skyview(false)},enterView:()=>{box.hidden=false;skyview(true)}};
 })();
 
 /* ---------- BACKGROUND MUSIC: MIDI import + small WebAudio synth (piano · chime · strat) ---------- */
@@ -1866,6 +1875,7 @@ window.addEventListener("DOMContentLoaded",()=>{const L=document.getElementById(
   EggSound.preload((d,n,g,f)=>{bar.style.width=(100*f).toFixed(1)+"%";nn.textContent=`${d} / ${n} ${W[1]}`+(g?` · ${MB(g)} MB`:"")}).then(r=>{
     if(r&&r.failed){console.warn(`[sounds] ${r.failed} of ${r.total} songs could not be loaded`);tx.textContent=M;nn.textContent=`${r.total-r.failed} / ${r.total} ${W[1]}`;bar.style.background="#e0a24a";bar.style.width=(100*(r.total-r.failed)/r.total).toFixed(1)+"%";if(sk)sk.hidden=false;setTimeout(fin,7000)}else fin()},fin)});
 const EggSound=(()=>{
+  const hosted = false; // The static build ships without optional sound files.
   const SLOTS=[["egg","frieren","Sousou no Frieren"],["egg","yourname","Kimi No Na Wa"],["egg","zenzen","Kimi No Na Wa: the film (Zenzenzense)"],["egg","dreamlantern","Dream Lantern (RADWIMPS)"],["egg","onevoice","One Voice (Rokudenashi)"],["egg","unmei","Seihantai na Kimi to Boku"],["egg","shelter","Shelter (Porter Robinson & Madeon)"],["egg","tojimari","Suzume: the film (RADWIMPS feat. Toaka)"],["egg","weathering","Tenki No Ko"],["egg","suzume","Suzume No Tojimari"],["egg","spirited","Sen To Chihiro No Kamikakushi"],["egg","violet","Violet Evergarden"],
     ["egg","byosoku","Byousoku 5 Centimeter"],["egg","koe","Koe no Katachi"],["egg","totoro","Tonari no Totoro"],["egg","howl","Hauru no Ugoku Shiro"],["egg","glt","Shoujo Shuumatsu Ryokou"],["egg","neko","Nakitai Watashi wa Neko o Kaburu"],["egg","anohana","Ano Hana"],
     ["day","k13","4 Oct 2013 · Kimi No Na Wa"],["day","totoro","16 Apr 1988 · Tonari no Totoro"],["day","spirited","20 Jul 2001 · Sen To Chihiro No Kamikakushi"],["day","howl","20 Nov 2004 · Hauru no Ugoku Shiro"],["day","byosoku","3 Mar 2007 · Byousoku 5 Centimeter"],["day","glt","6 Oct 2017 · Shoujo Shuumatsu Ryokou"],
@@ -1877,15 +1887,26 @@ const EggSound=(()=>{
   function lyrInfo(t){const F=window.UnmeiFilm,p=F&&F.parse?F.parse(t):null;if(!p||!p.length)return T("snd_lyr_none");return T(p.mode==="lrc"?"snd_lyr_lrc":p.mode==="fit"?"snd_lyr_fit":"snd_lyr_spread",{n:p.length})}
   /* sounds picked on this device: the files in IndexedDB, their settings in localStorage */
   const loc=store.get("sndLocal",{});
-  const idb=(()=>{let p=null;const open=()=>p||(p=new Promise((ok,no)=>{const r=indexedDB.open("kwd-sounds",1);r.onupgradeneeded=()=>r.result.createObjectStore("f");r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)}));
-    const tx=(m,fn)=>open().then(d=>new Promise((ok,no)=>{const t=d.transaction("f",m),q=fn(t.objectStore("f"));t.oncomplete=()=>ok(q&&q.result);t.onerror=()=>no(t.error);t.onabort=()=>no(t.error)}));
-    return {get:k=>tx("readonly",st=>st.get(k)),put:(k,v)=>tx("readwrite",st=>st.put(v,k)),del:k=>tx("readwrite",st=>st.delete(k))}})();
+  const idb=(()=>{let p=null;const open=()=>p||(p=new Promise((ok,no)=>{const r=indexedDB.open("kwd-sounds",2);r.onupgradeneeded=e=>{if(e.oldVersion<1)r.result.createObjectStore("f");r.result.createObjectStore("songs",{keyPath:"slot"})};r.onsuccess=()=>{r.result.onversionchange=()=>{r.result.close();p=null};ok(r.result)};r.onerror=()=>{p=null;no(r.error)};r.onblocked=()=>{p=null;no(new Error("Sound storage is open in another tab"))}}));
+    const tx=(m,fn,table="f")=>open().then(d=>new Promise((ok,no)=>{const t=d.transaction(table,m),q=fn(t.objectStore(table));t.oncomplete=()=>ok(q&&q.result);t.onerror=()=>no(t.error);t.onabort=()=>no(t.error)}));
+    return {get:k=>tx("readonly",st=>st.get(k)),put:(k,v)=>tx("readwrite",st=>st.put(v,k)),del:k=>tx("readwrite",st=>st.delete(k)),
+      songs:()=>tx("readonly",st=>st.getAll(),"songs"),assign:(song,from)=>tx("readwrite",st=>{if(from&&from!==song.slot)st.delete(from);return st.put(song)},"songs"),
+      forget:s=>tx("readwrite",st=>s?st.delete(s):st.clear(),"songs")}})();
   const BUILT={egg_glt:{asset:"c78cd91f9d067f776f68741aa2c0edea",wrap:"raw",type:"audio/mp4",file:"ugoku-ugoku.m4a",name:"Ugoku, Ugoku (opening)",size:1458178,vol:.85,loop:false,start:0,sync:"ugoku"}};
-  function merge(){cfg=Object.assign({},base,loc,BUILT);applied()}
+  const imports = new Map();
+  function merge(){
+    cfg=Object.assign({},base,hosted?null:BUILT,loc);
+    for(const [slot,song] of imports){
+      const original=Object.assign({},DEFAULT_SOUNDS[slot],BUILT[slot],cfg[slot]);
+      cfg[slot]={...original,...song.settings,asset:null,file:"import:"+song.id,local:true,imported:true,type:song.file.type,name:song.file.name,size:song.file.size,
+        start:song.settings?.start??(original.start<song.duration?original.start:0),loop:song.settings?.loop??original.loop??slot.startsWith("day_")};
+    }
+    applied();
+  }
   const cache={},ch={egg:{a:null,slot:null},day:{a:null,slot:null}};let readyOk;const ready=new Promise(r=>readyOk=r);
   /* resolve a slot to something an <audio> can play */
   function src(slot){const c=cfg[slot];if(!c)return Promise.resolve(null);const key=(c.asset||"")+"|"+(c.file||"");if(cache[slot]&&cache[slot].key===key)return cache[slot].p;
-    let p;if(c.local)p=idb.get(slot).then(b=>b?URL.createObjectURL(b):null);else if(mode==="site")p=Promise.resolve("sounds/"+String(c.file||"").split("/").map(encodeURIComponent).join("/"));
+    let p;if(c.imported)p=Promise.resolve(URL.createObjectURL(imports.get(slot).file));else if(c.local)p=idb.get(slot).then(b=>b?URL.createObjectURL(b):null);else if(mode==="site")p=Promise.resolve("sounds/"+String(c.file||"").split("/").map(encodeURIComponent).join("/"));
     else if(c.wrap==="b64")p=fetch("/_blob/"+c.asset).then(r=>{if(!r.ok)throw new Error("missing");return r.text()}).then(t=>{const nl=t.indexOf("\n");return fetch("data:application/octet-stream;base64,"+t.slice(nl+1).trim())}).then(r=>r.blob()).then(b=>URL.createObjectURL(new Blob([b],{type:c.type||"audio/mpeg"})));
     else p=Promise.resolve("/_blob/"+c.asset);
     p=p.catch(()=>null);cache[slot]={key,p};return p}
@@ -1905,22 +1926,218 @@ const EggSound=(()=>{
   let hintOn=false;function hint(on){if(on&&!hintOn&&typeof Search!=="undefined")Search.say("🎵 "+T("snd_tap"));hintOn=on}
   addEventListener("pointerdown",()=>{const a=ch.day.a;if(a&&a.paused&&hintOn){a.play().catch(()=>{});hintOn=false}},{capture:true,passive:true});
   /* the sound for the language being shown; "every language" (the plain slot) fills in, then any other language */
-  function pick(kind,k){const b=kind+"_"+k,L=[b+"@"+LANG,b,b+"@ja",b+"@en",b+"@vi"];for(const x of L)if(cfg[x])return x;return null}
-  function egg(k,from){const s=k==="glt"?"egg_glt":k?pick("egg",k):null;if(s)start("egg",s,from===undefined?Sky.eggLen(k):0,from);else stop("egg",true)}
+  function pick(kind,k){const b=kind+"_"+k,L=[b+"@"+LANG,b,b+"@ja",b+"@en",b+"@vi"];return L.find(s=>cfg[s]?.imported)||L.find(s=>cfg[s])||null}
+  function egg(k,from){const s=k?pick("egg",k):null;if(s)start("egg",s,from===undefined?Sky.eggLen(k):0,from);else stop("egg",true)}
   function day(k){wantDay=k||null;const s=k?pick("day",k):null;if(s===ch.day.slot)return;if(s)start("day",s);else stop("day",true)}
   /* the shared table changed: drop stale files, follow the current day */
-  function applied(){Object.keys(cache).forEach(s=>{const c=cfg[s],key=c?(c.asset||"")+"|"+(c.file||""):"";if(cache[s].key!==key)delete cache[s]});
+  function applied(){Object.keys(cache).forEach(s=>{const c=cfg[s],key=c?(c.asset||"")+"|"+(c.file||""):"";if(cache[s].key!==key){
+    if(cache[s].key.startsWith("|import:")){if(ch.egg.slot===s)stop("egg",false);cache[s].p.then(u=>{if(u)URL.revokeObjectURL(u)})}
+    delete cache[s];
+  }});
     const s=wantDay?pick("day",wantDay):null;if(ch.day.slot!==s||(s&&!cfg[s])||(s&&ch.day.a&&cache[s]===undefined)){ch.day.slot=null;day(wantDay)}else if(s&&ch.day.a){ch.day.a.loop=!!cfg[s].loop;duck(dayVol<1)}
     panel()}
   /* ---------- owner panel ---------- */
   const fmtMB=b=>(b/1048576).toFixed(1)+" MB";
   let open=false,busy={},msg={},testing=null;
   const tab={},LANGS=[["all","snd_all"],["en","English"],["vi","Tiếng Việt"],["ja","日本語"]],slotOf=(kind,k)=>{const b=kind+"_"+k,l=tab[b]||LANG;return l==="all"?b:b+"@"+l};
+  const songText = {
+    en:{add:"Add songs",help:"Choose or drop audio and video files here. Files stay in this browser and are never uploaded.",missing:"Song missing. Playing silently.",unmatched:"Choose a sound slot",matched:"Saved",invalid:"This file could not be played.",duplicate:"Another file in this batch matched this slot.",slot:"Sound slot for",remove:"Remove",clear:"Clear all imported songs",working:"Checking songs…",error:"Could not update songs on this device.",updated:"Song list updated.",replace:"Replace the song already in this slot?"},
+    vi:{add:"Thêm bài hát",help:"Chọn hoặc thả tệp âm thanh và video vào đây. Tệp chỉ lưu trong trình duyệt này và không được tải lên.",missing:"Thiếu bài hát. Đang phát không tiếng.",unmatched:"Chọn vị trí âm thanh",matched:"Đã lưu",invalid:"Không thể phát tệp này.",duplicate:"Một tệp khác trong đợt này đã khớp vị trí này.",slot:"Vị trí âm thanh cho",remove:"Xóa",clear:"Xóa tất cả bài hát đã thêm",working:"Đang kiểm tra bài hát…",error:"Không thể cập nhật bài hát trên thiết bị này.",updated:"Đã cập nhật danh sách bài hát.",replace:"Thay bài hát đã lưu ở vị trí này?"},
+    ja:{add:"曲を追加",help:"音声や動画ファイルを選択するか、ここにドロップしてください。ファイルはこのブラウザーに保存され、アップロードされません。",missing:"曲が見つかりません。無音で再生中です。",unmatched:"サウンドの割り当て先を選択",matched:"保存済み",invalid:"このファイルを再生できませんでした。",duplicate:"同時に選んだ別のファイルがこの割り当て先に一致しました。",slot:"サウンドの割り当て先",remove:"削除",clear:"追加したすべての曲を削除",working:"曲を確認しています…",error:"この端末の曲を更新できませんでした。",updated:"曲の一覧を更新しました。",replace:"この場所に保存されている曲を置き換えますか？"}
+  };
+  const songLabel=k=>(songText[LANG]||songText.en)[k];
+  const formats = /\.(m4a|mp3|ogg|wav|flac|mp4|webm)$/i;
+  const stem = name=>name.normalize("NFKC").replace(formats,"").toLowerCase();
+  const normal = name=>stem(name).replace(/[^\p{L}\p{N}]/gu,"");
+  const triggers = {zenzenzense:"zenzen",unmeinokimi:"unmei",weatheringwithyou:"weathering",spiritedaway:"spirited",
+    violetevergarden:"violet","5centimeterspersecond":"byosoku",asilentvoice:"koe",myneighbortotoro:"totoro",howlsmovingcastle:"howl",girlslasttour:"glt",awhiskeraway:"neko"};
+  const expectedSeconds = {egg_dreamlantern:126.8,egg_zenzen:283,egg_onevoice:161.6,egg_unmei:88,day_seihantai:215.2,egg_shelter:328,egg_tojimari:231};
+  const titles = new Map(SLOTS.map(([kind,key,title])=>[kind+"_"+key,title]));
+  const songTitle=slot=>{
+    const [key,lang]=slot.split("@");
+    const media=DEFAULT_SOUNDS[slot]||BUILT[slot];
+    const title=media?.name&&!formats.test(media.name)?media.name:titles.get(key);
+    return title+(lang?" · "+lang.toUpperCase():"");
+  };
+  function songChoices(){
+    return [...titles.keys()].flatMap(key=>[key,...["en","ja","vi"].map(l=>key+"@"+l).filter(slot=>DEFAULT_SOUNDS[slot]||base[slot]||imports.has(slot))]);
+  }
+  function matchName(file){
+    const name=normal(file.name), words=stem(file.name).split(/[^\p{L}\p{N}]+/u);
+    const source={...DEFAULT_SOUNDS,...BUILT,...base};
+    const scores=new Map();
+    function rate(slot,alias,weight){
+      alias=normal(alias);
+      const canBeSubstring=alias.length>=5||/[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}]{2}/u.test(alias);
+      if(!alias||!(name===alias||words.includes(alias)||canBeSubstring&&name.includes(alias)))return;
+      const score=weight+(name===alias?30:0)+Math.min(alias.length,40)/10;
+      if(score>(scores.get(slot)||0))scores.set(slot,score);
+    }
+    function rateDetails(slot,name){
+      for(const details of name.matchAll(/\(([^)]+)\)/g))
+        for(const artist of details[1].split(/\s+(?:feat\.?|&)\s+/i))
+          if(!/^(?:full song|opening)$/i.test(artist))rate(slot,artist,20);
+    }
+    for(const [slot,title] of titles){rate(slot,title,35);rateDetails(slot,title)}
+    for(const slot of songChoices()){
+      const media=source[slot];
+      if(!media)continue;
+      if(media.file)rate(slot,media.file,90);
+      const display=media.name||"", title=display.split(/\s*\(/)[0];
+      rate(slot,display,80);
+      if(!slot.includes("@"))rate(slot,title,75);
+      rateDetails(slot,display);
+    }
+    for(const [alias,trigger] of Object.entries(Search.eggAliases)){
+      const slot="egg_"+(triggers[trigger]||trigger);
+      if(titles.has(slot))rate(slot,alias,55);
+    }
+    const ranked=[...scores.keys()].sort((a,b)=>scores.get(b)-scores.get(a)||Number(b.startsWith("egg_"))-Number(a.startsWith("egg_"))||
+      Number(b==="egg_dreamlantern")-Number(a==="egg_dreamlantern")||Number(!b.includes("@"))-Number(!a.includes("@")));
+    // Short stems such as "haru" are also prefixes of other songs. Exact stems win above.
+    return ranked[0]||null;
+  }
+  function matchDuration(duration){
+    const matches=Object.entries(expectedSeconds).filter(([,seconds])=>Math.abs(duration-seconds)<=Math.max(1.5,seconds*.015));
+    return matches.length===1?matches[0][0]:null;
+  }
+  function mediaDuration(file){
+    return new Promise(resolve=>{
+      // An audio element plays just the audio track of an MP4 or WebM.
+      const audio=new Audio(), url=URL.createObjectURL(file);
+      const done=duration=>{clearTimeout(timer);audio.onloadedmetadata=audio.onerror=null;audio.removeAttribute("src");audio.load();URL.revokeObjectURL(url);resolve(duration)};
+      const timer=setTimeout(()=>done(null),5000);
+      audio.preload="metadata";
+      audio.onloadedmetadata=()=>done(Number.isFinite(audio.duration)?audio.duration:0);
+      audio.onerror=()=>done(null);
+      audio.src=url;
+    });
+  }
+  const pending = new Map();
+  let songBusy=false,songStatus="",songForm;
+  async function assignSong(song,slot,from){
+    const saved={...song,slot};
+    await idb.assign(saved,from);
+    if(from)imports.delete(from);
+    imports.set(slot,saved);
+    pending.delete(song.id);
+  }
+  async function forgetSong(slot){
+    await idb.forget(slot);
+    if(slot)imports.delete(slot);
+    else{imports.clear();pending.clear()}
+  }
+  async function changeSongs(work){
+    if(songBusy)return;
+    songBusy=true;
+    syncSongForm();
+    try{await work();songStatus="updated"}catch(e){songStatus="error"}
+    songBusy=false;
+    merge();
+  }
+  function addSongs(files){
+    return changeSongs(async()=>{
+      const claimed=new Set();
+      for(const file of files){
+        const id=crypto.getRandomValues(new Uint32Array(4)).join("-");
+        const supported=formats.test(file.name.normalize("NFKC"));
+        const slot=supported?matchName(file):null;
+        const duration=supported?await mediaDuration(file):null;
+        const song={id,file,duration};
+        pending.set(id,song);
+        if(duration===null){song.error="invalid";continue}
+        const target=slot||matchDuration(duration);
+        if(!target)continue;
+        if(claimed.has(target)){song.error="duplicate";continue}
+        await assignSong(song,target);
+        claimed.add(target);
+      }
+    });
+  }
+  function syncSongForm(){
+    if(!songForm)return;
+    const focus=document.activeElement, focusRow=focus.closest?.("[data-song-id]")?.dataset.songId;
+    const list=songForm.querySelector("ul"), add=songForm.querySelector(".sn-add"), clear=songForm.querySelector(".sn-clear");
+    add.textContent=songLabel("add");
+    songForm.querySelector(".sn-note").textContent=songLabel("help");
+    songForm.querySelector("[role=status]").textContent=songBusy?songLabel("working"):songStatus?songLabel(songStatus):"";
+    for(const button of [add,clear])button.setAttribute("aria-disabled",String(songBusy));
+    clear.textContent=songLabel("clear");
+    clear.hidden=!imports.size&&!pending.size;
+    if(songBusy)return;
+    list.replaceChildren();
+    const choices=songChoices();
+    for(const song of [...imports.values(),...pending.values()]){
+      const row=document.createElement("li"), label=document.createElement("span"), controls=document.createElement("div");
+      row.dataset.songId=song.id;
+      controls.className="sn-ctl";
+      label.textContent=song.file.name+(song.slot?" → "+songTitle(song.slot)+" ✓":song.error?" · "+songLabel(song.error):"");
+      if(song.duration!==null){
+        const select=document.createElement("select");
+        select.setAttribute("aria-label",songLabel("slot")+" "+song.file.name);
+        select.add(new Option(songLabel("unmatched"),""));
+        select.options[0].disabled=true;
+        for(const slot of choices)select.add(new Option(songTitle(slot),slot));
+        select.value=song.slot||"";
+        select.onchange=()=>{
+          const slot=select.value;
+          if(songBusy||(imports.has(slot)&&!confirm(songLabel("replace")))){select.value=song.slot||"";return}
+          changeSongs(()=>assignSong({id:song.id,file:song.file,duration:song.duration},slot,song.slot));
+        };
+        controls.append(select);
+      }
+      const remove=document.createElement("button");
+      remove.type="button";remove.className="ghost";remove.textContent=songLabel("remove");
+      remove.setAttribute("aria-label",songLabel("remove")+" "+song.file.name);
+      remove.onclick=()=>changeSongs(()=>song.slot?forgetSong(song.slot):pending.delete(song.id));
+      controls.append(remove);
+      row.append(label,controls);
+      list.append(row);
+      if(focusRow===song.id)(focus.tagName==="SELECT"?controls.querySelector("select"):remove)?.focus({preventScroll:true});
+    }
+    if((focusRow&&!list.contains(document.activeElement))||(focus===clear&&clear.hidden))add.focus({preventScroll:true});
+  }
+  function songImporter(){
+    if(!songForm){
+      songForm=document.createElement("section");songForm.className="sn-import";songForm.setAttribute("aria-labelledby","snd-add");
+      songForm.innerHTML='<div class="sn-ctl"><button id="snd-add" class="ghost sn-add" type="button" aria-describedby="snd-add-help"></button><button class="ghost sn-clear" type="button" hidden></button></div><input type="file" multiple accept=".m4a,.mp3,.ogg,.wav,.flac,.mp4,.webm" hidden><p class="sn-note" id="snd-add-help"></p><div class="sn-msg" role="status"></div><ul></ul>';
+      const input=songForm.querySelector("input");
+      songForm.querySelector(".sn-add").onclick=()=>{if(!songBusy)input.click()};
+      songForm.querySelector(".sn-clear").onclick=()=>changeSongs(()=>forgetSong());
+      input.onchange=()=>{const files=[...input.files];input.value="";if(files.length)addSongs(files)};
+      songForm.ondragover=e=>{if(e.dataTransfer.types.includes("Files")){e.preventDefault();e.dataTransfer.dropEffect=songBusy?"none":"copy";songForm.classList.add("is-dragging")}};
+      songForm.ondragleave=e=>{if(!songForm.contains(e.relatedTarget))songForm.classList.remove("is-dragging")};
+      songForm.ondrop=e=>{e.preventDefault();songForm.classList.remove("is-dragging");if(e.dataTransfer.files.length)addSongs([...e.dataTransfer.files])};
+    }
+    return songForm;
+  }
+  function openImporter(){
+    toggle(true,true);
+  }
+  function songNotice(el,visible,close){
+    let notice=el.querySelector(".sn-missing");
+    if(!notice&&visible){
+      notice=document.createElement("div");notice.className="sn-missing";
+      const message=document.createElement("span"), add=document.createElement("button");
+      message.textContent=songLabel("missing");message.setAttribute("role","status");
+      add.type="button";add.className="ghost";add.textContent=songLabel("add");
+      add.onclick=e=>{e.stopPropagation();close();openImporter()};
+      for(const event of ["pointerdown","pointerup"])notice.addEventListener(event,e=>e.stopPropagation());
+      notice.append(message,add);el.append(notice);
+    }
+    if(notice)notice.hidden=!visible;
+  }
   function panel(){const m=document.getElementById("sndmenu");if(!m||m.hidden)return;const ae=document.activeElement,fo=ae&&ae.closest&&ae.closest(".sn-strip")&&ae.closest("[data-s]").dataset.s,lf=ae&&ae.matches&&ae.matches(".sn-lyr textarea")?[ae.selectionStart,ae.selectionEnd,ae.scrollTop]:null;
     const row=([kind,k,name])=>{const s=slotOf(kind,k),c=cfg[s],b=kind+"_"+k,cur=tab[b]||LANG;return `<div class="sn-row" data-s="${s}"><div class="sn-top"><b class="sn-name"></b><span class="sn-file"></span></div><div class="sn-langs" role="group" aria-label="${T("snd_lang")}">${LANGS.map(([l,lbl])=>`<button type="button" class="sn-lt" data-l="${l}" aria-pressed="${l===cur}">${l==="all"?T(lbl):lbl}${cfg[l==="all"?b:b+"@"+l]?'<i class="sn-has"></i>':""}</button>`).join("")}</div>
       <div class="sn-ctl"><label class="ghost sn-up">${c?"⟳ "+T("snd_rep"):"⬆ "+T("snd_up")}<input type="file" accept="audio/*,.mp3,.m4a,.wav,.ogg,.oga,.opus,.flac,.aac,.webm,.mp4"${busy[s]?" disabled":""}></label>
       ${c?`<button type="button" class="ghost sn-test">${testing===s?"■ "+T("snd_stop"):"▶ "+T("snd_test")}</button><label class="sn-vol">🔊<input type="range" min="0" max="1" step="0.05" value="${c.vol??.8}" aria-label="Volume"></label><label class="sn-loop"><input type="checkbox"${c.loop?" checked":""}> ${T("snd_loop")}</label><button type="button" class="ghost sn-del" aria-label="${T("snd_del")}">✕</button>`:""}</div>${c&&kind==="egg"?`<div class="sn-clip"><div class="sn-strip"><canvas aria-hidden="true"></canvas><input type="range" min="0" step="0.5" aria-label="${T("snd_clip")}"></div><span class="sn-ct" aria-live="polite"></span></div>`:""}${kind==="egg"&&k==="unmei"?`<details class="sn-lyr"${lyrOpen?" open":""}><summary>📝 ${T("snd_lyr")}</summary><p class="sn-note">${T("snd_lyr_tip")}</p><textarea rows="6" spellcheck="false" aria-label="${T("snd_lyr")}"></textarea><div class="sn-ctl"><button type="button" class="ghost sn-lsave">${T("snd_lyr_save")}</button><span class="sn-lmsg" aria-live="polite"></span></div></details>`:""}<div class="sn-msg" aria-live="polite"></div></div>`};
-    m.innerHTML=`<b class="pm-h">🔊 ${T("snd_title")}</b><p class="sn-note">${T(shared?"snd_note":"snd_note_local")}</p><p class="sn-note">${T("snd_lang_tip")}</p><label class="sn-vol sfx-row">${T("sfx_lbl")} <input type="range" class="sfx-vol" min="0" max="1" step="0.05" aria-label="${T("sfx_lbl")}"></label><b class="sn-h">🔍 ${T("snd_eggs")}</b><p class="sn-note">${T("snd_clip_tip")}</p>${SLOTS.filter(r=>r[0]==="egg").map(row).join("")}<b class="sn-h">📅 ${T("snd_days")}</b>${SLOTS.filter(r=>r[0]==="day").map(row).join("")}`;m.querySelectorAll(".sfx-vol").forEach(e=>{e.value=SFX.vol();e.oninput=()=>SFX.vol(+e.value)});
+    if(!m.firstChild){
+      m.innerHTML='<b class="pm-h" id="snd-title"></b><div class="sn-settings"></div>';
+      m.firstElementChild.after(songImporter());
+    }
+    m.firstElementChild.textContent="🔊 "+T("snd_title");
+    syncSongForm();
+    m.querySelector(".sn-settings").innerHTML=`<p class="sn-note">${T(shared?"snd_note":"snd_note_local")}</p><p class="sn-note">${T("snd_lang_tip")}</p><label class="sn-vol sfx-row">${T("sfx_lbl")} <input type="range" class="sfx-vol" min="0" max="1" step="0.05" aria-label="${T("sfx_lbl")}"></label><b class="sn-h">🔍 ${T("snd_eggs")}</b><p class="sn-note">${T("snd_clip_tip")}</p>${SLOTS.filter(r=>r[0]==="egg").map(row).join("")}<b class="sn-h">📅 ${T("snd_days")}</b>${SLOTS.filter(r=>r[0]==="day").map(row).join("")}`;m.querySelectorAll(".sfx-vol").forEach(e=>{e.value=SFX.vol();e.oninput=()=>SFX.vol(+e.value)});
     SLOTS.forEach(([kind,k,name])=>{const s=slotOf(kind,k),el=m.querySelector(`[data-s="${s}"]`),c=cfg[s];el.querySelectorAll(".sn-lt").forEach(bt=>bt.onclick=e=>{e.stopPropagation();tab[kind+"_"+k]=bt.dataset.l;panel()});el.querySelector(".sn-name").textContent=name;el.querySelector(".sn-file").textContent=c?(c.name||"sound")+(c.size?" · "+fmtMB(c.size):""):T("snd_none");
       el.querySelector(".sn-msg").textContent=busy[s]?T("snd_busy"):msg[s]||"";
       const lz=el.querySelector(".sn-lyr");if(lz){const ta=lz.querySelector("textarea");ta.value=lyrDraft!==null?lyrDraft:lyrics();ta.oninput=()=>{lyrDraft=ta.value};lz.ontoggle=()=>{lyrOpen=lz.open};
@@ -1949,7 +2166,7 @@ const EggSound=(()=>{
       const g=cv.getContext("2d"),P=w.peaks,n=P?P.length:60,bx=cv.width/n;g.fillStyle="rgba(255,214,190,.85)";for(let i=0;i<n;i++){const h=Math.max(2*d,(P?P[i]:.15)*cv.height*.8);g.fillRect(i*bx+bx*.2,(cv.height-h)/2,bx*.6,h)}});
     r.oninput=show;r.onchange=()=>{save(s,{start:+r.value});if(testing===s){cfg[s].start=+r.value;start("egg",s,len)}};show()}
   const keepLoc=()=>store.set("sndLocal",loc);
-  async function save(s,patch){if(cfg[s]&&cfg[s].local){Object.assign(loc[s],patch);keepLoc();merge();return}try{await db.doc("sounds/"+s).update(patch)}catch(e){msg[s]=T("snd_err")+" ("+(e&&e.code||"error")+")";panel()}}
+  async function save(s,patch){if(imports.has(s)){const song=imports.get(s);await changeSongs(()=>assignSong({...song,settings:{...song.settings,...patch}},s));return}if(cfg[s]&&cfg[s].local){Object.assign(loc[s],patch);keepLoc();merge();return}try{await db.doc("sounds/"+s).update(patch)}catch(e){msg[s]=T("snd_err")+" ("+(e&&e.code||"error")+")";panel()}}
   async function upload(s,kind,f){const ext=(f.name.split(".").pop()||"").toLowerCase(),raw=/^(m4a|mp4|m4b|webm)$/.test(ext)||/^(audio\/(mp4|x-m4a|m4a|webm)|video\/(mp4|webm))$/.test(f.type);
     const rawType=ext==="webm"||/webm/.test(f.type)?"video/webm":"video/mp4",lim=raw?20*1048576:14.5*1048576;msg[s]="";
     if(!shared){/* this device only */if(f.size>80*1048576){msg[s]=T("snd_big");panel();return}busy[s]=true;panel();
@@ -1965,12 +2182,13 @@ const EggSound=(()=>{
       if(old&&old.asset&&old.asset!==res.id)assets.delete(old.asset).catch(()=>{});msg[s]="✓ "+T("snd_ok")}
     catch(e){const c=e&&e.code;msg[s]=c==="too_large"?T("snd_big"):c==="quota_or_state"?T("snd_quota"):T("snd_err")+(c?" ("+c+")":"")}
     busy[s]=false;panel()}
-  async function remove(s){const c=cfg[s];if(!c)return;if(c.local){delete loc[s];keepLoc();idb.del(s).catch(()=>{});merge();return}try{await db.doc("sounds/"+s).delete();if(c.asset)assets.delete(c.asset).catch(()=>{})}catch(e){msg[s]=T("snd_err")+" ("+(e&&e.code||"error")+")";panel()}}
-  function toggle(on){let m=document.getElementById("sndmenu");const b=document.getElementById("sc-snd");
-    if(!m){m=document.createElement("div");m.id="sndmenu";m.className="clockmenu sndmenu";m.setAttribute("role","dialog");m.hidden=true;document.body.appendChild(m);
-      document.addEventListener("click",e=>{if(!m.hidden&&e.target.isConnected&&!m.contains(e.target)&&e.target!==b)toggle(false)});document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!m.hidden){toggle(false);b.focus()}})}
-    if(on===undefined)on=m.hidden;b.setAttribute("aria-expanded",on);if(!on){m.hidden=true;return}m.hidden=false;panel();
+  async function remove(s){if(imports.has(s)){await changeSongs(()=>forgetSong(s));return}const c=cfg[s];if(!c)return;if(c.local){delete loc[s];keepLoc();idb.del(s).catch(()=>{});merge();return}try{await db.doc("sounds/"+s).delete();if(c.asset)assets.delete(c.asset).catch(()=>{})}catch(e){msg[s]=T("snd_err")+" ("+(e&&e.code||"error")+")";panel()}}
+  function toggle(on,fromFilm=false){let m=document.getElementById("sndmenu");const b=document.getElementById("sc-snd");
+    if(!m){m=document.createElement("div");m.id="sndmenu";m.className="clockmenu sndmenu";m.setAttribute("role","dialog");m.setAttribute("aria-labelledby","snd-title");m.hidden=true;document.body.appendChild(m);
+      document.addEventListener("click",e=>{if(!m.hidden&&e.target.isConnected&&!m.contains(e.target)&&e.target!==b)toggle(false)});document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!m.hidden){const fromFilm=!!m.style.zIndex;toggle(false);if(fromFilm)Search.focus();else (b.offsetParent?b:document.getElementById("sc-more")).focus()}})}
+    if(on===undefined)on=m.hidden;b.setAttribute("aria-expanded",on);m.style.zIndex=on&&fromFilm?"2147480001":"";if(!on){m.hidden=true;return}m.hidden=false;panel();m.scrollTop=0;
     const w=Math.min(440,innerWidth-24);m.style.width=w+"px";const r=b.getBoundingClientRect();m.style.left=(innerWidth<560?(innerWidth-w)/2:Math.max(12,Math.min(innerWidth-w-12,r.left+r.width/2-w/2)))+"px";
+    songForm.querySelector(".sn-add").focus({preventScroll:true});
     const h=m.offsetHeight;m.style.top=Math.max(12,Math.min(innerHeight-h-12,r.top-8-h>12?r.top-8-h:r.bottom+8))+"px"}
   function labels(){const b=document.getElementById("sc-snd");if(b)b.textContent="🔊 "+T("snd_btn");panel();if(wantDay)day(wantDay)}
   /* ---------- start-up ---------- */
@@ -1979,7 +2197,8 @@ const EggSound=(()=>{
       try{db=await window.claude.use("db")}catch(e){db=null}
       if(db){try{db.collection("sounds").onSnapshot(sn=>{const n={};lyrShared=null;sn.docs.forEach(d=>{const v=d.data();if(d.id==="lyr_unmei"){lyrShared=v&&typeof v.text==="string"?v.text:null;return}if(v&&(v.asset||v.file))n[d.id]=v});base=n;merge();readyOk()},()=>readyOk())}catch(e){}
         try{assets=await window.claude.use("assets")}catch(e){assets=null}shared=!!assets}}
-    else{mode="site";base=Object.assign({},DEFAULT_SOUNDS);if(/^https?:$/.test(location.protocol))try{const r=await fetch("sounds/sounds.json",{cache:"no-cache"});if(r.ok){const j=await r.json();const n={};Object.keys(j||{}).forEach(k=>{if(j[k]&&j[k].file)n[k]=j[k]});base=Object.assign({},DEFAULT_SOUNDS,n);merge()}}catch(e){}}
+    else{mode="site";if(!hosted){base=Object.assign({},DEFAULT_SOUNDS);if(/^https?:$/.test(location.protocol))try{const r=await fetch("sounds/sounds.json",{cache:"no-cache"});if(r.ok){const j=await r.json();const n={};Object.keys(j||{}).forEach(k=>{if(j[k]&&j[k].file)n[k]=j[k]});base=Object.assign({},DEFAULT_SOUNDS,n)}}catch(e){}}}
+    try{for(const song of await idb.songs())imports.set(song.slot,song)}catch(e){}
     merge();if(b)b.hidden=false;setTimeout(readyOk,mode==="claude"&&db?6000:0)}
   const init0=new Promise(r=>setTimeout(()=>init().then(r,r),0));
   /* shortcut: phone age is guessed (iPhone from its screen, Android from its version and memory); upgrade if a real device list is ever needed */
@@ -2002,7 +2221,7 @@ const EggSound=(()=>{
     const q=st.slice();await Promise.all([0,1,2].map(async()=>{while(q.length)await one(q.shift())}));return {failed:st.filter(x=>x.fail).length,total:st.length}}
   /* a day's song on the egg channel: the premiere-day film plays the whole song as its clock */
   const eggDay=k=>{const s=k?pick("day",k):null;if(s)start("egg",s,0,0);else stop("egg",true);return s};
-  return {egg,day,eggDay,lyrics,labels,preload,track:k=>{const s=pick("egg",k);if(!s||!cfg[s])return null;return {p:src(s),vol:cfg[s].vol??.8}},dayAudio:()=>ch.day.a,eggAudio:()=>ch.egg.a,eggSlot:()=>ch.egg.slot,eggTime:()=>{const a=ch.egg.a,c=ch.egg.slot&&cfg[ch.egg.slot];return a&&!a.paused&&c?{sync:c.sync||null,t:a.currentTime}:null},_cfg:()=>cfg,_mode:()=>mode,_state:()=>({egg:ch.egg.slot,eggOn:!!(ch.egg.a&&!ch.egg.a.paused),day:ch.day.slot,dayOn:!!(ch.day.a&&!ch.day.a.paused),dayVol:ch.day.a&&ch.day.a.volume})}})();
+  return {egg,day,eggDay,lyrics,labels,preload,songNotice,hosted,track:k=>{const s=pick("egg",k);if(!s||!cfg[s])return null;return {p:src(s),vol:cfg[s].vol??.8}},dayAudio:()=>ch.day.a,eggAudio:()=>ch.egg.a,eggSlot:()=>ch.egg.slot,eggTime:()=>{const a=ch.egg.a,c=ch.egg.slot&&cfg[ch.egg.slot];return a&&!a.paused&&c?{sync:c.sync||null,t:a.currentTime}:null},_cfg:()=>cfg,_mode:()=>mode,_state:()=>({egg:ch.egg.slot,eggOn:!!(ch.egg.a&&!ch.egg.a.paused),day:ch.day.slot,dayOn:!!(ch.day.a&&!ch.day.a.paused),dayVol:ch.day.a&&ch.day.a.volume})}})();
 window.SpecialDay=(()=>{const TXT={"en": {"spirited": "Dear traveller,\nOn this day in 2001, a ten-year-old girl walked through a red tunnel and found a bathhouse for the gods. The lanterns on the sea are lit for her today, and the spirits have asked to keep the whole sky to themselves until morning.\nWhatever you were looking for will wait for you, the way Haku waited. Come back tomorrow, and please, do not forget your name.", "yourname": "Dear stranger,\nOn this day in 2016, two people who had never met began searching for each other across a comet's light. Today the sky belongs to them, and to the red cord tied between two wrists.\nI could not deliver your request. Some days are already spoken for. Tomorrow the sky will listen to you again. Until then, if you meet someone who feels strangely familiar, ask their name.", "k13": "Dear reader,\nTonight is the fourth of October, 2013, the night the comet Tiamat passes over Itomori. The town is at its autumn festival, all of them looking up, not knowing what the sky is about to do.\nPlease forgive me for keeping the sky still tonight. Watch the comet with them. Tomorrow, everything you ask for will come back.", "violet": "Dear reader,\nOn this day in 2018, a girl who did not yet understand the words “I love you” sat down at a typewriter and began writing other people's letters. Today every letter she ever wrote is flying over the town.\nI am afraid your request will have to wait in the mailbag until tomorrow. I promise it will be delivered.", "weathering": "Dear reader,\nOn this day in 2019, a boy ran away to a rainy Tokyo and met a girl who could pray the sky clear. Today the beam of light falls on the rooftop shrine, and the clouds open for her alone.\nThe weather is not ours to change today. Ask again tomorrow, and the sky will be yours.", "suzume": "Dear reader,\nOn this day in 2022, a girl on her way to school followed a stranger to an abandoned door, and spent a summer closing doors all across Japan. Today the doors stand open between this world and the Ever-After.\nI have locked your request away for one day, carefully, with the right words. Tomorrow I will give you back the key. “Ittekimasu.”", "frieren": "Dear reader,\nOn this day in 2023, an elf mage set out to understand the friends she had outlived. Today the sky is hers: the fields of flowers, and the meteor shower that comes only once every fifty years.\nTo her, one day is barely a moment. To you it may feel long. Either way, your wish will keep until tomorrow.", "totoro": "Dear neighbour,\nOn this day in 1988, two sisters waited at a country bus stop in the rain, and something very large waited beside them. Today the seeds have sprouted and the camphor tree has grown up overnight.\nPlease don't be cross that I kept the sky for them. Come back tomorrow. If you are lucky, the Catbus may even be running.", "howl": "Dear reader,\nOn this day in 2004, a young hatmaker, cursed into an old woman, climbed aboard a castle that walks. Today it strides over the hills, and Calcifer is keeping the fire lit.\nYour request is resting on the hearth for now. Tomorrow, turn the dial on the door to your colour and step through.", "byosoku": "Dear reader,\nOn this day in 2007, a film reminded us that cherry blossoms fall at five centimetres a second, and that two people can drift apart just as slowly. Today the petals are falling at the railway crossing.\nI have let your request wait for the next train. When it passes tomorrow, someone may still be standing on the other side.", "glt": "Dear reader,\nOn this day in 2017, two girls on a Kettenkrad set out across the last levels of a ruined city, looking for food, fuel and the way up. Today the clock goes round once with them, from a fire at midnight to the stars at the very top.\nYour request is riding in the back with Yuuri for now. It will be delivered tomorrow; tonight, just keep moving with them.", "koe": "Dear reader,\nOn this day in 2016, a boy who had once hurt someone with words learned to listen with his whole heart. Today the summer festival fireworks are blooming over the river.\nSome things are said best by waiting. Your request will be heard tomorrow; tonight, just watch the sky with them.", "nye": "Dear reader,\nTonight is the last night of the year. The whole city is out on its balconies, counting down together, and the sky is full of fireworks for everyone at once.\nI have tucked your request into tomorrow, the first page of a brand-new year. Thank you for every word you learned this year. Happy New Year.", "neko": "Dear reader,\nOn this day in 2020, a girl who always laughed too loudly put on a mask and became a white cat, just to stay near the boy she loved. The film arrived quietly, on screens at home, the summer the whole world stayed indoors.\nAt ten to six this evening the lanterns will rise and the sky over the town will open. Your request will keep until tomorrow; tonight, sit on the roof with Taro for a while."}, "vi": {"spirited": "Gửi lữ khách,\nNgày này năm 2001, một cô bé mười tuổi bước qua đường hầm đỏ và tìm thấy nhà tắm của các vị thần. Hôm nay những chiếc đèn lồng trên biển được thắp lên vì cô ấy, và các linh hồn xin được giữ cả bầu trời cho riêng mình đến sáng.\nĐiều bạn đang tìm sẽ chờ bạn, như Haku đã từng chờ. Ngày mai hãy quay lại nhé, và xin đừng quên tên của mình.", "yourname": "Gửi người lạ,\nNgày này năm 2016, hai con người chưa từng gặp nhau bắt đầu tìm kiếm nhau dưới ánh sáng của một ngôi sao chổi. Hôm nay bầu trời thuộc về họ, và về sợi dây đỏ buộc giữa hai cổ tay.\nTôi không thể gửi lời nhờ của bạn. Có những ngày đã được hẹn trước. Ngày mai bầu trời sẽ lại lắng nghe bạn. Còn bây giờ, nếu gặp ai đó thấy thân quen lạ lùng, hãy hỏi tên họ.", "k13": "Gửi bạn đọc,\nĐêm nay là ngày 4 tháng 10 năm 2013, đêm sao chổi Tiamat bay qua Itomori. Cả thị trấn đang dự lễ hội mùa thu, ai cũng ngước nhìn lên, chưa biết bầu trời sắp làm gì.\nXin thứ lỗi vì tôi giữ yên bầu trời đêm nay. Hãy cùng họ ngắm sao chổi. Ngày mai, mọi điều bạn muốn sẽ trở lại.", "violet": "Gửi bạn đọc,\nNgày này năm 2018, một cô gái chưa hiểu câu “Anh yêu em” nghĩa là gì đã ngồi vào bàn máy chữ và bắt đầu viết thư cho người khác. Hôm nay mọi lá thư cô từng viết đang bay khắp thị trấn.\nE rằng lời nhờ của bạn phải nằm trong túi thư đến ngày mai. Tôi hứa nó sẽ được gửi đến.", "weathering": "Gửi bạn đọc,\nNgày này năm 2019, một cậu bé bỏ nhà lên Tokyo mưa dầm và gặp một cô gái có thể cầu cho trời tạnh. Hôm nay tia nắng rơi xuống ngôi đền trên sân thượng, và mây chỉ mở ra vì cô ấy.\nHôm nay thời tiết không phải của chúng ta. Ngày mai hãy hỏi lại, bầu trời sẽ là của bạn.", "suzume": "Gửi bạn đọc,\nNgày này năm 2022, một cô gái trên đường đến trường đã theo một người lạ tới cánh cửa bỏ hoang, rồi đi khắp Nhật Bản để khép lại những cánh cửa. Hôm nay các cánh cửa đang mở giữa thế giới này và Thường Thế.\nTôi đã cẩn thận khóa lời nhờ của bạn lại một ngày, bằng đúng những lời cần nói. Ngày mai tôi sẽ trả lại chìa khóa. “Ittekimasu.”", "frieren": "Gửi bạn đọc,\nNgày này năm 2023, một pháp sư elf lên đường để hiểu những người bạn mà cô đã sống lâu hơn. Hôm nay bầu trời là của cô: những cánh đồng hoa, và cơn mưa sao băng năm mươi năm mới có một lần.\nVới cô, một ngày chỉ là khoảnh khắc. Với bạn, có lẽ hơi dài. Dù thế nào, điều ước của bạn vẫn sẽ còn đến ngày mai.", "totoro": "Gửi người hàng xóm,\nNgày này năm 1988, hai chị em đứng đợi xe buýt dưới mưa ở một vùng quê, và có một thứ rất to lớn đứng đợi bên cạnh. Hôm nay hạt giống đã nảy mầm và cây long não đã mọc lên chỉ sau một đêm.\nĐừng giận vì tôi giữ bầu trời cho họ nhé. Ngày mai hãy quay lại. Nếu may mắn, có khi Mèo Xe Buýt còn chạy.", "howl": "Gửi bạn đọc,\nNgày này năm 2004, một cô thợ làm mũ bị phù phép thành bà lão đã bước lên một tòa lâu đài biết đi. Hôm nay nó sải bước qua những ngọn đồi, và Calcifer vẫn giữ cho lửa cháy.\nLời nhờ của bạn tạm nằm bên lò sưởi. Ngày mai, hãy xoay núm cửa sang màu của bạn và bước qua.", "byosoku": "Gửi bạn đọc,\nNgày này năm 2007, một bộ phim nhắc chúng ta rằng hoa anh đào rơi năm centimet mỗi giây, và hai con người cũng có thể xa nhau chậm rãi như thế. Hôm nay những cánh hoa đang rơi bên đường ray.\nTôi để lời nhờ của bạn chờ chuyến tàu sau. Khi tàu qua vào ngày mai, biết đâu vẫn có người đứng đợi ở phía bên kia.", "glt": "Gửi bạn đọc,\nNgày này năm 2017, hai cô gái trên chiếc Kettenkrad lên đường băng qua những tầng cuối cùng của một thành phố đổ nát, tìm thức ăn, nhiên liệu và lối đi lên. Hôm nay đồng hồ quay trọn một vòng cùng họ, từ đống lửa lúc nửa đêm đến những vì sao trên đỉnh cao nhất.\nLời nhờ của bạn tạm ngồi phía sau cùng Yuuri. Ngày mai nó sẽ được gửi đến; đêm nay, hãy cứ đi tiếp cùng họ.", "koe": "Gửi bạn đọc,\nNgày này năm 2016, một cậu bé từng làm tổn thương người khác bằng lời nói đã học cách lắng nghe bằng cả trái tim. Hôm nay pháo hoa lễ hội mùa hè đang nở rộ trên dòng sông.\nCó những điều được nói hay nhất bằng cách chờ đợi. Lời nhờ của bạn sẽ được lắng nghe vào ngày mai; đêm nay, hãy cùng họ ngắm bầu trời.", "nye": "Gửi bạn đọc,\nĐêm nay là đêm cuối cùng của năm. Cả thành phố ra ban công, cùng nhau đếm ngược, và bầu trời ngập pháo hoa cho tất cả mọi người.\nTôi đã cất lời nhờ của bạn vào ngày mai, trang đầu tiên của một năm mới tinh. Cảm ơn vì từng từ bạn đã học trong năm nay. Chúc mừng năm mới.", "neko": "Gửi bạn đọc,\nNgày này năm 2020, một cô gái lúc nào cũng cười thật to đã đeo chiếc mặt nạ và hóa thành chú mèo trắng, chỉ để được ở gần cậu bạn mình thương. Bộ phim đến thật lặng lẽ, trên những màn hình ở nhà, vào mùa hè cả thế giới phải ở trong nhà.\nĐúng sáu giờ kém mười tối nay, những chiếc đèn lồng sẽ bay lên và bầu trời trên thị trấn sẽ mở ra. Lời nhờ của bạn xin để đến ngày mai; tối nay, hãy ngồi trên mái nhà cùng Taro một lúc."}, "ja": {"spirited": "旅の方へ\n2001年のこの日、十歳の女の子が赤いトンネルをくぐり、神さまたちの湯屋にたどり着きました。今日は海の上の灯籠が彼女のためにともり、精霊たちは朝まで空をすべて貸してほしいと言っています。\nあなたの探しものは、ハクが待っていたように、あなたを待っています。また明日いらしてください。どうか、ご自分の名前を忘れないで。", "yourname": "見知らぬあなたへ\n2016年のこの日、一度も会ったことのない二人が、彗星の光の下で互いを探しはじめました。今日の空は二人のもの。そして二人の手首をつなぐ、あの赤い組紐のものです。\nあなたのご依頼はお届けできませんでした。もう約束の入っている日もあるのです。明日になれば、空はまたあなたの声を聞きます。それまでに、どこか懐かしい人に会ったら、名前を聞いてみてください。", "k13": "読んでくださる方へ\n今夜は2013年10月4日。ティアマト彗星が糸守の上を通る夜です。町は秋祭りのさなか、みんな空を見上げています。これから空が何をするのか、まだ誰も知りません。\n今夜は空をそのままにしておくことを、どうかお許しください。彼らと一緒に彗星を見ていてください。明日には、あなたの望むものがすべて戻ってきます。", "violet": "読んでくださる方へ\n2018年のこの日、「愛してる」という言葉をまだ知らなかった少女が、タイプライターの前に座り、誰かのための手紙を書きはじめました。今日は彼女が書いたすべての手紙が、町の空を舞っています。\nあなたのご依頼は、明日まで郵便袋の中でお待ちいただくことになります。必ずお届けすると、お約束します。", "weathering": "読んでくださる方へ\n2019年のこの日、家出した少年が雨の東京で、空を晴れにできる少女と出会いました。今日は光が屋上の鳥居に差し、雲は彼女のためだけに開いていきます。\n今日の天気は、私たちが変えられるものではありません。明日もう一度お願いしてみてください。空はあなたのものになります。", "suzume": "読んでくださる方へ\n2022年のこの日、登校途中の少女が見知らぬ青年を追って廃墟の扉にたどり着き、日本じゅうの扉を閉じる夏がはじまりました。今日は、この世と常世のあいだの扉が開いています。\nあなたのご依頼は、ふさわしい言葉を添えて、一日だけ大切に鍵をかけておきました。明日、鍵をお返しします。「いってきます」。", "frieren": "読んでくださる方へ\n2023年のこの日、エルフの魔法使いが、自分より先に逝った仲間たちを知るための旅に出ました。今日の空は彼女のもの。花畑と、五十年に一度の流星群です。\n彼女にとって一日はほんの一瞬。あなたには少し長いかもしれません。それでも、あなたの願いは明日までちゃんと残っています。", "totoro": "おとなりさんへ\n1988年のこの日、雨のいなかのバス停で姉妹がバスを待っていると、そのとなりで、とても大きな何かも待っていました。今日は種が芽を出し、クスノキが一晩で大きくなりました。\n空を二人に貸したことを、どうか怒らないでくださいね。また明日いらしてください。運がよければ、ネコバスも走っているかもしれません。", "howl": "読んでくださる方へ\n2004年のこの日、呪いでおばあさんになった帽子屋の娘が、歩く城に乗りこみました。今日、城は丘を越えて歩き、カルシファーが火を守っています。\nあなたのご依頼は、しばらく暖炉のそばでお待ちください。明日、扉のダイヤルをあなたの色に合わせて、くぐってみてください。", "byosoku": "読んでくださる方へ\n2007年のこの日、ある映画が教えてくれました。桜の花びらは秒速五センチメートルで落ちること、そして二人の人も、それと同じくらいゆっくり離れていけることを。今日は踏切のそばで花びらが舞っています。\nあなたのご依頼には、次の電車を待っていただきます。明日電車が通りすぎたとき、向こう側にはまだ誰かが立っているかもしれません。", "glt": "読んでくださる方へ\n2017年のこの日、ケッテンクラートに乗った二人の少女が、廃墟の都市の最後の層へ旅立ちました。食べ物と燃料と、上への道を探して。今日は時計が二人と一緒にひと回りします。真夜中のたき火から、いちばん上の星空まで。\nあなたのご依頼は、しばらくユーリと一緒に後ろの席に乗っています。明日お届けします。今夜は、二人と一緒に動きつづけてください。", "koe": "読んでくださる方へ\n2016年のこの日、言葉で誰かを傷つけた少年が、心のすべてで聴くことを学びました。今日は夏祭りの花火が川の上に咲いています。\n待つことでいちばんよく伝わるものもあります。あなたのご依頼は明日お聞きします。今夜は、彼らと一緒に空を見ていてください。", "nye": "読んでくださる方へ\n今夜は一年の最後の夜。町じゅうの人がベランダに出て、いっしょにカウントダウンをして、空はみんなのための花火でいっぱいです。\nあなたのご依頼は、明日——まっさらな新しい一年の最初のページに、そっとはさんでおきました。今年覚えたひとつひとつの言葉に、ありがとう。よいお年を。", "neko": "読んでくださる方へ\n2020年のこの日、いつも大きな声で笑う女の子が、お面をかぶって白い猫になりました。大好きな男の子のそばにいるために。世界じゅうが家にこもった夏、この映画はそっと、家の画面に届きました。\n今日の夕方、五時五十分。灯籠がのぼり、町の空がひらきます。あなたのご依頼は明日までお預かりします。今夜は、屋根の上で太郎と少しだけ一緒にいてください。"}},DATES={spirited:"2001-07-20",yourname:"2016-08-26",k13:"2013-10-04",violet:"2018-01-11",weathering:"2019-07-19",suzume:"2022-11-11",frieren:"2023-09-29",totoro:"1988-04-16",howl:"2004-11-20",byosoku:"2007-03-03",glt:"2017-10-06",koe:"2016-09-17",neko:"2020-06-18",nye:"12-31"};
   const SIGN={en:"Violet Evergarden, Auto Memory Doll\nC.H. Postal Company",vi:"Violet Evergarden, Búp bê Ký ức Tự động\nCông ty Bưu chính C.H.",ja:"ヴァイオレット・エヴァーガーデン（自動手記人形）\nC.H郵便社"},FOLD={en:"Fold the letter",vi:"Gấp lá thư",ja:"手紙をたたむ"},HEAD={en:"A letter for you",vi:"Một lá thư gửi bạn",ja:"あなたへの手紙"};
   const MON=["January","February","March","April","May","June","July","August","September","October","November","December"];
@@ -2561,7 +2780,7 @@ const Music=(()=>{
         if(!res.notes.length){msg(T("mus_err"));return}
         const nm=f.name.replace(/\.(midi?|kar)$/i,"");load(res,res.name&&res.name.length<60?res.name:nm);save(buf,nm);play()});e.target.value=""};
     velInit();ambInit();miniInit();
-    try{fetch("grand-piano.sf2",{method:"HEAD"}).then(r=>{if(r.ok)$m("m-dl").hidden=false}).catch(()=>{})}catch(e){}
+    if(!EggSound.hosted)fetch("grand-piano.sf2",{method:"HEAD"}).then(r=>{if(r.ok)$m("m-dl").hidden=false}).catch(()=>{});
     
     $m("m-fx-b").onclick=()=>{const p=$m("m-fx");p.hidden=!p.hidden;fxUi()};
     $m("fx-rv").onclick=()=>{fx.on=!fx.on;fxApply();fxUi()};
@@ -7148,7 +7367,7 @@ const Sky=(()=>{
       const vg=g.createRadialGradient(W/2,H/2,Math.max(W,H)*.34,W/2,H/2,Math.max(W,H)*.8);vg.addColorStop(0,"rgba(0,0,16,0)");vg.addColorStop(1,"rgba(0,0,16,.42)");g.fillStyle=vg;g.fillRect(0,0,W,H);
       const ha=clamp(1.4-(E-idleT)/2.2)*(inTitles?0:1);if(ha>0){const p=clamp(E/(PRE+LEN)),y=H-7;g.fillStyle=`rgba(255,255,255,${.18*ha})`;g.fillRect(W*.04,y,W*.92,1.5);g.fillStyle=`rgba(224,57,63,${.9*ha})`;g.fillRect(W*.04,y-.5,W*.92*p,2.5);g.beginPath();g.arc(W*.04+W*.92*p,y+.7,4,0,TAU);g.fill();
         text("✦ "+Object.keys(found).length+" / 9",W*.96,H-24,12,ha*.8,{al:"right",w:500,ls:"0.1em"})}
-      if(noSong&&T>0&&T<9)text("♪ No song file found: playing silently. Add one under Sounds → Zenzenzense.",W/2,H*.06,Math.max(11,Math.min(14,W*.028)),sm(0,1,T)*(1-sm(7.5,9,T))*.9,{w:500})}
+      EggSound.songNotice(el,noSong,stop)}
     /* ---- the room: one canvas over the page, a few quiet controls, and everything undone on the way out ---- */
     function size(){const d=Math.min(devicePixelRatio||1,1.5);W=innerWidth;H=innerHeight;s=Math.min(W,H);cv.width=Math.round(W*d);cv.height=Math.round(H*d);g=cv.getContext("2d");g.setTransform(d,0,0,d,0,0);q=Math.min(d,Math.sqrt(9e5/(W*H)));cache={};thr=[]}
     function tick(now){if(!on)return;raf=requestAnimationFrame(tick);const dt=Math.min(.05,(now-last)/1000);last=now;dtF=dt;const A=typeof EggSound!=="undefined"?EggSound:null;
@@ -7442,7 +7661,7 @@ const Sky=(()=>{
       taps=taps.filter(t=>E-t.t<3);
       const vg=g.createRadialGradient(W/2,H/2,Math.max(W,H)*.35,W/2,H/2,Math.max(W,H)*.8);vg.addColorStop(0,"rgba(0,0,10,0)");vg.addColorStop(1,"rgba(0,0,10,.45)");g.fillStyle=vg;g.fillRect(0,0,W,H);
       const ha=clampV(1.4-(E-idleT)/2.2)*(E<152?1:0);if(ha>0){const p=clampV(E/LEN),y=H-7;g.fillStyle=`rgba(255,255,255,${.18*ha})`;g.fillRect(W*.04,y,W*.92,1.5);g.fillStyle=`rgba(170,215,255,${.9*ha})`;g.fillRect(W*.04,y-.5,W*.92*p,2.5);g.beginPath();g.arc(W*.04+W*.92*p,y+.7,4,0,TAU);g.fill()}
-      if(noSong&&E<9)text("♪ No song file found: playing silently. Add one under Sounds → One Voice.",W/2,H*.06,Math.max(11,Math.min(14,W*.028)),sm2(0,1,E)*(1-sm2(7.5,9,E))*.9,{w:500});
+      EggSound.songNotice(el,noSong,stop);
       if(hud){hud.box.style.opacity=ha>0||E>=152?"1":"0";hud.re.hidden=E<20&&E<152}}
     const onMove=e=>{idleT=E},onDown=e=>{idleT=E;if(e.target!==cv)return;const wl=CAM.wl*H;if(e.clientY>wl&&wl<H){rings.push({x:e.clientX,y:e.clientY,t:E,r0:2,sp:s*.12,a:.8});rings.push({x:e.clientX,y:e.clientY,t:E+.3,r0:2,sp:s*.09,a:.5});voice(e.clientX,e.clientY,6)}else{taps.push({x:e.clientX,y:e.clientY,t:E});for(let i=0;i<12;i++){const a=i/12*TAU;motes.push({x:e.clientX,y:e.clientY,v:-s*.0,l:0,m:1.2,p:a,r:s*.004,c:[200,225,255],vx:0});parts.push({x:e.clientX,y:e.clientY,vx:Math.cos(a)*s*.15,vy:Math.sin(a)*s*.15,l:0,m:1,c:[210,230,255],r:1.2})}}},
       onKey=e=>{if(e.key==="Escape"){e.preventDefault();stop()}idleT=E},onSize=()=>{if(on)size()};
@@ -8807,9 +9026,9 @@ const Sky=(()=>{
       if(!RMF){g.save();g.globalCompositeOperation="multiply";g.globalAlpha=.5;g.fillStyle=GRAIN;g.fillRect(0,0,W,H);g.restore()}
       const vg2=g.createRadialGradient(W/2,H/2,Math.max(W,H)*.35,W/2,H/2,Math.max(W,H)*.8);vg2.addColorStop(0,"rgba(20,8,20,0)");vg2.addColorStop(1,"rgba(20,8,20,.38)");g.fillStyle=vg2;g.fillRect(0,0,W,H);
       lyrics(E+(FULL?0:OFS));
-      const ha=cl(1.4-(E-idleT)/2.2)*(E<END-2?1:0),ms=Math.max(11,Math.min(14,W*.028));
-      if(noSong&&E<9)text(FULL?"♪ No full song found: playing silently. Add it under Sounds → 5 Jul 2026 · Seihantai na Kimi to Boku.":"♪ No song file found: playing silently. Add one under Sounds → Seihantai na Kimi to Boku.",W/2,H*.06,ms,sm(0,1,E)*(1-sm(7.5,9,E))*.9,{w:500,f:SANS});
-      else if(wait)text("♪ Tap anywhere to start the song",W/2,H*.06,ms,.9,{w:500,f:SANS});
+      const ha=cl(1.4-(E-idleT)/2.2)*(E<END-2?1:0);
+      EggSound.songNotice(el,noSong,stop);
+      if(!noSong&&wait)text("♪ Tap anywhere to start the song",W/2,H*.06,Math.max(11,Math.min(14,W*.028)),.9,{w:500,f:SANS});
       if(hud){hud.box.style.opacity=ha>0||E>=END-2?"1":"0";hud.re.hidden=E<20&&E<END-2}}
     function size(){dpr=typeof PC!=="undefined"&&PC.res==="4k"?pcDpr():Math.min(devicePixelRatio||1,1.5);W=innerWidth;H=innerHeight;s=Math.min(W,H);cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);g=cv.getContext("2d");
       BUF=document.createElement("canvas");BUF.width=cv.width;BUF.height=cv.height;GRAIN=grain();if(!FIELD)FIELD=traceField();
@@ -9099,7 +9318,7 @@ const Sky=(()=>{
       if(T>=314&&!sandbox){const a=sm(314,318,T);g.fillStyle=`rgba(2,3,12,${.75*a})`;g.fillRect(0,0,W,H);tx("SHELTER",W/2,H*.42,a,{s:2.6,c:"#ffb0c0"});tx("Porter Robinson & Madeon",W/2,H*.42+fs*2,a*sm(317,320,T),{s:.9});tx("the tablet is yours now — draw",W/2,H*.42+fs*3.6,a*sm(321,324,T)*(Math.floor(E*2)%2?.6:1),{c:"#bff6ff",s:.9})}
       if(sandbox&&E-END<6)tx("tap the world to place things · open the tablet for other worlds",W/2,H*.1,1-sm(4,6,E-END),{c:"#bff6ff",s:.75});
       if(userW||sandbox)tx("▣ "+(NAME[cur]||""),W*.06,H*.06,.85,{al:"left",c:"#bff6ff",s:.8});
-      if(noSong&&T<9)tx("no song file: playing silently (Sounds > Shelter)",W/2,H*.05,.9,{s:.7});
+      EggSound.songNotice(el,noSong,stop);
       if(!sandbox){const p=cl(T/END);g.fillStyle="rgba(255,255,255,.25)";g.fillRect(W*.04,H-6,W*.92,2);g.fillStyle="#ffb0c0";g.fillRect(W*.04,H-7,W*.92*p,4)}
       if(hud){hud.tab.disabled=lk;hud.tab.textContent=lk?"▣ no signal":panelOpen?"▣ close tablet":"▣ tablet";if(lk&&panelOpen)panel(false);hud.sk.textContent=sandbox?"✕ Close":"✕ Skip"}
       if(panelOpen)padTick(T)}
@@ -9507,7 +9726,7 @@ const Sky=(()=>{
       post();if(W>H*1.3){const lb=Math.max(0,(H-W/2.1)/2)*sm(0,3,E)*(1-sm(LEN-1,LEN+1,E));g.fillStyle="#000";g.fillRect(0,0,W,lb);g.fillRect(0,H-lb,W,lb)}
       const vg=g.createRadialGradient(W/2,H/2,Math.max(W,H)*.35,W/2,H/2,Math.max(W,H)*.8);vg.addColorStop(0,"rgba(0,0,10,0)");vg.addColorStop(1,"rgba(0,0,10,.4)");g.fillStyle=vg;g.fillRect(0,0,W,H);
       const ha=cl(1.4-(E-idleT)/2.2);if(ha>0){const p=cl(E/LEN),y=H-7;g.fillStyle=`rgba(255,255,255,${.2*ha})`;g.fillRect(W*.04,y,W*.92,1.5);g.fillStyle=`rgba(255,214,150,${.9*ha})`;g.fillRect(W*.04,y-.5,W*.92*p,2.5);g.beginPath();g.arc(W*.04+W*.92*p,y+.7,4,0,TAU);g.fill()}
-      if(noSong&&E<9)text("♪ No song file found: playing silently. Add one under Sounds → Suzume: the film.",W/2,H*.06,Math.max(11,Math.min(14,W*.028)),sm(0,1,E)*(1-sm(7.5,9,E))*.9,{w:500});
+      EggSound.songNotice(el,noSong,stop);
       if(hud)hud.box.style.opacity=ha>0?"1":"0"}
     const onMove=()=>{idleT=E},onDown=e=>{idleT=E;if(e.target!==cv)return;for(let i=0;i<14;i++){const a=i/14*TAU+Math.random();parts.push({x:e.clientX,y:e.clientY,vx:Math.cos(a)*s*(.08+.14*Math.random()),vy:Math.sin(a)*s*(.08+.14*Math.random())-s*.08,t:E})}},
       onKey=e=>{if(e.key==="Escape"){e.preventDefault();stop()}idleT=E},onSize=()=>{if(on)size()};
