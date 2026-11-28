@@ -93,4 +93,3 @@ if __name__ == "__main__":
         sheet.paste(tile, (0, 352 * i))
     sheet.save(folder / "cloud-relief.webp", quality=90, method=6)
     deck(stamps).convert("RGB").save(folder / "cloud-deck.webp", quality=89, method=6)
-
