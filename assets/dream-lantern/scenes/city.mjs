@@ -4,6 +4,8 @@ const TAU = Math.PI * 2;
 const COUNT = { saver: 260, smooth: 800, ultra: 2200 };
 const ease = t => (t = Math.max(0, Math.min(1, t)), t*t*(3-2*t));
 const riverX = z => 11 + 19*Math.sin(-z*.033 + .45) + .05*z;
+// The sky and daylight materials share a low morning sun to the right.
+const SUN = [.75, .28, -1];
 
 // Keep the kit's toon light, atmosphere and fog. The facade ink and lighted
 // rooms go on either side of its lighting calculation, in architectural units.
@@ -30,8 +32,13 @@ function finishFacades(material, daylight, beat) {
       float front=clamp(.3+vUv.y*.8,0.,1.);
       float blinds=step(.69,pane)*smoothstep(.50,.86,frac.y);
       vec3 glaze=mix(vec3(.045,.115,.19),vec3(.28,.49,.59),front*.56+pane*.32);
+      // Daylight glass mirrors the sky (pale toward grazing angles) and throws the sun back as a glint.
+      vec3 nw=normalize(vNw), toEye=normalize(cameraPosition-vWp), rd=reflect(-toEye,nw);
+      float fres=pow(1.-max(dot(nw,toEye),0.),2.);
+      glaze=mix(glaze,mix(vec3(.16,.38,.66),vec3(.78,.88,.97),clamp(rd.y*2.+.35,0.,1.)),.3+.55*fres);
       glaze=mix(glaze,vec3(.62,.60,.49),blinds*.7);
       base=mix(base,glaze,glass*uDaylight*.92);
+      float sunGlint=pow(max(dot(rd,normalize(uLightDir)),0.),18.)*step(.35,pane);
       base*=1.-.35*ribbon*ledge;
       base+=.055*uDaylight*ribbon*smoothstep(.89,.97,frac.y);
       if(vFace.y>.5){
@@ -41,7 +48,9 @@ function finishFacades(material, daylight, beat) {
       }
       float occupancy=smoothstep(.61,.90,.56*room+.44*pane);
       vec3 lamp=mix(vec3(.28,.69,.85),vec3(1.,.54,.22),smoothstep(.37,.68,room));
-      vec3 litRooms=glass*occupancy*lamp*(.32+.81*room+.24*uWindowBeat)*(1.-uDaylight);
+      // Lit rooms run above 1 so the bloom turns them into soft bokeh; the beat lifts them a little.
+      vec3 litRooms=glass*occupancy*lamp*(.45+2.1*room*room+.55*uWindowBeat)*(1.-uDaylight)
+        +glass*uDaylight*sunGlint*vec3(3.2,2.8,2.2);
       vec3 n=normalize`);
     shader.fragmentShader = shader.fragmentShader.replace('c+uEmissive', 'c+uEmissive+litRooms');
   };
@@ -98,7 +107,7 @@ export async function create({ THREE, scene, camera, ctx2d, kit, tier, seed = 1,
     m.transparent=true; m.depthWrite=false; return m;
   }
   const [dayCloud,nightCloud,wetStone]=images.map(img=>kit.paint(img.width,img.height,g=>g.drawImage(img,0,0)));
-  const daySky=kit.sky({section:'outro',stops:[[0,'#154088'],[.39,'#2868a7'],[.68,'#478fc1'],[.87,'#82c0d5'],[1,'#d9e6df']],sun:.18,sunDir:[.75,.28,-1]});
+  const daySky=kit.sky({section:'outro',stops:[[0,'#154088'],[.39,'#2868a7'],[.68,'#478fc1'],[.87,'#82c0d5'],[1,'#d9e6df']],sun:.18,sunDir:SUN});
   const nightSky=kit.sky({section:'verse1',stops:['#02071c','#080d28','#12264d','#23516e','#658a99'],stars:.087,sun:.018,sunColor:'#8ee7ff',sunDir:[.32,.19,-1]});
   dayAir.add(daySky); nightAir.add(nightSky);
   function bank(group,texture,x,y,z,w,h) {
@@ -115,9 +124,9 @@ export async function create({ THREE, scene, camera, ctx2d, kit, tier, seed = 1,
     box:[70,38,65],size:.105,drift:[.08,.04,0],color:'#ffdda2',color2:'#96eaff',intensity:2.3,opacity:.64,seed:23});
   root.add(glints);
 
-  const day=kit.palette('outro'), night=kit.palette('verse1');
+  const night=kit.palette('verse1');
   const daylight={value:0}, windowBeat={value:0};
-  const facade=kit.toon({section:'outro',lightDir:[.80,.63,-.28],rimK:.06,wrap:.04,soft:.28,shade:'#a9b2c6'});
+  const facade=kit.toon({section:'outro',lightDir:SUN,rimK:.06,wrap:.04,soft:.28,shade:'#a9b2c6'});
   finishFacades(facade,daylight,windowBeat);
   const towers=[], colors=[], styles=[], rooftops=[], shadows=[], trees=[], roofs=[], tiles=[];
   const shades=['#d9bf9d','#8aa6aa','#b8b8ac','#658694','#c39684','#8895a2','#d8c7ac','#9e97a5'];
@@ -156,18 +165,19 @@ export async function create({ THREE, scene, camera, ctx2d, kit, tier, seed = 1,
   const facadeGeo=geometry(new THREE.BoxGeometry());
   facadeGeo.setAttribute('building',new THREE.InstancedBufferAttribute(new Float32Array(styles),3));
   batch(root,facadeGeo,facade,towers,colors);
-  const machinery=kit.toon({section:'outro',color:'#718695',rimK:.05});
+  const machinery=kit.toon({section:'outro',lightDir:SUN,color:'#718695',rimK:.05});
   batch(root,boxGeo,machinery,rooftops);
   const pitched=geometry(new THREE.BufferGeometry());
   pitched.setAttribute('position',new THREE.Float32BufferAttribute([-.5,0,.5,.5,0,.5,0,1,.5,-.5,0,-.5,.5,0,-.5,0,1,-.5],3));
   pitched.setAttribute('uv',new THREE.Float32BufferAttribute([0,0,1,0,.5,1,0,0,1,0,.5,1],2));
   pitched.setIndex([0,1,2,3,5,4,0,2,5,0,5,3,1,4,5,1,5,2]);pitched.computeVertexNormals();
-  const tiled=kit.toon({section:'outro',color:'#ffffff',rimK:.025});
+  const tiled=kit.toon({section:'outro',lightDir:SUN,color:'#ffffff',rimK:.025});
   batch(root,pitched,tiled,roofs,tiles);
-  const soil=kit.toon({section:'outro',color:'#827e7b',rimK:0});
+  const ground=options=>kit.toon({section:'outro',lightDir:SUN,...options});
+  const soil=ground({color:'#827e7b',rimK:0});
   box(terrain,soil,0,-.6,-148,510,1,435);
-  batch(terrain,boxGeo,kit.toon({section:'outro',color:'#8792a1',rimK:0}),shadows);
-  batch(terrain,geometry(new THREE.IcosahedronGeometry(1,0)),kit.toon({section:'outro',color:'#86a177',rimK:.08}),trees);
+  batch(terrain,boxGeo,ground({color:'#8792a1',rimK:0}),shadows);
+  batch(terrain,geometry(new THREE.IcosahedronGeometry(1,0)),ground({color:'#86a177',rimK:.08}),trees);
   function strip(group,mat,path,n,lo,hi,height) {
     const pos=[],uv=[],ix=[];
     for(let i=0;i<=n;i++) {
@@ -182,15 +192,15 @@ export async function create({ THREE, scene, camera, ctx2d, kit, tier, seed = 1,
     g.setIndex(ix); g.computeVertexNormals(); return mesh(group,g,mat,0,0,0);
   }
   const river=(t,offset,y)=>{ const z=27-t*402; return vec(riverX(z)+offset,y,z) };
-  const water=kit.toon({section:'outro',color:'#75b4be',rimK:.09,side:THREE.DoubleSide});
-  const banks=kit.toon({section:'outro',color:'#b6b69f',rimK:0,side:THREE.DoubleSide});
+  const water=ground({color:'#75b4be',rimK:.09,side:THREE.DoubleSide});
+  const banks=ground({color:'#b6b69f',rimK:0,side:THREE.DoubleSide});
   strip(terrain,banks,river,110,-5.2,5.2,.08); strip(terrain,water,river,110,-4.38,4.38,.13);
   const bridges=[];
   for(let z=-24;z>-314;z-=37) {
     const x=riverX(z);
     bridges.push(matrix(x,1.2,z,13,.62,1.52),matrix(x,1.66,z-.78,13,.22,.10),matrix(x,1.66,z+.78,13,.22,.10));
   }
-  batch(terrain,boxGeo,kit.toon({section:'outro',color:'#a99e94',rimK:.03}),bridges);
+  batch(terrain,boxGeo,ground({color:'#a99e94',rimK:.03}),bridges);
   // An old orange radio spire beside the canal catches morning light above
   // the shorter tiled district. Its decks give the skyline a scale reference.
   const spire=[], enamel=[], decks=[];
@@ -210,10 +220,10 @@ export async function create({ THREE, scene, camera, ctx2d, kit, tier, seed = 1,
     enamel.push(matrix(spireX,y+.70,spireZ,w*1.08,.20,w*1.08),matrix(spireX,y-.66,spireZ,w*1.05,.18,w*1.05));
   }
   for(let i=0;i<7;i++) (i%2?enamel:spire).push(matrix(spireX,36.5+i*.9,spireZ,.26-i*.022,.91,.26-i*.022));
-  const pier=kit.toon({section:'outro',color:'#c66943',rimK:.09,shade:'#546281'});
+  const pier=ground({color:'#c66943',rimK:.09,shade:'#546281'});
   batch(terrain,boxGeo,pier,spire);
-  batch(terrain,boxGeo,kit.toon({section:'outro',color:'#fff0d1',rimK:.06}),enamel);
-  batch(terrain,boxGeo,kit.toon({section:'outro',color:'#566a7a',rimK:.1}),decks);
+  batch(terrain,boxGeo,ground({color:'#fff0d1',rimK:.06}),enamel);
+  batch(terrain,boxGeo,ground({color:'#566a7a',rimK:.1}),decks);
 
   // The roof is a little listening station: cross-braced mast, Yagis and sagging feeds.
   const steel=kit.toon({section:'verse1',color:'#19263e',rimK:.027,lightDir:[.6,.2,-.8]});
@@ -319,7 +329,7 @@ export async function create({ THREE, scene, camera, ctx2d, kit, tier, seed = 1,
 
   const slab=mesh(terrace,plane,painted(wetStone,{shade:'#ffffff',fog:false}),0,24,16.9);
   slab.rotation.x=-Math.PI/2; slab.scale.set(21,14.8,1);
-  const curb=kit.toon({section:'outro',color:'#b6b3a4',rimK:.07});
+  const curb=kit.toon({section:'outro',lightDir:SUN,color:'#b6b3a4',rimK:.07});
   box(terrace,curb,0,23.73,16.9,21,.5,14.8);
   const rail=[];
   for(const x of [-10.35,10.35]) {
@@ -346,7 +356,7 @@ export async function create({ THREE, scene, camera, ctx2d, kit, tier, seed = 1,
   const nightWall=new THREE.Color('#334965'), nightKey=new THREE.Color('#879ec4');
   const white=new THREE.Color('#ffffff');
   function comet(f,low) {
-    const g=ctx2d,w=f.W,h=f.H,u=f.shot.u;
+    const g=ctx2d,w=f.W,h=f.H,u=f.shot.u,t=f.t;
     const x=(low?.50+.16*u:.18+1.64*u)*w, y=(low?.20+.055*u:.22+.20*u)*h;
     const dx=(low?.42:.76)*w, dy=(low?.17:.093)*h;
     g.save();g.globalCompositeOperation='screen';
