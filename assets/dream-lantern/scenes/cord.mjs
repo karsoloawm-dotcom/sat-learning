@@ -30,14 +30,15 @@ void main(){`;
   vec3 cordP=cp+objectNormal*mix(a1.w,a2.w,fr);vRope=mix(pth(i1,rk+3.),pth(i1+1.,rk+3.),fr);`;
   const FH = `uniform float uLen,uOff,uTime,uPulse,uKind,uG0,uG1,uHeadA,uHeadB,uSheen;uniform vec3 uC1,uC2,uC3,uC4,uGlowCol;varying vec4 vRope;float rdg=1.;
 vec3 braid(vec2 q){float a=q.x*uLen+uOff,b=q.y;
-  if(uKind<.5){float s1=fract(a*1.6+b*4.),s2=fract(a*1.6-b*4.);vec3 c=mix(uC1,uC2,step(.66,s1)*step(.66,s2)+step(.93,s1)*.5);
+  if(uKind<.5){float s1=fract(a*1.6+b*4.),s2=fract(a*1.6-b*4.);vec3 c=mix(uC1,uC2,max(step(.66,s1)*step(.66,s2),step(.93,s1)*.5));
     float band=fract(a*.11);if(band<.1)c=mix(uC3,uC4,step(.5,fract(a*3.2+b*2.)));else if(band<.13)c=uC2;
     rdg=.5+.5*max(sin(6.2832*(a*3.2+b*8.)),sin(6.2832*(a*3.2-b*8.)));return c;}
   if(uKind<1.5){float s=fract(a*1.3+b)*3.;rdg=sin(fract(s)*3.1416);return s<1.?uC1:s<2.?uC2:uC3;}
   rdg=.78+.22*sin(6.2832*(a*9.+b*3.));return uC1;}
 void main(){if(vUv.x<uG0||vUv.x>uG1)discard;vec3 base=uColor*braid(vUv)*vRope.rgb;`;
   const FL = `uRimK*(.35+.65*lit);c*=mix(.5,1.,rdg);c+=mix(base,uLight,.3)*pow(rdg,16.)*uSheen*lit*2.;
-  c+=uGlowCol*(exp(-pow((fract(vUv.x*3.-uTime*.35)-.5)*14.,2.))*uPulse+vRope.w+(1.-smoothstep(uG0,uG0+.03,vUv.x))*uHeadA+smoothstep(uG1-.03,uG1,vUv.x)*uHeadB);`;
+  float wave=(fract(vUv.x*3.-uTime*.35)-.5)*14.;
+  c+=uGlowCol*(exp(-wave*wave)*uPulse+vRope.w+(1.-smoothstep(uG0,uG0+.03,vUv.x))*uHeadA+smoothstep(uG1-.03,uG1,vUv.x)*uHeadB);`;
   function patch(m, key, a, b) { if (!m[key].includes(a)) throw new Error("cord: kit.toon shader changed (" + a + ")"); m[key] = m[key].replace(a, b) }
   function rope(strands, seg, radial) {
     const rows = 4 * strands, data = new Float32Array(NP * rows * 4);
@@ -141,11 +142,6 @@ void main(){if(vUv.x<uG0||vUv.x>uG1)discard;vec3 base=uColor*braid(vUv)*vRope.rg
   const rail = new THREE.Group(); root.add(rail);
   const pipe = new THREE.Mesh(own(new THREE.CylinderGeometry(.045, .045, 9, 18)), railM); rail.add(pipe);
   const post = new THREE.Mesh(own(new THREE.CylinderGeometry(.04, .04, 4, 14)), railM); rail.add(post);
-
-  /* the bell's gold ring-waves: flat rings facing the camera, HDR so they bloom */
-  const rings = new THREE.Group(); root.add(rings);
-  const ringGeo = own(new THREE.RingGeometry(.94, 1, 96));
-  for (let i = 0; i < 3; i++) rings.add(new THREE.Mesh(ringGeo, own(new THREE.MeshBasicMaterial({ color: new THREE.Color(2.6, 1.75, .7), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }))));
 
   /* shared kit particles, retargeted per shot (made in a wide box so any smaller box is evenly filled) */
   const P = (o, n) => { const p = kit.particles(Object.assign({ count: n, box: [60, 60, 60], center: [0, 0, 0] }, o)); root.add(p); return p };
@@ -308,7 +304,7 @@ void main(){if(vUv.x<uG0||vUv.x>uG1)discard;vec3 base=uColor*braid(vUv)*vRope.rg
     const [li, sh, rim, sk, gr, dir] = TONES[k];
     for (const m of TONED) { const u = m.uniforms, a = m === cord.mat || m === fib.mat || m === threadM ? .15 : .35; u.uLight.value.set(li).multiplyScalar(lk); u.uShade.value.set(sh); u.uRim.value.set(rim); u.uAmbSky.value.set(sk).multiplyScalar(a); u.uAmbGround.value.set(gr).multiplyScalar(a); u.uLightDir.value.set(...dir).normalize() }
   }
-  const OBJ = { cord: cord.mesh, fib: fib.mesh, maru, lan, rail, rings, clouds };
+  const OBJ = { cord: cord.mesh, fib: fib.mesh, maru, lan, rail, clouds };
   function show(...on) { for (const k in OBJ) OBJ[k].visible = on.includes(k); for (const p of PARTS) p.visible = false }
   const fogc = (c, n, f) => { scene.fog.color.set(c); scene.fog.near = n; scene.fog.far = f };
   const sp = new V3();
@@ -555,7 +551,7 @@ void main(){if(vUv.x<uG0||vUv.x>uG1)discard;vec3 base=uColor*braid(vUv)*vRope.rg
     },
     "bell"(f) { /* a thick braided bell rope swings; the bell, out of frame above, rings in gold waves on the beat */
       const t = f.t, ph = f.beat, top = BELL, len = 6.4;
-      show("cord", "rings"); tone("shrine", 1.0); fogc("#1c0e10", 4, 18); cover("shrine", f, 1.1, .2 * Math.sin(PI * ph) * .5, -.3);
+      show("cord"); tone("shrine", 1.0); fogc("#1c0e10", 4, 18); cover("shrine", f, 1.1, .2 * Math.sin(PI * ph) * .5, -.3);
       cord.look({ kind: 1, len: 15, sheen: .5, cols: ["#b8182a", "#5a2e8c", "#e8d8bc", "#e8d8bc"], pulse: .3 + .6 * f.pulse, glowK: 1.1, glowCol: "#ffc070" });
       let x = top.x, y = top.y, z = top.z, ls = 0;
       cord.set(0, (s, v) => { /* integrate down the rope; each point lags the swing a little more, so it bends like a heavy rope */
@@ -564,11 +560,19 @@ void main(){if(vUv.x<uG0||vUv.x>uG1)discard;vec3 base=uColor*braid(vUv)*vRope.rg
         v.set(x, y, z);
       }, s => .17 * (1 + .1 * ss(.85, 1, s)));
       cam(.5, -.55, 1.4, 0, .9, -3, 44, -.04);
-      camera.updateMatrixWorld();
-      rings.children.forEach((r, i) => { /* a pair of rings per beat, the newest brightest */
-        const age = (f.beatPhase + (i === 2 ? 1 : 0)) * (timing && timing.bp || .674) - (i === 1 ? .09 : 0), a = age < 0 ? 0 : (1 - cl(age / .75)) ** 2;
-        r.position.set(0, 3.6, -3); r.quaternion.copy(camera.quaternion); r.scale.setScalar(.4 + age * 7); r.material.opacity = a * (i === 2 ? .5 : 1) * (.7 + .5 * f.downPulse); r.visible = a > .003;
-      });
+      // The next shot starts on the strike. Let its leading wave enter the frame just before the cut.
+      const [rx, ry] = scr(top.x, top.y, top.z);
+      const age = t - f.shot.t1;
+      const hit = ss(-.22, 0, age) * (1 - ss(0, .3, age));
+      if (hit > 0) {
+        const g = ctx2d, radius = f.H * (.16 + .69 * cl((age + .22) / .52));
+        g.save(); g.strokeStyle = "#ffda89";
+        for (let i = 0; i < 2; i++) {
+          g.lineWidth = f.dpr * (2 - i * .75); g.globalAlpha = hit * (.9 - i * .48);
+          g.beginPath(); g.ellipse(rx * f.W, ry * f.H, radius * (1 + i * .19), radius * (.58 + i * .11), -.04, 0, TAU); g.stroke();
+        }
+        g.restore();
+      }
       pset(dust, { c: [0, .8, -2.5], b: [5, 5, 3], col: "#ffd890", size: .02, op: 1 });
       pset(bokeh, { c: [0, .5, -1], b: [4, 3, 1.5], col: "#ffcf80", col2: "#ff9a50", size: .14, op: .2, i: 1.3 });
       kit.look(grade("c2", { exposure: 1.0, bloom: 1.0, threshold: .58, glow: .46, sat: 1.1, lift: [.04, .02, .04], gain: [1.1, .98, .88], rays: .7, rayX: .5, rayY: .0, leak: .25 + .35 * (1 - f.beatPhase) ** 3, leakX: .5, leakY: 0 }));
@@ -583,7 +587,6 @@ void main(){if(vUv.x<uG0||vUv.x>uG1)discard;vec3 base=uColor*braid(vUv)*vRope.rg
     update(f) {
       const id = f.shot.var ? f.shot.key + ":" + f.shot.var : f.shot.key;
       (S[id] || S.marudai)(f);
-      if (f.debug) globalThis.__cordDbg = { maru, spools, winds, threads, bag, legs, cord, fib, dust, spark, bokeh, mirror: maru.children[0], base: maru.children[1] }; /* TEMP debug */
       kit.tick(f, ...PARTS);
       for (const r of [cord, fib]) r.U.uTime.value = f.t;
     },
