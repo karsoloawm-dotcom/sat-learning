@@ -1,5 +1,5 @@
 /* Dream Lantern scene module "stairs" (outro, shots 87 to 93): high-key morning, the stairs, the meeting.
-   street  - two round traffic mirrors on an orange pole, in focus; sunlit leaves blur in front, the street is a blur of light behind.
+   street  - a round traffic mirror on an orange pole, in focus; sunlit leaves blur in front, the street is a blur of light behind.
    lane    - a narrow lane into a low sun; an empty yellow bicycle coasts away, its long shadow trailing back toward us.
    wide, flight:climb, flight:pass, landing - one hillside stone stair with red rails above a town. Two faceless shadow figures:
              one at the top and one at the bottom, then climbing and descending on the beat, passing; a red cord flutters on the rail;
@@ -58,8 +58,8 @@ export async function create({ THREE, scene, camera, ctx2d, back2d, kit, tier, t
     const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(p, 3)); g.setAttribute("uv", new THREE.Float32BufferAttribute(new Float32Array(p.length / 3 * 2), 2)); g.computeVertexNormals(); return geo(g);
   }
   function blob() { /* a lumpy tree crown: a sphere pushed in and out, normals kept round so it shades like a soft painted clump */
-    const g = new THREE.SphereGeometry(1, q(10, 14, 18), q(7, 10, 12)), P = g.attributes.position, v = new THREE.Vector3();
-    for (let i = 0; i < P.count; i++) { v.fromBufferAttribute(P, i); const k = 1 + .17 * Math.sin(5 * v.x + 1.3) * Math.sin(4 * v.y + .7) * Math.sin(6 * v.z + 2.1) + .09 * Math.sin(11 * v.x + 9 * v.z); P.setXYZ(i, v.x * k, v.y * k * .86, v.z * k) }
+    const g = new THREE.SphereGeometry(1, q(12, 16, 22), q(8, 11, 14)), P = g.attributes.position, v = new THREE.Vector3();
+    for (let i = 0; i < P.count; i++) { v.fromBufferAttribute(P, i); const k = 1 + .17 * Math.sin(5 * v.x + 1.3) * Math.sin(4 * v.y + .7) * Math.sin(6 * v.z + 2.1) + .05 * Math.sin(7 * v.x + 6 * v.z); P.setXYZ(i, v.x * k, v.y * k * .86, v.z * k) }
     return geo(g);
   }
 
@@ -72,18 +72,23 @@ export async function create({ THREE, scene, camera, ctx2d, back2d, kit, tier, t
     g.strokeStyle = "rgba(120,110,100,.25)"; g.lineWidth = 1; for (let i = 0; i < 5; i++) { g.beginPath(); let x = R() * w, y = R() * h; g.moveTo(x, y); for (let k = 0; k < 5; k++) g.lineTo(x += (R() - .3) * 30, y += (R() - .5) * 12); g.stroke() }
     g.fillStyle = "rgba(255,250,238,.55)"; g.fillRect(0, 0, w, 5); g.fillStyle = "rgba(90,84,80,.25)"; g.fillRect(0, h - 6, w, 6);
   });
-  const stones = paint(512, 512, (g, w, h) => { /* a dry-laid stone retaining wall: irregular blocks, dark joints, a little moss */
-    g.fillStyle = "#6d675e"; g.fillRect(0, 0, w, h);
-    const rows = 8, cols = 6, ch = h / rows, cw = w / cols;
-    for (let j = -1; j <= rows; j++) for (let i = -1; i <= cols; i++) {
-      const x0 = (i + (j & 1) * .5) * cw, y0 = j * ch, pts = [];
-      for (let k = 0; k < 6; k++) { const a = k / 6 * 6.283 + .5, rx = cw * .5 - 3, ry = ch * .5 - 3; pts.push([x0 + cw / 2 + Math.cos(a) * rx * (.86 + R() * .14), y0 + ch / 2 + Math.sin(a) * ry * (.86 + R() * .14)]) }
-      const l = 168 + R() * 50 | 0; g.fillStyle = `rgb(${l},${l - 6},${l - 18})`;
-      g.beginPath(); pts.forEach(([x, y], k) => k ? g.lineTo(x, y) : g.moveTo(x, y)); g.closePath(); g.fill();
-      const gr = g.createLinearGradient(x0, y0, x0 + cw, y0 + ch); gr.addColorStop(0, "rgba(255,248,232,.35)"); gr.addColorStop(.6, "rgba(0,0,0,0)"); gr.addColorStop(1, "rgba(40,40,70,.3)"); g.fillStyle = gr; g.fill();
-      if (R() < .35) { g.fillStyle = `rgba(${90 + R() * 40 | 0},${130 + R() * 40 | 0},70,.45)`; g.beginPath(); g.ellipse(x0 + cw * (.2 + R() * .6), y0 + ch * .8, cw * .25, ch * .12, 0, 0, 6.283); g.fill() }
+  const stones = paint(512, 512, (g, w, h) => { /* a dry-laid stone retaining wall: irregular coursed blocks, dark joints, a little moss */
+    g.fillStyle = "#6a645c"; g.fillRect(0, 0, w, h);
+    let y = 0;
+    while (y < h) {
+      const ch = 34 + R() * 34; let x = -R() * 40;
+      while (x < w) {
+        const cw = 46 + R() * 70, j = 3 + R() * 3, pts = [[x + j, y + j + R() * 4], [x + cw * (.3 + R() * .4), y + j * .6], [x + cw - j, y + j + R() * 5], [x + cw - j - R() * 4, y + ch - j], [x + cw * (.3 + R() * .4), y + ch - j * .5], [x + j + R() * 4, y + ch - j - R() * 3]];
+        const l = 160 + R() * 60 | 0, warm = R() * 14 | 0; g.fillStyle = `rgb(${l + warm},${l + warm * .4 | 0},${l - 14})`;
+        g.beginPath(); pts.forEach(([px, py], k) => k ? g.lineTo(px, py) : g.moveTo(px, py)); g.closePath(); g.fill();
+        const gr = g.createLinearGradient(x, y, x + cw * .4, y + ch); gr.addColorStop(0, "rgba(255,248,232,.38)"); gr.addColorStop(.55, "rgba(0,0,0,0)"); gr.addColorStop(1, "rgba(50,50,80,.28)"); g.fillStyle = gr; g.fill();
+        for (let i = 0; i < 6; i++) { g.fillStyle = R() < .5 ? "rgba(90,84,76,.18)" : "rgba(255,252,240,.2)"; g.beginPath(); g.arc(x + R() * cw, y + R() * ch, 3 + R() * 7, 0, 6.283); g.fill() }
+        if (R() < .22) { g.fillStyle = `rgba(${84 + R() * 40 | 0},${128 + R() * 40 | 0},68,.5)`; g.beginPath(); g.ellipse(x + cw * (.2 + R() * .6), y + ch - 4, cw * .3, ch * .12, 0, 0, 6.283); g.fill() }
+        x += cw;
+      }
+      y += ch;
     }
-    speckle(g, w, h, 3000, ["rgba(60,56,50,.3)", "rgba(255,250,240,.3)"], 2);
+    speckle(g, w, h, 3000, ["rgba(60,56,50,.28)", "rgba(255,250,240,.28)"], 2);
   }, true);
   const grass = paint(256, 256, (g, w, h) => {
     g.fillStyle = "#79b24e"; g.fillRect(0, 0, w, h);
@@ -134,6 +139,8 @@ export async function create({ THREE, scene, camera, ctx2d, back2d, kit, tier, t
       k.strokeStyle = lit ? "rgba(255,255,200,.5)" : "rgba(160,220,160,.25)"; k.lineWidth = 1.5; k.beginPath(); k.moveTo(-L * .9, 0); k.lineTo(L * .9, 0); k.stroke(); k.restore();
     }
     g.filter = "blur(5px)"; g.drawImage(c, 0, 0); g.filter = "none"; c.width = 0;
+    const fade = g.createRadialGradient(w / 2, h / 2, w * .3, w / 2, h / 2, w * .5); fade.addColorStop(0, "#000"); fade.addColorStop(1, "rgba(0,0,0,0)");
+    g.globalCompositeOperation = "destination-in"; g.fillStyle = fade; g.fillRect(0, 0, w, h); g.globalCompositeOperation = "source-over";
   });
   /* the two people: faceless silhouettes, side poses (climb, passing, descend) and a front pose; a warm rim where the sky lights them */
   const atlas = paint(512, 512, g => {
@@ -243,7 +250,7 @@ export async function create({ THREE, scene, camera, ctx2d, back2d, kit, tier, t
 
   /* ---------- the hillside stair, its walls, rails and the town below (wide, flight, landing) ---------- */
   const N = 44, RISE = .19, RUN = .36, HW = 1.4, HT = N * RISE, LEN = N * RUN;
-  const S = z => cl(-z / LEN) * HT, stepY = k => (k + 1) * RISE, stepZ = k => -(k + .5) * RUN;
+  const DROP = -9, S = z => cl(-z / LEN) * HT, stepY = k => (k + 1) * RISE, stepZ = k => -(k + .5) * RUN;
   const railY = z => S(z) + RISE * .5 + .9; /* handrail height above the nosing line */
   const root = new THREE.Group(); scene.add(root);
   const world = new THREE.Group(), lane = new THREE.Group(), street = new THREE.Group(), cast = new THREE.Group();
@@ -262,22 +269,28 @@ export async function create({ THREE, scene, camera, ctx2d, back2d, kit, tier, t
   const profile = (pts, depth, x0, mat, us = .4) => { /* a side shape in (distance up the stair, height), extruded across x */
     const sh = new THREE.Shape(pts.map(([s, y]) => new THREE.Vector2(s, y))), g = new THREE.ExtrudeGeometry(sh, { depth, bevelEnabled: false });
     g.rotateY(Math.PI / 2); g.translate(x0, 0, 0); const U = g.attributes.uv; for (let i = 0; i < U.count; i++) U.setXY(i, U.getX(i) * us, U.getY(i) * us);
+    const Nn = g.attributes.normal; for (let i = 0; i < Nn.count; i++) if (!(Math.hypot(Nn.getX(i), Nn.getY(i), Nn.getZ(i)) > .5)) Nn.setXYZ(i, 1, 0, 0); /* earcut slivers have no normal */
     const m = new THREE.Mesh(geo(g), mat); world.add(m); return m;
   };
   const stairLine = []; for (let k = 0; k < N; k++) stairLine.push([k * RUN, k * RISE + RISE], [(k + 1) * RUN, k * RISE + RISE]);
-  profile([[0, -1], ...stairLine, [LEN + 4.6, HT], [LEN + 4.6, HT - 1.4], [0, -1.2]].map(([s, y]) => [s, y]), .3, HW, wallM);
-  profile([[-2, -.5], [-2, 2.2], [0, 2.3], [LEN, HT + 2.3], [LEN + 34, HT + 2.3], [LEN + 34, -.5]], 1.2, -HW - 1.2, wallM);
+  profile([[0, -1], ...stairLine, [LEN + 4.6, HT], [LEN + 4.6, HT - 1.4]], .3, HW, wallM);
+  { /* the retaining wall: only its face toward the stair, so a camera behind it can look out across the stair */
+    const sh = new THREE.Shape([[-2, -.5], [-2, 2.3], [0, 2.3], [LEN, HT + 2.3], [LEN + 34, HT + 2.3], [LEN + 34, -.5]].map(([a, b]) => new THREE.Vector2(a, b)));
+    const g = new THREE.ShapeGeometry(sh); g.rotateY(Math.PI / 2); g.translate(-HW, 0, 0); const U = g.attributes.uv; for (let i = 0; i < U.count; i++) U.setXY(i, U.getX(i) * .4, U.getY(i) * .4);
+    world.add(new THREE.Mesh(geo(g), wallM));
+  }
   const terrace = new THREE.Mesh(geo(new THREE.BoxGeometry(6.6, 1.2, 4.6)), stoneM); terrace.position.set(1.9, HT - .6, -LEN - 2.3); world.add(terrace);
 
   /* terrain: a plateau above the wall on the left, a slope falling away to the right, the street in front */
   {
-    const xs = [-60, -40, -28, -18, -11, -6, -3.2, -2.6, -2, 1.8, 2.6, 4, 6, 9, 13, 18, 25, 34, 45, 60], zs = [-90, -70, -52, -40, -32, -26, -LEN - 4.6, -LEN, -12, -8, -4, -1, .5, 2.5];
-    const T = (x, z) => {
-      if (z > 1) return x < -2.6 ? Math.max(0, 2.3 - (z - 1) * 2) : 0;
+    const xs = [-60, -40, -28, -18, -11, -6, -3.2, -1.42, -1.38, 1.8, 2.6, 4, 6, 9, 13, 18, 25, 34, 45, 60], zs = [-90, -70, -52, -40, -32, -26, -LEN - 4.6, -LEN, -12, -8, -4, -1, .5, 2.5, 8, 8.6, 14, 30];
+    const T = (x, z) => { /* the hill; DROP is the town 9 m below the street at the stair's foot */
+      if (z > 8.3) return DROP;
+      if (z > 1) return x < -1.4 ? Math.max(0, 2.3 - (z - 1) * 2) : x > 14 ? Math.max(DROP, -(x - 14) * .8) : 0;
       const s = z < -LEN - 4.6 ? HT + Math.min(5, (-LEN - 4.6 - z) * .12) : S(z);
-      if (x < -2.4) return s + 2.3 + (z < -LEN - 4.6 ? Math.max(0, -x - 8) * .05 : 0);
+      if (x < -1.4) return s + 2.3 + (z < -LEN - 4.6 ? Math.max(0, -x - 8) * .05 : 0);
       if (x <= 2) return z < -LEN - 4.6 ? s : s - .8;
-      return z < -LEN - 4.6 ? s - Math.max(0, x - 6) * .2 : Math.max(0, s - 1 - (x - 2) * .5);
+      return z < -LEN - 4.6 ? s - Math.max(0, x - 6) * .2 : Math.max(DROP, s - 1 - (x - 2) * .55);
     };
     const pos = [], uv = [], idx = [];
     zs.forEach(z => xs.forEach(x => { pos.push(x, T(x, z), z); uv.push(x / 5, z / 5) }));
@@ -287,8 +300,11 @@ export async function create({ THREE, scene, camera, ctx2d, back2d, kit, tier, t
     world.userData.T = T;
   }
   const T = world.userData.T;
-  const ground = new THREE.Mesh(geo(new THREE.PlaneGeometry(1600, 900).rotateX(-Math.PI / 2).translate(0, -.03, 450)), groundM); world.add(ground);
-  { const g = new THREE.PlaneGeometry(13, 60).rotateX(-Math.PI / 2).translate(0, .01, 29); const U = g.attributes.uv; for (let i = 0; i < U.count; i++) U.setXY(i, U.getX(i), U.getY(i) * 60 / 13); world.add(new THREE.Mesh(geo(g), asphaltM)) }
+  const ground = new THREE.Mesh(geo(new THREE.PlaneGeometry(1600, 900).rotateX(-Math.PI / 2).translate(0, DROP - .03, 458)), groundM); world.add(ground);
+  { /* the street along the foot of the stair, and the stone embankment where the land drops to the town */
+    const g = new THREE.PlaneGeometry(9.3, 30).rotateX(-Math.PI / 2).rotateY(Math.PI / 2).translate(0, .01, 3.65); const U = g.attributes.uv; for (let i = 0; i < U.count; i++) U.setXY(i, U.getX(i), U.getY(i) * 30 / 9.3); world.add(new THREE.Mesh(geo(g), asphaltM));
+    world.add(new THREE.Mesh(merge([box(0, DROP / 2, 8.6, 140, -DROP, .6, "#ffffff", 140 / 2.5, -DROP / 2.5)]), wallM));
+  }
 
   /* rails, lamp posts, utility poles and wires: one mesh with vertex colours */
   {
@@ -305,10 +321,10 @@ export async function create({ THREE, scene, camera, ctx2d, back2d, kit, tier, t
     P.push(rod(V(HW + .1, ty, -LEN - .1), V(5.1, ty, -LEN - .1), .036, RED, 8), rod(V(5.1, ty, -LEN - .1), V(5.1, ty, -LEN - 4.4), .036, RED, 8));
     P.push(rod(V(HW + .1, ty - .45, -LEN - .1), V(5.1, ty - .45, -LEN - .1), .022, RED), rod(V(5.1, ty - .45, -LEN - .1), V(5.1, ty - .45, -LEN - 4.4), .022, RED));
     for (const [x, y, z] of [[4.4, HT, -LEN - 3.8], [2.6, 0, 1.2]]) { P.push(rod(V(x, y, z), V(x, y + 4.2, z), .06, GREY), rod(V(x, y + 4.2, z), V(x - .5, y + 4.4, z), .04, GREY), box(x - .62, y + 4.32, z, .34, .12, .22, "#f4f2ea")) }
-    const poles = [[-6.4, 3], [6.4, 6], [-6.4, 19], [6.4, 22], [-6.4, 35], [6.4, 38], [6.4, 52], [-6.4, 50]];
-    for (const [x, z] of poles) { P.push(rod(V(x, 0, z), V(x, 9.4, z), .15, GREY, 8), box(x, 8.6, z, 1.6, .1, .12, GREY), { g: new THREE.CylinderGeometry(.22, .22, .7, 8), m: at(x + Math.sign(x) * .32, 7.2, z), color: "#8f9294" }) }
-    for (const side of [-6.4, 6.4]) { const ps = poles.filter(p => p[0] === side).sort((a, b) => a[1] - b[1]); for (let i = 0; i < ps.length - 1; i++) for (const dx of [-.7, 0, .7]) P.push(wire(V(side + dx, 8.65, ps[i][1]), V(side + dx, 8.65, ps[i + 1][1]), .35 + Math.abs(dx) * .1, DARK)) }
-    P.push(wire(V(-6.4, 8.65, 3), V(6.4, 8.65, 6), .4, DARK), wire(V(-6.4, 8.2, 19), V(6.4, 8.2, 22), .5, DARK), wire(V(-6.4, 8.65, 35), V(6.4, 8.65, 38), .4, DARK), wire(V(-6.4, 7.6, 3), V(-2.6, 4.6, -1), .2, DARK));
+    const poles = [[-34, 7.4], [-12, 7.4], [9, 7.4], [30, 7.4]];
+    for (const [x, z] of poles) { P.push(rod(V(x, 0, z), V(x, 9.4, z), .15, GREY, 8), box(x, 8.6, z, .12, .1, 1.6, GREY), { g: new THREE.CylinderGeometry(.22, .22, .7, 8), m: at(x, 7.2, z - .32), color: "#8f9294" }) }
+    for (let i = 0; i < poles.length - 1; i++) for (const dz of [-.7, 0, .7]) P.push(wire(V(poles[i][0], 8.65, poles[i][1] + dz), V(poles[i + 1][0], 8.65, poles[i + 1][1] + dz), .45 + Math.abs(dz) * .12, DARK));
+    P.push(wire(V(-12, 7.6, 7.4), V(-2.6, 2.4, 1.6), .25, DARK), wire(V(9, 7.9, 7.4), V(16, 9.8, -4), .2, DARK));
     world.add(new THREE.Mesh(merge(P), vcM));
   }
 
@@ -331,23 +347,21 @@ export async function create({ THREE, scene, camera, ctx2d, back2d, kit, tier, t
   }
   {
     const H = [], Tr = [];
-    const ok = (x, z) => !(z < 52 && Math.abs(x) < 7.5) && !(x > -3.2 && x < 6 && z < 2 && z > -LEN - 6);
     for (let i = 0; i < 18; i++) { const z = -2 - i * 2.6 - R(), x = -6.5 - R() * 10, w = 5 + R() * 3; H.push([x - w / 2, T(x, z) - .2, z, w, 4.5 + R() * 2, 4.5 + R() * 1.8, R() * .1]) }
-    for (let i = 0; i < 16; i++) { const z = -3 - i * 3 - R() * 2, x = 10 + R() * 22; H.push([x, T(x, z) - 3, z, 5 + R() * 3, 5 + R() * 3, 7 + R() * 2, R() * .2 - .1]) }
-    for (let i = 0; i < 9; i++) for (const s of [-1, 1]) { const z = 3 + i * 5.5 + R(), w = 6 + R() * 3; H.push([s * (8.2 + w / 2 + R()), 0, z, w, 5 + R() * 2, 5 + R() * 2.5, (R() - .5) * .06, R() < .2]) }
+    for (let i = 0; i < 18; i++) { const z = 1 - i * 2.8 - R() * 2, x = 17 + R() * 24; H.push([x, T(x, z) - 3, z, 5 + R() * 3, 5 + R() * 3, 7 + R() * 2, R() * .2 - .1]) }
     const nTown = q(450, 1100, 2300);
     for (let i = 0, guard = 0; i < nTown && guard < nTown * 6; guard++) {
-      const z = 8 + Math.pow(R(), 1.35) * 640, x = (R() - .5) * 2 * (70 + z * 1.1);
-      if (!ok(x, z) || Math.abs(((x + 1700) % 38) - 19) < 3 || Math.abs(((z + 1700) % 31) - 15.5) < 2.4) continue;
-      const big = R(), tower = z > 220 && big < .05, apt = !tower && big < .14, w = tower ? 18 + R() * 16 : apt ? 12 + R() * 10 : 6 + R() * 4;
-      H.push([x, 0, z, w, tower ? w : apt ? 9 + R() * 6 : 6 + R() * 4, tower ? 40 + R() * 70 : apt ? 10 + R() * 10 : 5 + R() * 2.5, (R() - .5) * .3, tower || apt]); i++;
+      const z = 12 + Math.pow(R(), 1.35) * 640, x = (R() - .5) * 2 * (70 + z * 1.1);
+      if (Math.abs(((x + 1700) % 38) - 19) < 3 || Math.abs(((z + 1700) % 31) - 15.5) < 2.4) continue;
+      const big = R(), far = z > 140 || Math.abs(x) > 50, tower = far && z > 220 && big < .05, apt = far && !tower && big < .14, w = tower ? 18 + R() * 16 : apt ? 12 + R() * 10 : 6 + R() * 4;
+      H.push([x, DROP, z, w, tower ? w : apt ? 9 + R() * 6 : 6 + R() * 4, tower ? 40 + R() * 70 : apt ? 10 + R() * 10 : 5 + R() * 2.5, (R() - .5) * .3, tower || apt]); i++;
     }
     houses(H, world);
-    for (let z = 1.5; z > -LEN - 8; z -= 1.25) { const x = -3 - R() * 1.6, r = .85 + R() * .9; Tr.push([x, T(-4, z) + r * .45, z, r]) }
+    for (let z = 1.5; z > -LEN + 1.5; z -= 1.25) { if (z < -8.6 && z > -14.4) continue; const x = -2.4 - R() * 1.8, r = .85 + R() * .9; Tr.push([x, T(-4, z) + r * .45, z, r]) }
     for (let i = 0; i < q(30, 60, 90); i++) { const x = -8 - R() * 40, z = 2 - R() * 60, r = 1.8 + R() * 2.4; Tr.push([x, T(x, z) + r * .9 + R() * 2, z, r]) }
-    for (let i = 0; i < q(20, 40, 60); i++) { const z = -1 - R() * (LEN + 4), x = (z > -13 && z < -1 ? 9 : 2.6) + R() * 14, r = .9 + R() * 1.6; Tr.push([x, T(x, z) + r * .6, z, r]) }
+    for (let i = 0; i < q(20, 40, 60); i++) { const z = -1 - R() * (LEN + 4), x = (z > -15 && z < -1 ? 8 : 2.6) + R() * 14, r = (x < 6 ? .6 : .9) + R() * (x < 6 ? .8 : 1.6); Tr.push([x, T(x, z) + r * (x < 6 ? .2 : .6), z, r]) }
     for (let i = 0; i < q(30, 60, 90); i++) { const s = R() < .5 ? -1 : 1, x = s * (4 + R() * 20) + (s > 0 ? 3 : 0), z = -LEN - 7 - R() * 40, r = 2.4 + R() * 2.4; Tr.push([x, T(x, z) + r * .8 + 2 + R() * 3, z, r]) }
-    for (let i = 0; i < q(120, 300, 650); i++) { const z = 8 + Math.pow(R(), 1.2) * 500, x = (R() - .5) * 2 * (60 + z), r = 2 + R() * 3; if (ok(x, z)) Tr.push([x, r * .8 + 1.5, z, r]) }
+    for (let i = 0; i < q(120, 300, 650); i++) { const z = 11 + Math.pow(R(), 1.2) * 500, x = (R() - .5) * 2 * (60 + z), r = 2 + R() * 3; Tr.push([x, DROP + r * .8 + 1.5, z, r]) }
     trees(Tr, world);
   }
 
@@ -368,7 +382,7 @@ export async function create({ THREE, scene, camera, ctx2d, back2d, kit, tier, t
     cordG.setAttribute("position", new THREE.BufferAttribute(p, 3).setUsage(THREE.DynamicDrawUsage)); cordG.setAttribute("uv", new THREE.BufferAttribute(uv, 2)); cordG.setAttribute("normal", new THREE.BufferAttribute(new Float32Array(p.length).fill(0).map((_, i) => i % 3 === 0 ? 1 : 0), 3)); cordG.setIndex(idx) }
   const cordM = toon({ color: "#ffffff", map: cordTex, side: THREE.DoubleSide, emissive: new THREE.Color(.16, .01, .02), rimK: .5, soft: .3 });
   const cord = new THREE.Mesh(cordG, cordM); cord.frustumCulled = false; world.add(cord);
-  const KNOT_K = 19, knotZ = stepZ(KNOT_K) + .1, knotP = V(HW - .16, railY(knotZ) + .01, knotZ);
+  const KNOT_K = 31, knotZ = stepZ(KNOT_K) + .1, knotP = V(HW - .16, railY(knotZ) + .01, knotZ);
   const knot = new THREE.Mesh(geo(new THREE.TorusGeometry(.05, .022, 6, 12)), toon({ color: "#c8182a", emissive: new THREE.Color(.1, 0, 0), rimK: .6 })); knot.position.copy(knotP); knot.rotation.y = Math.PI / 2; world.add(knot);
 
   /* ---------- the lane (its own little set, far to the side) ---------- */
@@ -390,11 +404,11 @@ export async function create({ THREE, scene, camera, ctx2d, back2d, kit, tier, t
     for (const s of [-1, 1]) for (let z = 4; z > -150; z -= 7 + R() * 5) { const w = 6 + R() * 3; H.push([s * (3.6 + w / 2 + R() * 2), 0, z, w, 5 + R() * 3, 5.2 + R() * 2.2, (R() - .5) * .08, R() < .12]) }
     H.push([0, 0, -158, 30, 8, 9, 0, true]);
     houses(H, lane);
-    for (const s of [-1, 1]) for (let z = 3; z > -150; z -= 2.2 + R() * 5) { const r = .9 + R() * 1.3; Tr.push([s * (2.4 + R() * 1.6), 1.6 + r * .7 + R() * 1.5, z, r]) }
+    for (const s of [-1, 1]) for (let z = 3; z > -150; z -= 2.2 + R() * 5) { const r = .8 + R() * 1.1; Tr.push([s * (2.9 + R() * 1.8), 1.5 + r * .6 + R() * 1.6, z, r]) }
     trees(Tr, lane);
   }
   /* long shadows thrown back toward the camera by the low sun ahead: soft ellipses, one draw call */
-  const LANE_SUN = V(.2, .27, -.94).normalize(), sh2 = V(-LANE_SUN.x, 0, -LANE_SUN.z).normalize(), shLen = 1 / Math.tan(Math.asin(LANE_SUN.y));
+  const LANE_SUN = V(.16, .15, -.97).normalize(), sh2 = V(-LANE_SUN.x, 0, -LANE_SUN.z).normalize(), shLen = 1 / Math.tan(Math.asin(LANE_SUN.y));
   {
     const P = [];
     const quad = (x, z, len, w, ang) => ({ g: new THREE.PlaneGeometry(w, len).rotateX(-Math.PI / 2).translate(0, .02, -len / 2), m: new THREE.Matrix4().compose(V(x, 0, z), new THREE.Quaternion().setFromAxisAngle(UP, ang), ONE) });
@@ -402,7 +416,7 @@ export async function create({ THREE, scene, camera, ctx2d, back2d, kit, tier, t
     for (const [x, z] of [[1.5, -9], [-1.5, -24], [1.5, -38], [1.5, -66], [-1.5, -80], [1.5, -96], [1.5, -126]]) P.push(quad(x, z, 8.6 * shLen, .5, ang));
     for (let z = 4; z > -150; z -= 1.6 + R() * 2) P.push(quad(1.75, z, 2 + R() * 3, .7 + R() * .9, ang + (R() - .5) * .3));
     for (let z = 2; z > -150; z -= 4 + R() * 6) P.push(quad(1.9, z, 4 + R() * 6, 1 + R() * 1.4, ang));
-    const m = new THREE.Mesh(merge(P), bmat(new THREE.MeshBasicMaterial({ color: "#3d4f96", map: soft, transparent: true, opacity: .34, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2 })));
+    const m = new THREE.Mesh(merge(P), bmat(new THREE.MeshBasicMaterial({ color: "#3d4f96", map: soft, transparent: true, opacity: .42, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2 })));
     m.renderOrder = 1; lane.add(m);
   }
   /* the yellow bicycle (a step-through town bike with a front basket), and its long shadow */
@@ -413,24 +427,24 @@ export async function create({ THREE, scene, camera, ctx2d, back2d, kit, tier, t
     const hub = [V(0, wr, .52), V(0, wr, -.52)], bb = V(0, .3, .08), seat = V(0, .86, .3), head = V(0, .82, -.4);
     P.push(rod(hub[0], bb, .02, Y), rod(hub[0], V(0, .78, .34), .018, Y), rod(bb, V(0, .8, .3), .026, Y), rod(bb, V(0, .5, -.25), .03, Y), rod(V(0, .5, -.25), head, .03, Y), rod(head, hub[1], .02, S));
     P.push(rod(head, V(0, 1.02, -.36), .018, S), rod(V(-.28, 1.03, -.3), V(.28, 1.03, -.3), .016, S), box(0, .92, .32, .12, .06, .24, D), box(0, .78, .62, .26, .03, .3, S), box(0, .84, -.64, .34, .24, .3, "#d6d9de"), box(.04, .3, .2, .03, .14, .36, Y));
-    const bm = new THREE.Mesh(merge(P), vcM); bike.add(bm); bike.userData.wheels = [];
+    bike.add(new THREE.Mesh(merge(P), vcM));
     const bs = paint(64, 256, (g, w, h) => { g.fillStyle = "#fff"; g.filter = "blur(2px)"; g.lineWidth = 7; g.strokeStyle = "#fff"; for (const y of [.18, .62]) { g.beginPath(); g.ellipse(w / 2, h * y, w * .3, h * .16, 0, 0, 6.283); g.stroke() } g.fillRect(w * .44, h * .2, w * .12, h * .5) });
     const shM = bmat(new THREE.MeshBasicMaterial({ color: "#3d4f96", map: bs, transparent: true, opacity: .4, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -3 }));
     const shadow = new THREE.Mesh(geo(new THREE.PlaneGeometry(.9, 1.1 * shLen + 1).rotateX(-Math.PI / 2).translate(0, .025, -((1.1 * shLen + 1) / 2 - .4))), shM);
     shadow.renderOrder = 2; bike.add(shadow); bike.userData.shadow = shadow;
   }
 
-  /* ---------- the street corner: two round mirrors on an orange pole, leaves in front ---------- */
+  /* ---------- the street corner: a round mirror on an orange pole, leaves in front ---------- */
   const SX = -400; street.position.x = SX;
   {
-    const O = "#f2782a", P = [rod(V(0, 0, 0), V(0, 3.05, 0), .045, O, 10), rod(V(-.62, 2.86, 0), V(.62, 2.86, 0), .03, O)];
-    const mir = [[-.5, .5, .25], [.5, -.42, -.12]];
-    mir.forEach(([x, ry, rx]) => { const m = new THREE.Matrix4().compose(V(x, 2.86, .06), new THREE.Quaternion().setFromEuler(new THREE.Euler(rx, ry, 0)), ONE); P.push({ g: new THREE.CylinderGeometry(.43, .43, .07, 28).rotateX(Math.PI / 2).translate(0, 0, -.04), m, color: O }, { g: new THREE.TorusGeometry(.415, .03, 6, 28), m, color: O }) });
+    const O = "#ff6a12", P = [rod(V(0, 0, 0), V(0, 3.3, 0), .05, O, 10), rod(V(0, 2.95, 0), V(-.34, 2.95, .02), .03, O), box(0, 2.1, .05, .16, .5, .02, "#f4f2ea"), box(0, 1.55, .05, .11, .11, .02, "#ff6a12")];
+    const mir = [[-.36, .42, .16]];
+    mir.forEach(([x, ry, rx]) => { const m = new THREE.Matrix4().compose(V(x, 2.95, .06), new THREE.Quaternion().setFromEuler(new THREE.Euler(rx, ry, 0)), ONE); P.push({ g: new THREE.CylinderGeometry(.5, .5, .08, 32).rotateX(Math.PI / 2).translate(0, 0, -.045), m, color: O }, { g: new THREE.TorusGeometry(.485, .035, 6, 32), m, color: O }) });
     street.add(new THREE.Mesh(merge(P), vcM));
-    mir.forEach(([x, ry, rx], i) => { const f = new THREE.Mesh(geo(new THREE.CircleGeometry(.39, 32)), bmat(new THREE.MeshBasicMaterial({ map: mirrorTex[i], color: new THREE.Color(1.35, 1.32, 1.28) }))); f.position.set(x, 2.86, .06); f.rotation.set(rx, ry, 0); f.translateZ(.005); street.add(f) });
+    mir.forEach(([x, ry, rx], i) => { const f = new THREE.Mesh(geo(new THREE.CircleGeometry(.455, 40)), bmat(new THREE.MeshBasicMaterial({ map: mirrorTex[i], color: new THREE.Color(1.35, 1.32, 1.28) }))); f.position.set(x, 2.95, .06); f.rotation.set(rx, ry, 0); f.translateZ(.005); street.add(f) });
     /* leaves placed in the base camera's view (corners of a 16:9 frame), so they frame the shot out of focus */
     const L = [], bc = new THREE.PerspectiveCamera(23, 16 / 9, .1, 10), th = Math.tan(23 * Math.PI / 360);
-    bc.position.set(SX + .95, 2.32, 5.4); bc.lookAt(SX + .1, 2.82, 0); bc.updateMatrixWorld();
+    bc.position.set(SX + .7, 2.42, 5.4); bc.lookAt(SX - .25, 2.86, 0); bc.updateMatrixWorld();
     for (const [nx, ny, d, s, r] of [[-.92, .78, 1.7, .62, -.5], [.95, .9, 1.9, .58, 2.5], [1.0, -.72, 1.6, .6, 3.7], [-1.0, -.6, 2.1, .45, .9]]) {
       const p = V(nx * d * th * 16 / 9, ny * d * th, -d).applyMatrix4(bc.matrixWorld); p.x -= SX;
       L.push({ g: new THREE.PlaneGeometry(s, s), m: new THREE.Matrix4().compose(p, bc.quaternion.clone().multiply(new THREE.Quaternion().setFromAxisAngle(V(0, 0, 1), r)), ONE) });
@@ -445,19 +459,28 @@ export async function create({ THREE, scene, camera, ctx2d, back2d, kit, tier, t
   const haze = kit.haze({ section: SEC, count: q(12, 26, 44), center: [0, 18, 300], box: [700, 18, 420], size: 110, top: "#ffffff", bottom: "#d8e6f0", opacity: .3, drift: [.6, 0, 0], seed: seed + 4 });
   const dust = kit.particles({ section: SEC, kind: "dust", count: q(300, 1200, 3200), center: [0, 0, 0], box: [9, 5, 9], drift: [.05, .05, -.02], size: .028, color: "#fff4dc", color2: "#d4f2ff", intensity: 1.5, twinkle: .4, wobble: .25, seed: seed + 5 });
   const spark = kit.particles({ section: SEC, kind: "spark", count: q(40, 120, 300), center: [0, 0, 0], box: [7, 4, 7], drift: [.02, .03, 0], size: .07, color: "#fffaf0", color2: "#c8f4ff", intensity: 2.6, twinkle: .85, on: "fast", wobble: .15, seed: seed + 6 });
-  const bokeh = kit.particles({ section: SEC, kind: "bokeh", count: q(60, 200, 500), center: [0, 0, 0], box: [6, 3.2, 2.4], drift: [.04, .02, 0], size: .17, color: "#ffe1b0", color2: "#bdf1ff", intensity: 1, twinkle: .3, opacity: .5, on: "fast", beat: .6, wobble: .2, seed: seed + 7 });
+  const bokeh = kit.particles({ section: SEC, kind: "bokeh", count: q(60, 200, 500), center: [0, 0, 0], box: [6, 3.2, 2.4], drift: [.04, .02, 0], size: .15, color: "#ffe9c6", color2: "#e2f8ff", intensity: .9, twinkle: .3, opacity: .26, on: "fast", beat: .6, wobble: .2, seed: seed + 7 });
   root.add(haze, dust, spark, bokeh);
 
   /* ---------- per-frame helpers ---------- */
   const tmp = new THREE.Vector3(), fwd = new THREE.Vector3();
   const fastAt = t => { const a = timing.fast; let lo = 0, hi = a.length - 1; if (t <= a[0]) return (t - a[0]) / (timing.bp / 2); while (lo < hi) { const m = (lo + hi + 1) >> 1; if (a[m] <= t) lo = m; else hi = m - 1 } const b = a[lo + 1] ?? a[lo] + timing.bp / 2; return lo + cl((t - a[lo]) / (b - a[lo])) };
-  function shoot(f, pos, look, fov) { camera.position.copy(pos); camera.lookAt(look); camera.fov = fov; camera.aspect = f.W / Math.max(1, f.H); camera.updateProjectionMatrix(); camera.updateMatrixWorld() }
+  function shoot(f, pos, look, fov) {
+    camera.position.copy(pos);
+    camera.lookAt(look);
+    camera.aspect = Math.max(1, f.W) / Math.max(1, f.H);
+    // Preserve the horizontal composition in narrow split viewports.
+    const scale = Math.max(1, 1.35 / camera.aspect);
+    camera.fov = Math.atan(Math.tan(fov * Math.PI / 360) * scale) * 360 / Math.PI;
+    camera.updateProjectionMatrix();
+    camera.updateMatrixWorld();
+  }
   function screen(dir, f) { tmp.copy(camera.position).addScaledVector(dir, 1000).project(camera); return { x: (tmp.x + 1) / 2 * f.W, y: (1 - tmp.y) / 2 * f.H, front: tmp.z < 1 } }
-  function drawSky(f, glow) {
+  function drawSky(f, yaw0, glow) {
     const g = back2d, W = f.W, H = f.H; camera.getWorldDirection(fwd);
     const pitch = Math.asin(cl(fwd.y, -1, 1)), yaw = Math.atan2(fwd.x, -fwd.z), ppr = H / 2 / Math.tan(camera.fov * Math.PI / 360);
     const dw = Math.max(W * 1.4, ppr * 2.3), dh = dw * skyC.height / skyC.width, hy = H / 2 + Math.tan(pitch) * ppr;
-    const x = cl(W / 2 - dw / 2 - (yaw - f.yaw0) * ppr, W - dw, 0), y = hy - HZ * dh;
+    const x = cl(W / 2 - dw / 2 - (yaw - yaw0) * ppr, W - dw, 0), y = hy - HZ * dh;
     if (y > 0) { g.fillStyle = "#2c78d4"; g.fillRect(0, 0, W, y + 2) }
     g.drawImage(skyC, x, y, dw, dh);
     if (y + dh < H) { g.fillStyle = "#f1eee2"; g.fillRect(0, y + dh - 1, W, H - y - dh + 1) }
@@ -510,71 +533,70 @@ export async function create({ THREE, scene, camera, ctx2d, back2d, kit, tier, t
 
   return {
     update(f) {
-      const id = setup(f), lt = f.shot.lt, u = lt / Math.max(.1, f.shot.t1 - f.shot.t0), sd = SUN[id];
+      const id = setup(f), lt = f.shot.lt, sd = SUN[id];
       for (const m of TOONS) m.uniforms.uLightDir.value.copy(sd);
       scene.fog.near = FOG[id][0]; scene.fog.far = FOG[id][1];
-      let look = {}, flareK = .6, glow = true;
+      let look;
       fig[0].visible = fig[1].visible = cord.visible = knot.visible = false; haze.visible = id === "landing" || id === "wide";
       if (id === "street") {
         show(street);
         const dx = Math.sin(lt * .55) * .08 + lt * .14;
-        shoot(f, V(SX + .95 + dx, 2.32 + lt * .03, 5.4 - lt * .12), V(SX + .1 + dx * .3, 2.82, 0), 23);
+        shoot(f, V(SX + .7 + dx, 2.42 + lt * .03, 5.4 - lt * .12), V(SX - .25 + dx * .3, 2.86, 0), 23);
         place(bokeh, SX + .2, 2.9, -2.4); place(spark, SX, 2.9, .2); place(dust, SX + .4, 2.6, 2);
         look = { tilt: .7, focus: .5, band: .26, glow: .46, bloom: .9, threshold: .68, rays: .55, leak: .14 + .22 * f.downPulse, leakX: 0, leakY: 0, exposure: 1.08 };
-        glow = false;
       } else if (id === "lane") {
         show(lane);
-        const z = -3.2 - (5.4 * lt - .7 * lt * lt), wob = Math.sin(lt * 2.4) * .045;
+        const z = 1.2 - (5.2 * lt - .6 * lt * lt), wob = Math.sin(lt * 2.4) * .045;
         bike.position.set(-.38 + lt * .05, 0, z); bike.rotation.set(0, .05, wob); bike.userData.shadow.rotation.set(0, Math.atan2(-sh2.x, -sh2.z) - .05, -wob);
-        shoot(f, V(LX + .95, .92 + Math.sin(lt * 1.7) * .02, 5 - lt * .55), V(LX - .25, 1.45, -40), 38);
+        shoot(f, V(LX + .85, 1.05 + Math.sin(lt * 1.7) * .02, 5.4 - lt * .5), V(LX - .2, 1.7, -40), 40);
         place(bokeh, LX + .3, 1.3, 1.2); place(spark, LX, 1.6, -6); place(dust, LX, 1.5, -1);
         look = { glow: .42, bloom: .85, threshold: .7, rays: .62, tilt: .3, focus: .55, band: .4, leak: .1 + .2 * f.downPulse, exposure: 1.06 };
       } else if (id === "wide") {
         show(world);
-        shoot(f, V(9.2 - lt * .08, 6.6 + Math.sin(lt * .8) * .03, 39 - lt * .25), V(-.4, 4.1, -8), 33);
+        shoot(f, V(5.5 - lt * .05, 7.4 + Math.sin(lt * .8) * .03, 56 - lt * .25), V(-.3, 4.6, -8), 29);
         fig[0].visible = fig[1].visible = true;
         stand(fig[0], 0, .2, HT, -LEN - .7, f.t); stand(fig[1], 1, -.35, 0, .9, f.t);
-        place(bokeh, 7.8, 6.4, 34.5); place(spark, 2, 6, 22); place(dust, 7, 6.3, 31);
+        place(bokeh, 4.6, 7.2, 51.5); place(spark, 0, 5, 22); place(dust, 4, 7, 47);
         const e = sm(0, .9, lt);
         look = { exposure: mix(1.45, 1.08, e), glow: mix(.7, .44, e), bloom: .9, threshold: .7, rays: .72, tilt: .22, focus: .52, band: .5, sat: 1.08 };
       } else if (id === "climb") {
         show(world);
-        const km = 19, cz = stepZ(km) - lt * .3, cy = stepY(km) + lt * .3 * RISE / RUN;
-        shoot(f, V(6.3, cy + 1.25, cz + .9), V(0, cy + .55, cz - .5), 37);
+        const km = 29, cz = stepZ(km) - lt * .3, cy = stepY(km) + lt * .3 * RISE / RUN;
+        shoot(f, V(6.3, cy + .9, cz + .9), V(0, cy + 1.35, cz - .5), 37);
         fig[0].visible = fig[1].visible = true;
         const n = f.fast - fastAt(f.shot.t0);
-        walk(fig[1], 1, 12 + n, -.45, "up", camera.position); walk(fig[0], 0, 27 - n, .45, "down", camera.position);
+        walk(fig[1], 1, 22 + n, -.45, "up", camera.position); walk(fig[0], 0, 37 - n, .45, "down", camera.position);
         place(bokeh, 5, cy + 1.2, cz + .6); place(spark, 1, cy + 1, cz); place(dust, 3, cy + 1, cz);
         look = { glow: .44, bloom: .85, threshold: .7, rays: .5, tilt: .32, focus: .45, band: .42, leak: .12 + .2 * f.downPulse, leakX: 0, leakY: 0 };
       } else if (id === "pass") {
         show(world);
-        const km = 18, cz = stepZ(km) + lt * .2, cy = stepY(km) - lt * .2 * RISE / RUN;
-        shoot(f, V(-2.05, cy + 1.05, cz - .35), V(6, cy + .2, cz + 1.7), 41);
+        const km = 31, cz = stepZ(km) + lt * .2, cy = stepY(km) - lt * .2 * RISE / RUN;
+        shoot(f, V(-5.6, cy + 1.5, cz - .5), V(6, cy + .3, cz + 1.4), 34);
         fig[0].visible = fig[1].visible = cord.visible = knot.visible = true;
         const n = f.fast - fastAt(f.shot.t0);
-        walk(fig[1], 1, 16.4 + n, -.45, "up", camera.position); walk(fig[0], 0, 20.6 - n, .45, "down", camera.position);
+        walk(fig[1], 1, 30 + n, -.45, "up", camera.position); walk(fig[0], 0, 33 - n, .45, "down", camera.position);
         updateCord(f, .55 + .45 * f.pulse);
-        place(bokeh, -.6, cy + 1, cz + .4); place(spark, 1.4, cy + 1, cz + 1); place(dust, 0, cy + 1, cz + .5);
+        place(bokeh, -3.2, cy + 1.3, cz - .2); place(spark, 1.4, cy + 1, cz + 1); place(dust, -1, cy + 1.2, cz + .5);
         const fl = Math.exp(-Math.max(0, lt) * 3);
         look = { glow: .48 + .25 * fl, bloom: .9, threshold: .68, rays: .75, exposure: 1.08 + .35 * fl, tilt: .25, focus: .5, band: .5, leak: .2 + .35 * fl, leakX: 1, leakY: .15 };
       } else {
         show(world);
         const p = lt * .22;
-        shoot(f, V(.7 + p * .3, HT + 1.6 + p * .15, -LEN - 3.1 + p), V(2.4 + p * .2, HT - 3.6, -LEN + 18 + p), 47);
+        shoot(f, V(.7 + p * .3, HT + 1.6 + p * .15, -LEN - 3.1 + p), V(2.4 + p * .2, HT - 2.2, -LEN + 30 + p), 50);
         place(bokeh, 1.6, HT + 1.5, -LEN - 1.4); place(spark, 2.5, HT + 1, -LEN + 3); place(dust, 1.5, HT + 1.5, -LEN);
         look = { glow: .44, bloom: .88, threshold: .7, rays: .55, tilt: .5, focus: .42, band: .36, exposure: 1.08 + .04 * Math.sin(lt * 1.5), sat: 1.06 };
       }
-      f.yaw0 = { street: 0, lane: -.03, wide: -.2, climb: -1.35, pass: 1.82, landing: 3.06 }[id];
+      const yaw0 = { lane: -.03, wide: -.09, climb: -1.35, pass: 1.68, landing: 3.09 }[id];
       /* the sun: a bloom source in 3D, a warm glow on the painted sky, rays, a flare */
       const s = screen(sd, f);
       sun.position.copy(camera.position).addScaledVector(sd, 1400); sun.lookAt(camera.position); sun.scale.setScalar(380 * (1 + .06 * f.pulse)); sun.visible = id !== "street";
       if (id === "street") { const W = f.W, H = f.H, sc = Math.max(W / streetC.width, H / streetC.height) * 1.08; back2d.drawImage(streetC, (W - streetC.width * sc) / 2 - lt * W * .012, (H - streetC.height * sc) / 2, streetC.width * sc, streetC.height * sc) }
-      else drawSky(f, glow && s);
+      else drawSky(f, yaw0, s);
       const sx = id === "street" ? -.05 : s.x / f.W, sy = id === "street" ? -.08 : s.y / f.H;
       look.rayX = cl(sx, -.6, 1.6); look.rayY = cl(sy, -.6, 1.6);
       kit.look(look);
       kit.tick(f, haze, dust, spark, bokeh);
-      if (id !== "street") flare(f, s, flareK * (1 + .35 * f.pulse));
+      if (id !== "street") flare(f, s, .6 * (1 + .35 * f.pulse));
       else flare(f, { x: -.05 * f.W, y: -.08 * f.H, front: true }, .5 * (1 + .35 * f.pulse));
     },
     setVisible(on) { root.visible = on },
