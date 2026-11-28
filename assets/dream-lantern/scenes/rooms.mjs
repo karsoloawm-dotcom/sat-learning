@@ -56,8 +56,13 @@ export async function create({ THREE, scene, camera, back2d, kit, tier, timing }
   /* occluders (room space): futon with pillow, desk, shelf, and everything beyond the room's back wall */
   [[-.24, 0, -2.76, .86, .085, -.6], [-1.5, 0, -3.33, -.6, .36, -2.87], [1.0, 0, -3.21, 1.5, .34, -2.89], [-9, -9, .03, 9, 9, 99]].forEach((b, i) => { U.uOccA.value[i].set(b[0], b[1], b[2]); U.uOccB.value[i].set(b[3], b[4], b[5]) });
   /* kit.toon() plus the room's sun and lamp; every room material shares one mood */
-  function toon(o) {
-    const m = kit.toon(Object.assign({ section: "prechorus" }, o)), fs = m.fragmentShader;
+  function toon({ map, ...options }) {
+    const m = kit.toon({ section: "prechorus", ...options }), fs = m.fragmentShader;
+    if (map) {
+      // Bind the original painting so the kit can dispose the texture that was uploaded.
+      m.uniforms.uMap.value = map;
+      m.uniforms.uMapOn.value = 1;
+    }
     m.fragmentShader = fs.replace("void main(){", LIGHT + "void main(){").replace("gl_FragColor=vec4(c+uEmissive", "vec3 pw=vWp;pw.x*=uMir;vec3 nm=n;nm.x*=uMir;c+=base*(uSunC*winLit(pw)*max(dot(nm,-uSunD),0.)+lampAt(pw,nm));gl_FragColor=vec4(c+uEmissive");
     if (!m.fragmentShader.includes("lampAt(pw")) console.warn("rooms: kit.toon changed; the room light is off");
     Object.assign(m.uniforms, U, MOOD); return m;
