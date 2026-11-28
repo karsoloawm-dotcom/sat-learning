@@ -166,9 +166,9 @@ void main(){
 }`;
 const WATER_F = `
 uniform sampler2D uReflection,uSky;
-uniform vec3 uWater,uSun,uLight;
+uniform vec3 uWater,uSun,uLight,uLantern;
 uniform vec2 uRippleCenter;
-uniform float uTime,uMotion,uPulse,uRing,uSunPower,uFlat;
+uniform float uTime,uMotion,uPulse,uRing,uSunPower,uHero;
 varying vec3 vWorld;
 varying vec4 vClip;
 float noise2(vec2 p){
@@ -186,7 +186,8 @@ void main(){
   vec2 off=vec2(ink,wave*uMotion)*(.004*att);
   vec2 uv=.5+.5*vClip.xy/vClip.w;
   float rad=length(p-uRippleCenter);
-  float ring=exp(-pow((rad-uRing*3.2)*8.,2.))*exp(-max(uRing,0.)*1.85)*step(0.,uRing);
+  float crest=(rad-uRing*3.2)*8.;
+  float ring=exp(-crest*crest)*exp(-max(uRing,0.)*1.85)*step(0.,uRing);
   off.y+=ring*.006;
   vec3 refl;
 #ifdef LIVE_MIRROR
@@ -196,6 +197,10 @@ void main(){
   refl=texture2D(uSky,vec2(.5,1.-pow(max(reflected.y,0.),.6))).rgb;
   float hills=.042+.021*sin(reflected.x*29.)+.013*sin(reflected.x*63.+reflected.z*8.);
   refl=mix(refl*.45,refl,smoothstep(hills-.003,hills+.003,reflected.y));
+  float dist=dot(uLantern-vWorld,reflected);
+  vec3 gap=vWorld+max(dist,0.)*reflected-uLantern;
+  float body=length(gap/vec3(.34,.49,.34));
+  refl+=vec3(1.35,.58,.15)*uHero*step(0.,dist)*(1.-smoothstep(.80,1.04,body)+.20*exp(-body*body*.65));
 #endif
   float grazing=pow(1.-max(-ray.y,0.),2.);
   vec3 color=mix(uWater,refl,.32+.55*grazing);
@@ -212,10 +217,11 @@ function lakeSurface(THREE, tier) {
   const uniforms = {
     uReflection:{value:target?.texture || null},uSky:{value:null},uWater:{value:new THREE.Color()},
     uSun:{value:new THREE.Color()},uLight:{value:new THREE.Vector3()},uRippleCenter:{value:new THREE.Vector2()},
-    uTime:{value:0},uMotion:{value:1},uPulse:{value:0},uRing:{value:-1},uSunPower:{value:0}
+    uTime:{value:0},uMotion:{value:1},uPulse:{value:0},uRing:{value:-1},uSunPower:{value:0},
+    uLantern:{value:new THREE.Vector3()},uHero:{value:0}
   };
   const material = new THREE.ShaderMaterial({uniforms, defines:target?{LIVE_MIRROR:1}:{},
-    vertexShader:WATER_V,fragmentShader:WATER_F,depthWrite:!!target});
+    vertexShader:WATER_V,fragmentShader:WATER_F});
   const mesh=new THREE.Mesh(new THREE.PlaneGeometry(600,600).rotateX(-Math.PI/2),material);
   mesh.renderOrder=-5;
   return {target,uniforms,mesh};
@@ -334,10 +340,9 @@ export async function create({THREE,scene,camera,back2d,ctx2d,renderer,kit,tier,
   for(const [x,z,s] of [[-3.4,2,1],[3.5,2,1],[-4.3,5.7,.92],[4.3,5.7,.92]]) {
     const o=stone.clone();o.position.set(x,.13-(z-2)*.18,z);o.scale.setScalar(s);shrine.add(o);
   }
-  let forest=null,leaves=null,fogStrip=null;
   const paper=painted({section:'build',light:'#ffe8c8',shade:'#cd835d',rim:'#ffdd86',ambient:.4,rimK:.24,
     emissive:new THREE.Color(.34,.11,.018)},kit.paint(256,192,paintPaper));
-  const hero=group(world), heroBody=mesh(hero,paperShape(THREE,32),paper);
+  const hero=group(world);mesh(hero,paperShape(THREE,32),paper);
   const wood=kit.toon({section:'build',color:'#59403f',rim:'#e5b886',rimK:.12});
   const cap=geom(new THREE.CylinderGeometry(.24,.24,.055,24));
   for(const y of [-.49,.49])mesh(hero,cap,wood).position.y=y;
@@ -355,3 +360,211 @@ export async function create({THREE,scene,camera,back2d,ctx2d,renderer,kit,tier,
   }
   const fleetGlow=fixedGlow(kit,lights,{color:'#ffbc6a',color2:'#ffd58a',size:1.1,opacity:.33,intensity:2,on:'fast'});
   flotilla.add(fleetGlow);
+
+  const island = group(world);
+  const bank = mesh(island, new THREE.SphereGeometry(1, 28, 12), kit.toon({
+    section:'verse2', color:'#5d7970', shade:'#698282', light:'#d3d8bd', rimK:.12
+  }));
+  bank.scale.set(3.2, .66, 1.65);
+  bank.position.y = -.32;
+  island.position.set(0, 0, -13);
+  const pine = painted({section:'verse2', side:THREE.DoubleSide, ambient:.46, rimK:0}, kit.paint(480, 325, paintPine));
+  pine.fragmentShader = pine.fragmentShader.replace('base*=tx.rgb;', 'if(tx.a<.45)discard;base*=tx.rgb;');
+  const crown = mesh(island, new THREE.PlaneGeometry(9.4, 6.35), pine);
+  crown.position.y = 3.08;
+
+  const mist = kit.haze({
+    center:[0,.7,-18], box:[82,1.7,49], top:'#c9deda', bottom:'#a0bcbc',
+    size:11, opacity:.28, drift:[.17,0,0], seed:29
+  });
+  // The kit uses camera-facing puffs. Compress their vertical extent into lake mist.
+  mist.material.vertexShader = mist.material.vertexShader.replace('u*position.y', 'u*position.y*.32');
+  world.add(mist);
+  const ridgeFog = kit.haze({
+    center:[0,18,-62], box:[156,7,12], size:21, opacity:.21,
+    top:'#e0c8d7', bottom:'#968bab', drift:[.12,0,0], seed:53
+  });
+  world.add(ridgeFog);
+
+  const settlements = [];
+  for (let i = 0; i < 360; i++) {
+    const town = Math.floor(i / 30), a = town * TAU / 12 + (rng() - .5) * .22;
+    const r = 36.5 + rng() * 6.1;
+    settlements.push([Math.cos(a) * r, 1.8 + (r - 36.5) * .52, Math.sin(a) * r]);
+  }
+  const townLights = fixedGlow(kit, settlements, {
+    color:'#ffa65d', color2:'#ffe2b1', size:.53, opacity:.76, intensity:3.4
+  });
+  world.add(townLights);
+
+  const forest = kit.paint(1024, 660, paintForest).image;
+  const leaves = kit.paint(480, 300, paintLeaves).image;
+  const fogStrip = kit.paint(640, 64, (g,w,h) => {
+    const rnd = random(50);
+    for (let i = 0; i < 100; i++) {
+      wash(g, rnd()*w, (.37+rnd()*.26)*h, (rnd()*.14+.035)*w,
+        (rnd()*.15+.08)*h, 'rgba(213,233,228,.11)');
+    }
+  }).image;
+
+  const light = new THREE.Vector3();
+  const subject = new THREE.Vector3();
+  const target = lake.target;
+  const poses = {
+    lanterns:{ from:[0,3.2,16], travel:[2,.45,-3], aim:[0,2.9,-20], fov:43 },
+    mist:{ from:[7,2.65,17], travel:[-2,.05,-1.8], aim:[-2,1.3,-18], fov:41 },
+    tree:{ from:[4,2.2,4], travel:[-1.3,.2,-2.6], aim:[0,2.05,-13], fov:37 },
+    drift:{ from:[-3,1.55,4], travel:[.75,.09,-1.2], aim:[-.30,1.5,-9], fov:39 },
+    torii:{ from:[-2.6,1.7,12.7], travel:[1.1,.22,-1.9], aim:[.1,3.06,0], fov:46 },
+    rim:{ from:[-51,32,58], travel:[10,-1,-8], aim:[-1,10,-21], fov:48 },
+    night:{ from:[14,62,64], travel:[3,30,27], aim:[0,1.5,-6], fov:49 },
+    mirror:{ from:[.2,1.66,9.1], travel:[.13,-.52,-4.9], aim:[.35,.30,-4], fov:35 },
+    day:{ from:[-44,83,73], travel:[17,-6,-10], aim:[0,3,-4], fov:52 }
+  };
+  const fog = new THREE.FogExp2('#a7c2c4', .018);
+  scene.fog = fog;
+
+  function paintAir(f, name, u) {
+    const {W:w,H:h} = f;
+    if (name === 'torii') {
+      const width = Math.max(w * 1.06, h * 1.55);
+      back2d.drawImage(forest, (w-width)*.55-u*w*.035, -h*.04, width, h*1.09);
+      const flare = .2 + .25 * f.downPulse;
+      wash(ctx2d, w*.66, h*.34, h*.21, h*.12, `rgba(255,213,135,${flare})`);
+      wash(ctx2d, w*.40, h*.60, h*.044, h*.026, `rgba(168,221,188,${flare*.24})`);
+    } else if (mist.visible) {
+      ctx2d.save();
+      ctx2d.globalAlpha = name === 'mist' ? .49 : .29;
+      ctx2d.drawImage(fogStrip, -w*(.17+u*.10), h*.41, w*1.39, h*.15);
+      ctx2d.drawImage(fogStrip, -w*(.17-u*.08), h*.55, w*1.37, h*.20);
+      if (name === 'mist') {
+        ctx2d.globalAlpha = .91;
+        const width = Math.min(w*.52,h*.77);
+        ctx2d.drawImage(leaves, -width*(.11+u*.07), h*.044, width, width*.64);
+        ctx2d.translate(w, h*.17);
+        ctx2d.scale(-1,1);
+        ctx2d.drawImage(leaves, -width*.25, -h*.09, width*.68, width*.41);
+      }
+      ctx2d.restore();
+    } else if (name === 'lanterns') {
+      const x = w*(.61+u*.14), y = h*(.25+u*.07), dx = Math.min(w*.44,h*.30);
+      wash(ctx2d, x, y, h*.027, h*.020, 'rgba(137,220,255,.37)');
+      for (const [dy, opacity, width] of [[0,.86,1.05],[-.009,.32,.56],[.007,.44,.73]]) {
+        const tail = ctx2d.createLinearGradient(x-dx,y-h*.1,x,y);
+        tail.addColorStop(0,'rgba(108,194,251,0)');
+        tail.addColorStop(.72,`rgba(120,207,255,${opacity*.47})`);
+        tail.addColorStop(1,`rgba(209,248,255,${opacity})`);
+        stroke(ctx2d,x-dx,y-h*(.105-dy),x,y+h*dy,Math.max(1,h*.0016*width),tail);
+      }
+    }
+  }
+
+  function reflect(f) {
+    const width = Math.max(1, f.W >> 1), height = Math.max(1, f.H >> 1);
+    target.setSize(width, height);
+    const previous = renderer.getRenderTarget();
+    const cubeFace = renderer.getActiveCubeFace(), mip = renderer.getActiveMipmapLevel();
+    // Mirror the world around y=0 with the original camera. This preserves the
+    // viewport's projection and leaves the reflection aligned with the shore.
+    world.scale.y = -1;
+    water.visible = false;
+    land.uniforms.uReflect.value = 1;
+    const viewHeight = lanternGlow.material.uniforms.uViewH;
+    const previousHeight = viewHeight.value;
+    viewHeight.value = height;
+    try {
+      renderer.setRenderTarget(target);
+      renderer.clear();
+      renderer.render(scene,camera);
+    } finally {
+      viewHeight.value = previousHeight;
+      land.uniforms.uReflect.value = 0;
+      water.visible = true;
+      world.scale.y = 1;
+      renderer.setRenderTarget(previous,cubeFace,mip);
+    }
+  }
+
+  root.visible = false;
+  return {
+    update(f) {
+      const {key, var:variant, u, lt} = f.shot;
+      const name = variant || key;
+      const mood = MOODS[name] || MOODS.day;
+      const pose = poses[name] || poses.day;
+      const eased = u*u*(3-2*u);
+      const travel = eased + .11*(lt - u*(f.shot.t1-f.shot.t0));
+      camera.position.fromArray(pose.from);
+      subject.fromArray(pose.travel);
+      camera.position.addScaledVector(subject, travel);
+      // Keep the focal action inside narrow split viewports.
+      camera.fov = Math.min(70,pose.fov + (name === 'lanterns' ? Math.max(0,.72-camera.aspect)*18 : 0));
+      camera.lookAt(...pose.aim);
+      camera.updateProjectionMatrix();
+      camera.updateMatrixWorld();
+
+      shrine.visible = name === 'torii';
+      sky.visible = basin.visible = water.visible = !shrine.visible;
+      mist.visible = key === 'mist';
+      ridgeFog.visible = key === 'crater';
+      island.visible = mist.visible;
+      flotilla.visible = name === 'lanterns';
+      hero.visible = name === 'mirror' || name === 'drift';
+      townLights.visible = name === 'night';
+      hero.position.set(name === 'drift' ? 1.12-eased*.92 : .35, .90+.024*Math.sin(f.t*1.3),
+        name === 'drift' ? -4.7-travel*3.05 : -4);
+      crown.rotation.y = Math.atan2(camera.position.x-island.position.x,camera.position.z-island.position.z);
+      fog.color.set(mood.fog);
+      fog.density = mist.visible ? .033 : name === 'torii' ? .006 : .0065;
+      land.uniforms.uColor.value.set(mood.ridge);
+      land.uniforms.uLight.value.set(name === 'day' ? '#fff9e4' : mood.fog);
+      land.uniforms.uShade.value.set(name === 'day' ? '#8ba2a0' : '#7793b2');
+      paper.uniforms.uEmissive.value.setRGB(.34,.11,.018).multiplyScalar(1+.23*f.fastPulse);
+      light.set(name === 'day' ? -.42 : .26, name === 'day' ? .29 : .094,-1).normalize();
+      skyU.uRamp.value = ramps[name] || ramps.day;
+      skyU.uSunDir.value.copy(light);
+      skyU.uSunCol.value.set(mood.sun);
+      skyU.uSun.value = mood.glow;
+      skyU.uStars.value = mood.stars;
+      skyU.uCloudInk.value.set(mood.sky[1]).multiplyScalar(.70);
+      skyU.uCloudLight.value.set(mood.sky[2]).multiplyScalar(1.14);
+      kit.tick(f,sky,mist,ridgeFog,lanternGlow,fleetGlow,townLights);
+      wu.uTime.value = f.t;
+      wu.uWater.value.set(mood.water);
+      wu.uSky.value = skyU.uRamp.value;
+      wu.uMotion.value = name === 'mirror' || name === 'drift' ? 0 : mist.visible ? .32 : .69;
+      wu.uLight.value.copy(light);
+      wu.uSun.value.set(mood.sun);
+      wu.uSunPower.value = name === 'day' ? 1.1 : .42;
+      wu.uPulse.value = f.pulse;
+      wu.uHero.value = Number(hero.visible);
+      wu.uLantern.value.copy(hero.position);
+      wu.uRippleCenter.value.set(hero.position.x,hero.position.z);
+      // Find the first downbeat after the cut so the reflection carries one ring.
+      const downbeat = name === 'mirror' ? timing.downbeats.find(t => t >= f.shot.t0 && t < f.shot.t1) : undefined;
+      wu.uRing.value = downbeat === undefined ? -1 : f.t-downbeat;
+
+      if (target && water.visible) reflect(f);
+      paintAir(f,name,travel);
+      subject.copy(hero.position).project(camera);
+      const rays = hero.visible ? {rays:.13, rayX:.5+.5*subject.x, rayY:.5+.5*subject.y} : {};
+      kit.look({
+        bloom: name === 'day' ? .29 : .41, glow:mist.visible ? .33 : .24,
+        tilt:name === 'day' || name === 'night' ? .13 : .05, focus:.51,
+        sat: name === 'mist' ? .72 : name === 'day' ? 1.02 : .92,
+        exposure:name === 'day' ? 1.15 : name === 'night' ? 1.03 : 1.09,
+        ...(name === 'torii' ? {leak:.14+.18*f.downPulse,leakX:.66,leakY:.66,rays:.17,rayX:.66,rayY:.66} : rays)
+      });
+    },
+    setVisible(on) { root.visible = on },
+    dispose() {
+      scene.remove(root);
+      scene.fog = null;
+      for (const instance of instances) instance.dispose();
+      for (const geometry of geos) geometry.dispose();
+      water.geometry.dispose();
+      water.material.dispose();
+      target?.dispose();
+    }
+  };
+}
