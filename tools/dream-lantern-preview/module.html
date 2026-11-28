@@ -34,7 +34,7 @@ const BASE = new URL("../../assets/dream-lantern/", location.href).href, JSM = "
 const Q = new URLSearchParams(location.search), $ = id => document.getElementById(id);
 const [TM, SJ] = await Promise.all([loadTiming(BASE + "timing.json"), fetch(BASE + "shots.json").then(r => r.json())]);
 const SHOTS = SJ.shots;
-for (const m of ["_template", ...SJ.modules]) $("mod").add(new Option(m, m));
+for (const m of ["_template", "_fallback", ...SJ.modules]) $("mod").add(new Option(m, m));
 $("mod").value = Q.get("m") || SJ.modules[0]; $("tier").value = Q.get("tier") || "smooth";
 const cvB = document.createElement("canvas"), cvG = $("gl"), cvF = $("front"), back2d = cvB.getContext("2d"), ctx2d = cvF.getContext("2d");
 /* the same renderer set-up and dream-look pipeline as the core: the module renders into an HDR target, the post chain draws the screen */
