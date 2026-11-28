@@ -154,7 +154,7 @@ const MOODS = {
   rim: { sky:['#202447','#505583','#938bac','#eed0bb'], fog:'#9998b3', water:'#4d597f', sun:'#ffdcbd', glow:.15, stars:.12, ridge:'#858197' },
   night: { sky:['#070f26','#142344','#2d4366','#7385a2'], fog:'#384c68', water:'#24496a', sun:'#a0c9ff', glow:.12, stars:.75, ridge:'#3f5871' },
   mirror: { sky:['#1a2549','#464776','#a28aa1','#d7a8a0'], fog:'#8f839e', water:'#464663', sun:'#f9c6b3', glow:.10, stars:.21, ridge:'#827d95' },
-  day: { sky:['#5c97b6','#95bdc9','#dbe2c9','#e6dfc0'], fog:'#b8c6b6', water:'#61969a', sun:'#fff4bd', glow:.19, stars:0, ridge:'#698354' }
+  day: { sky:['#5c97b6','#95bdc9','#dbe2c9','#e6dfc0'], fog:'#b8c6b6', water:'#428b87', sun:'#fff4bd', glow:.19, stars:0, ridge:'#e0f4d8' }
 };
 const WATER_V = `
 varying vec3 vWorld;
@@ -222,7 +222,7 @@ function lakeSurface(THREE, tier) {
   };
   const material = new THREE.ShaderMaterial({uniforms, defines:target?{LIVE_MIRROR:1}:{},
     vertexShader:WATER_V,fragmentShader:WATER_F});
-  const mesh=new THREE.Mesh(new THREE.PlaneGeometry(600,600).rotateX(-Math.PI/2),material);
+  const mesh=new THREE.Mesh(new THREE.CircleGeometry(44,96).rotateX(-Math.PI/2),material);
   mesh.renderOrder=-5;
   return {target,uniforms,mesh};
 }
@@ -260,7 +260,7 @@ function tintTopography(THREE, geo) {
   const pos=geo.attributes.position;
   geo.computeVertexNormals();
   const norm=geo.attributes.normal, colors=new Float32Array(pos.count*3), uv=new Float32Array(pos.count*2);
-  const low=new THREE.Color('#7d9b61'), woods=new THREE.Color('#3f7463'), crag=new THREE.Color('#b3afa1'), color=new THREE.Color();
+  const low=new THREE.Color('#809d4f'), woods=new THREE.Color('#3f7252'), crag=new THREE.Color('#b3afa1'), color=new THREE.Color();
   for(let i=0;i<pos.count;i++){
     const x=pos.getX(i),z=pos.getZ(i),y=pos.getY(i);
     const grove=.52+.22*Math.sin(x*.22+Math.cos(z*.36))+.25*Math.sin(z*.28+x*.12);
@@ -386,14 +386,16 @@ export async function create({THREE,scene,camera,back2d,ctx2d,renderer,kit,tier,
   });
   world.add(ridgeFog);
 
-  const settlements = [];
-  for (let i = 0; i < 360; i++) {
-    const town = Math.floor(i / 30), a = town * TAU / 12 + (rng() - .5) * .22;
-    const r = 36.5 + rng() * 6.1;
-    settlements.push([Math.cos(a) * r, 1.8 + (r - 36.5) * .52, Math.sin(a) * r]);
+  const settlements = [], shore = terrain.geometry.attributes.position;
+  // Place windows on the actual terrain so the near rim does not bury them.
+  for (let i = 0; i < shore.count; i++) {
+    const x = shore.getX(i), y = shore.getY(i), z = shore.getZ(i);
+    const radius = Math.hypot(x,z), village = Math.cos(12*Math.atan2(z,x)+radius*.31);
+    if (radius < 37 || radius > 49 || y < .25 || village < -.23) continue;
+    settlements.push([x,y+.27,z]);
   }
   const townLights = fixedGlow(kit, settlements, {
-    color:'#ffa65d', color2:'#ffe2b1', size:.53, opacity:.76, intensity:3.4
+    color:'#ffa65d', color2:'#ffe2b1', size:.67, opacity:.85, intensity:4.6
   });
   world.add(townLights);
 
@@ -506,7 +508,7 @@ export async function create({THREE,scene,camera,back2d,ctx2d,renderer,kit,tier,
       shrine.visible = name === 'torii';
       sky.visible = basin.visible = water.visible = !shrine.visible;
       mist.visible = key === 'mist';
-      ridgeFog.visible = key === 'crater';
+      ridgeFog.visible = name === 'rim' || name === 'night';
       island.visible = mist.visible;
       flotilla.visible = name === 'lanterns';
       hero.visible = name === 'mirror' || name === 'drift';
@@ -515,10 +517,10 @@ export async function create({THREE,scene,camera,back2d,ctx2d,renderer,kit,tier,
         name === 'drift' ? -4.7-travel*3.05 : -4);
       crown.rotation.y = Math.atan2(camera.position.x-island.position.x,camera.position.z-island.position.z);
       fog.color.set(mood.fog);
-      fog.density = mist.visible ? .033 : name === 'torii' ? .006 : .0065;
+      fog.density = mist.visible ? .033 : name === 'day' ? .0026 : .0065;
       land.uniforms.uColor.value.set(mood.ridge);
       land.uniforms.uLight.value.set(name === 'day' ? '#fff9e4' : mood.fog);
-      land.uniforms.uShade.value.set(name === 'day' ? '#8ba2a0' : '#7793b2');
+      land.uniforms.uShade.value.set(name === 'day' ? '#a4b6bf' : '#7793b2');
       paper.uniforms.uEmissive.value.setRGB(.34,.11,.018).multiplyScalar(1+.23*f.fastPulse);
       light.set(name === 'day' ? -.42 : .26, name === 'day' ? .29 : .094,-1).normalize();
       skyU.uRamp.value = ramps[name] || ramps.day;
@@ -552,7 +554,8 @@ export async function create({THREE,scene,camera,back2d,ctx2d,renderer,kit,tier,
         bloom: name === 'day' ? .29 : .41, glow:mist.visible ? .33 : .24,
         tilt:name === 'day' || name === 'night' ? .13 : .05, focus:.51,
         sat: name === 'mist' ? .72 : name === 'day' ? 1.02 : .92,
-        exposure:name === 'day' ? 1.15 : name === 'night' ? 1.03 : 1.09,
+        exposure:name === 'day' ? 1.20 : name === 'night' ? 1.03 : 1.09,
+        ...(name === 'day' ? {lift:[.035,.047,.039], gain:[1.04,1.08,1], vignette:.19} : {}),
         ...(name === 'torii' ? {leak:.14+.18*f.downPulse,leakX:.66,leakY:.66,rays:.17,rayX:.66,rayY:.66} : rays)
       });
     },
