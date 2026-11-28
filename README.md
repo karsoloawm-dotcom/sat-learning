@@ -15,10 +15,7 @@ The build command creates `dist/` before Wrangler publishes the static files.
 | Deploy command | `npx wrangler deploy` |
 | Build variable | `NODE_VERSION=22` |
 
-Current Wrangler releases require Node 22.12 or newer. For a Node 20 Workers
-build, set `NODE_VERSION=20` and use `npx wrangler@4.86.0 deploy`.
-
-To validate the Wrangler configuration locally without deploying, run
+To validate the Wrangler configuration locally on Node 22 without deploying, run
 `node tools/build-site.mjs && npx wrangler deploy --dry-run`.
 
 ### Cloudflare Pages alternative
