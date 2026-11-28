@@ -18,7 +18,7 @@ export const PALETTE = {
 };
 /* per-section post defaults; a module's look() overrides any of these for its shot */
 const BASE = { exposure: 1, bloom: .8, threshold: .55, glow: .3, tilt: 0, focus: .5, band: .3, chroma: .5, sat: 1.05, vignette: .4,
-  rays: 0, rayX: .5, rayY: .2, leak: 0, leakX: 1, leakY: .3, lift: [.02, .02, .05], gain: [1, 1, 1], halation: [1, .5, .34], leakColor: [1, .62, .38] };
+  rays: 0, rayX: .5, rayY: .2, raySpace: "viewport", leak: 0, leakX: 1, leakY: .3, lift: [.02, .02, .05], gain: [1, 1, 1], halation: [1, .5, .34], leakColor: [1, .62, .38] };
 export const GRADE = {
   intro: { lift: [.012, .02, .06], gain: [1, .96, .92], glow: .32, bloom: .8 },
   verse1: { lift: [.01, .03, .06], gain: [.95, 1, 1.08], sat: 1.1 },
@@ -58,7 +58,7 @@ gl_FragColor=mix(texture2D(tAdd,vUv),s/12.,uMix);}`, { tIn: { value: null }, tAd
   const LOOK = Array.from({ length: 14 }, () => new THREE.Vector4());
   const fin = mat(`uniform sampler2D tA,tM1,tU1,tU2;uniform vec4 uL[14];uniform float uSeam,uTime;uniform vec2 uAsp;varying vec2 vUv;
 float h21(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}
-float vn(float x){float i=floor(x),f=fract(x);return mix(h21(vec2(i,7.)),h21(vec2(i+1.,7.)),f*f*(3.-2.*f));}
+float vn(float x,float period){float i=floor(x),f=fract(x);return mix(h21(vec2(mod(i,period),7.)),h21(vec2(mod(i+1.,period),7.)),f*f*(3.-2.*f));}
 vec3 soft(vec3 c){vec3 k=vec3(.72);return mix(c,k+(1.-k)*(1.-exp(-(c-k)/(1.-k))),step(k,c));}
 vec3 toS(vec3 c){c=clamp(c,0.,1.);return mix(c*12.92,1.055*pow(c,vec3(1./2.4))-.055,step(.0031308,c));}
 void main(){int o=vUv.x<uSeam?0:7;vec4 a=uL[o],b=uL[o+1],c4=uL[o+2],d=uL[o+3],e=uL[o+4],f=uL[o+5],g=uL[o+6];
@@ -69,7 +69,9 @@ void main(){int o=vUv.x<uSeam?0:7;vec4 a=uL[o],b=uL[o+1],c4=uL[o+2],d=uL[o+3],e=
   col+=u1*a.w*(1.-col/(1.+col));
   vec3 hot=max(m1-a.z,0.)*.35+max(u2-a.z*.8,0.)*1.1+max(u1-a.z*.6,0.)*1.5;col+=hot*a.y*mix(vec3(1.),f.rgb,.75);
   if(c4.z>0.){vec2 dl=d.xy-uv,dir=dl/float(RAYS);vec2 p=uv+dir*h21(uv*977.+uTime);vec3 acc=vec3(0.);float w=1.;for(int i=0;i<RAYS;i++){p+=dir;acc+=max(texture2D(tU2,p).rgb-a.z*.35,0.)*w;w*=.94;}
-    vec2 la=dl*uAsp;float an=atan(la.y,la.x)*1.5915+3.,sh=vn(an*4.)*vn(an*9.+4.);
+    vec2 la=dl*uAsp;float radius2=dot(la,la);
+    float turn=radius2>0.?atan(la.y,la.x)/6.28318530718:0.;
+    float sh=mix(.25,vn(turn*40.+12.,40.)*vn(turn*90.+31.,90.),smoothstep(0.,.0004,radius2));
     vec3 rc=mix(vec3(1.),g.rgb,.4);col+=acc*c4.z*(2.6/float(RAYS))*(.45+1.3*sh)*rc+rc*c4.z*.2*exp(-dot(la,la)*14.);}
   vec2 lk=(uv-d.zw)*uAsp;col+=g.rgb*c4.w*exp(-dot(lk,lk)*5.);
   col*=a.x;float l=dot(col,vec3(.2126,.7152,.0722));col=mix(vec3(l),col,c4.x)*e.rgb;
@@ -104,7 +106,12 @@ void main(){int o=vUv.x<uSeam?0:7;vec4 a=uL[o],b=uL[o+1],c4=uL[o+2],d=uL[o+3],e=
       SHARED.uViewH.value = vp[3] * k;
       R.setRenderTarget(sceneRT); R.render(scene, camera);
       sceneRT.scissorTest = false; sceneRT.viewport.set(0, 0, pw, ph); sceneRT.scissor.set(0, 0, pw, ph);
-      const L = Object.assign({}, look, { rayX: (vp[0] + look.rayX * vp[2]) / W, rayY: (vp[1] + look.rayY * vp[3]) / H, leakX: (vp[0] + look.leakX * vp[2]) / W, leakY: (vp[1] + look.leakY * vp[3]) / H });
+      const L = { ...look, leakX: (vp[0] + look.leakX * vp[2]) / W, leakY: (vp[1] + look.leakY * vp[3]) / H };
+      /* Ray origins are viewport-relative by default. Use raySpace: "frame" for an already mapped origin. */
+      if (look.raySpace !== "frame") {
+        L.rayX = (vp[0] + look.rayX * vp[2]) / W;
+        L.rayY = (vp[1] + look.rayY * vp[3]) / H;
+      }
       looks.push({ look: L, x0: x0 / W, x1: x1 / W });
     },
     /* composite the painted back canvas under the 3D, run the post chain to the screen; extra: looks for 2D-only parts, [{look, x0, x1}] in 0..1 */
@@ -276,12 +283,18 @@ export function createKit(THREE, tier, section = "intro") {
     },
     /* paint a cumulus lit from below into a 2D context (for back2d paintings): (g, x, baseY, w, h, topColour, undersideColour, seed) */
     cloud2d(g, x, y, w, h, top, under, seed = 1) {
-      const r = mulberry(seed), c = document.createElement("canvas"); c.width = Math.max(1, Math.ceil(w)); c.height = Math.max(1, Math.ceil(h)); const k = c.getContext("2d");
+      if (w <= 0 || h <= 0) return;
+      const r = mulberry(seed), c = document.createElement("canvas"); c.width = Math.ceil(w); c.height = Math.ceil(h); const k = c.getContext("2d");
+      k.scale(c.width / w, c.height / h);
       k.filter = `blur(${Math.max(1, h * .035)}px)`; k.fillStyle = "#fff"; /* soft painted edges where canvas filters exist */
       for (let i = 0; i < 22; i++) { const rad = h * (.16 + .22 * r()), bx = w * (.14 + .72 * r()), by = h * .78 - rad * (.2 + .9 * r()); k.beginPath(); k.arc(bx, by, rad, 0, 6.3); k.fill() }
       k.filter = "none"; k.globalCompositeOperation = "destination-in"; const base = k.createLinearGradient(0, h * .66, 0, h * .86); base.addColorStop(0, "#000"); base.addColorStop(1, "rgba(0,0,0,0)"); k.fillStyle = base; k.fillRect(0, 0, w, h);
+      const fade = Math.min(.24, h * .3 / w), sides = k.createLinearGradient(0, 0, w, 0);
+      sides.addColorStop(fade * .15, "transparent"); sides.addColorStop(fade, "#000");
+      sides.addColorStop(1 - fade, "#000"); sides.addColorStop(1 - fade * .15, "transparent");
+      k.fillStyle = sides; k.fillRect(0, 0, w, h);
       k.globalCompositeOperation = "source-in"; const gr = k.createLinearGradient(0, h * .22, 0, h * .62); gr.addColorStop(0, top); gr.addColorStop(1, under); k.fillStyle = gr; k.fillRect(0, 0, w, h);
-      g.drawImage(c, x - w / 2, y - h * .8); c.width = 0;
+      g.drawImage(c, x - w / 2, y - h * .8, w, h); c.width = 0;
     },
     /* call each kit object's per-frame update: kit.tick(f, obj1, obj2, ...) */
     tick(f, ...objs) { for (const o of objs) o && o.userData.update && o.userData.update(f) },
